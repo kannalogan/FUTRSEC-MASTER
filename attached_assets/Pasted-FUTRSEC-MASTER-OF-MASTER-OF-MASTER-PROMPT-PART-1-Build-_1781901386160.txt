@@ -1,0 +1,444 @@
+FUTRSEC
+
+MASTER OF MASTER OF MASTER PROMPT
+
+PART 1
+
+Build FUTRSEC from scratch.
+
+This is NOT an LMS.
+
+This is NOT a Course Website.
+
+This is NOT a Job Portal.
+
+Build a complete Cybersecurity Learning + Mentorship + AI + Placement Ecosystem.
+
+Inspired by:
+
+- TryHackMe
+- Coursera
+- Hack The Box
+- LinkedIn Learning
+- HackerRank
+- LeetCode
+- Naukri
+- Workday
+- Notion
+- Linear
+
+TECH STACK
+
+Frontend
+
+- React 19
+- Next.js 15
+- TypeScript
+- TailwindCSS
+- Shadcn UI
+- Framer Motion
+
+Backend
+
+- Node.js
+- Express / Next API
+- Prisma ORM
+- PostgreSQL
+
+Authentication
+
+- JWT
+- Refresh Tokens
+- RBAC
+- OTP Login
+
+Cache
+
+- Redis
+
+Queue
+
+- BullMQ
+
+Storage
+
+- AWS S3
+
+Payments
+
+- Razorpay
+
+AI
+
+- OpenAI
+- Claude
+- Gemini
+
+Notifications
+
+- Email
+- WhatsApp
+- Push
+- In App
+
+-------------------------------------------------
+
+ROLES
+
+Student
+
+Mentor
+
+TPO
+
+Employer
+
+Admin
+
+-------------------------------------------------
+
+Create PostgreSQL database.
+
+Create tables:
+
+users
+
+student_profiles
+
+mentor_profiles
+
+tpo_profiles
+
+employers
+
+tracks
+
+learning_modules
+
+lessons
+
+lesson_videos
+
+lesson_notes
+
+lesson_pdfs
+
+lesson_quizzes
+
+lesson_bookmarks
+
+labs
+
+lab_modules
+
+lab_attempts
+
+lab_reports
+
+sandbox_sessions
+
+assessments
+
+assessment_questions
+
+assessment_options
+
+assessment_answers
+
+assessment_attempts
+
+assessment_results
+
+assignments
+
+assignment_submissions
+
+declarations
+
+student_declarations
+
+broadcast_notes
+
+broadcast_recipients
+
+checkpoints
+
+checkpoint_progress
+
+fts_scores
+
+fts_history
+
+ai_interviews
+
+ai_reports
+
+ai_resume_analysis
+
+ai_career_reports
+
+ai_skill_gap_reports
+
+ai_history
+
+jobs
+
+job_skills
+
+job_applications
+
+job_shortlists
+
+interviews
+
+offers
+
+subscriptions
+
+payments
+
+invoices
+
+consent_logs
+
+consent_history
+
+data_download_requests
+
+data_delete_requests
+
+data_correction_requests
+
+retention_policies
+
+audit_logs
+
+-------------------------------------------------
+
+DPDP IMPLEMENTATION
+
+Implement:
+
+Consent History
+
+Download Personal Data
+
+Delete Personal Data
+
+Withdraw Consent
+
+Correction Request
+
+Retention Policies
+
+Consent Audit Trail
+
+TPO must see only aggregate analytics.
+
+Employers must see only consented students.
+
+Resume download requires consent.
+
+Consent logs must be immutable.
+
+-------------------------------------------------
+
+UI DESIGN
+
+Create Hybrid Theme.
+
+Background
+
+#F8F8F6
+
+Sidebar
+
+#08111F
+
+Cards
+
+White Glass Cards
+
+SOC Accent
+
+#2563EB
+
+VAPT Accent
+
+#F97316
+
+GRC Accent
+
+#10B981
+
+AI Accent
+
+Purple Gradient
+
+Fonts
+
+Heading
+
+Space Grotesk
+
+Body
+
+Inter
+
+Code
+
+Jetbrains Mono
+
+Inspired by:
+
+Notion
+
+Linear
+
+Coursera
+
+TryHackMe
+
+LinkedIn Learning
+
+PowerBI
+
+-------------------------------------------------
+
+AUTH FLOW
+
+OTP Login
+
+↓
+
+Consent Capture
+
+↓
+
+Create User
+
+↓
+
+Assign Role
+
+↓
+
+Track Selection
+
+↓
+
+Pre Assessment
+
+↓
+
+Dashboard
+
+-------------------------------------------------
+
+Use Redis for:
+
+OTP
+
+Sessions
+
+Rate Limiting
+
+Notifications
+
+Dashboard Cache
+
+-------------------------------------------------
+
+Use BullMQ for:
+
+Emails
+
+WhatsApp
+
+Notifications
+
+Broadcast Delivery
+
+Trial Expiry
+
+Subscription Expiry
+
+AI Jobs
+
+Report Generation
+
+-------------------------------------------------
+
+Use Event Driven Architecture.
+
+Example:
+
+Assessment Submitted
+
+↓
+
+Update Score
+
+↓
+
+Update FTS
+
+↓
+
+Update Analytics
+
+↓
+
+Update Mentor Dashboard
+
+↓
+
+Update TPO Dashboard
+
+↓
+
+Create Audit Log
+
+↓
+
+Send Notification
+
+-------------------------------------------------
+
+DO NOT create Student Dashboard.
+
+DO NOT create Mentor Dashboard.
+
+DO NOT create TPO Dashboard.
+
+DO NOT create Employer Dashboard.
+
+DO NOT create Admin Dashboard.
+
+Only create:
+
+Architecture
+
+Database
+
+Auth
+
+DPDP Foundation
+
+Redis
+
+BullMQ
+
+Event Bus
+
+API Skeleton
+
+Shared Components
+
+Shared Layouts
+
+Production Ready Architecture
+
+Scalable to 100,000+ users.
+
+Generate complete project structure.

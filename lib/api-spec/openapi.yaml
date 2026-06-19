@@ -3,13 +3,28 @@ info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: FUTRSEC - Cybersecurity Learning + Mentorship + AI + Placement Ecosystem API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: auth
+    description: Authentication and session management
+  - name: users
+    description: User profile management
+  - name: consent
+    description: DPDP consent management
+  - name: dpdp
+    description: DPDP data rights operations
+  - name: tracks
+    description: Cybersecurity learning tracks
+  - name: assessments
+    description: Pre-assessment and assessments
+  - name: platform
+    description: Platform-level analytics and stats
+
 paths:
   /healthz:
     get:
@@ -24,13 +39,856 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  # ───────────────────────────── AUTH ──────────────────────────────
+  /auth/send-otp:
+    post:
+      operationId: sendOtp
+      tags: [auth]
+      summary: Send OTP to phone/email
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OtpSendInput"
+      responses:
+        "200":
+          description: OTP sent
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OtpSendResult"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "429":
+          description: Rate limited
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+
+  /auth/verify-otp:
+    post:
+      operationId: verifyOtp
+      tags: [auth]
+      summary: Verify OTP and authenticate
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OtpVerifyInput"
+      responses:
+        "200":
+          description: Authenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResult"
+        "400":
+          description: Invalid OTP
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "401":
+          description: OTP expired or incorrect
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+
+  /auth/refresh:
+    post:
+      operationId: refreshToken
+      tags: [auth]
+      summary: Refresh access token using refresh token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TokenRefreshInput"
+      responses:
+        "200":
+          description: New tokens issued
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResult"
+        "401":
+          description: Invalid or expired refresh token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+
+  /auth/logout:
+    post:
+      operationId: logout
+      tags: [auth]
+      summary: Revoke current session
+      responses:
+        "204":
+          description: Session revoked
+
+  /auth/me:
+    get:
+      operationId: getMe
+      tags: [auth]
+      summary: Get current authenticated user
+      responses:
+        "200":
+          description: Current user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserProfile"
+        "401":
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+
+  # ───────────────────────────── ONBOARDING ──────────────────────────────
+  /auth/complete-profile:
+    post:
+      operationId: completeProfile
+      tags: [auth]
+      summary: Complete user profile after OTP verification (onboarding step)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProfileCompletionInput"
+      responses:
+        "200":
+          description: Profile completed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserProfile"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+
+  /auth/select-track:
+    post:
+      operationId: selectTrack
+      tags: [auth]
+      summary: Select a learning track during onboarding
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TrackSelectionInput"
+      responses:
+        "200":
+          description: Track selected
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserProfile"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+
+  # ───────────────────────────── CONSENT / DPDP ──────────────────────────────
+  /consent:
+    get:
+      operationId: getConsentStatus
+      tags: [consent]
+      summary: Get current user consent status
+      responses:
+        "200":
+          description: Consent status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ConsentStatus"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+
+    post:
+      operationId: captureConsent
+      tags: [consent]
+      summary: Capture user consent (called during onboarding)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ConsentCaptureInput"
+      responses:
+        "200":
+          description: Consent recorded
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ConsentStatus"
+        "400":
+          description: Invalid consent data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+
+  /consent/history:
+    get:
+      operationId: getConsentHistory
+      tags: [consent]
+      summary: Get immutable consent audit trail for current user
+      responses:
+        "200":
+          description: Consent history
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ConsentHistoryEntry"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+
+  /consent/withdraw:
+    post:
+      operationId: withdrawConsent
+      tags: [consent]
+      summary: Withdraw a specific consent
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ConsentWithdrawInput"
+      responses:
+        "200":
+          description: Consent withdrawn
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ConsentStatus"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+
+  /dpdp/download-request:
+    post:
+      operationId: requestDataDownload
+      tags: [dpdp]
+      summary: Request personal data download (DPDP right)
+      responses:
+        "202":
+          description: Download request accepted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DataRequest"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "429":
+          description: Too many requests
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+
+  /dpdp/delete-request:
+    post:
+      operationId: requestDataDeletion
+      tags: [dpdp]
+      summary: Request account and personal data deletion (DPDP right)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DataDeletionInput"
+      responses:
+        "202":
+          description: Deletion request accepted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DataRequest"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+
+  /dpdp/correction-request:
+    post:
+      operationId: requestDataCorrection
+      tags: [dpdp]
+      summary: Request correction of personal data (DPDP right)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DataCorrectionInput"
+      responses:
+        "202":
+          description: Correction request accepted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DataRequest"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+
+  /dpdp/requests:
+    get:
+      operationId: listDataRequests
+      tags: [dpdp]
+      summary: List current user's DPDP data requests
+      responses:
+        "200":
+          description: List of data requests
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/DataRequest"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+
+  # ───────────────────────────── TRACKS ──────────────────────────────
+  /tracks:
+    get:
+      operationId: listTracks
+      tags: [tracks]
+      summary: List all available learning tracks
+      responses:
+        "200":
+          description: All tracks
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Track"
+
+  /tracks/{id}:
+    get:
+      operationId: getTrack
+      tags: [tracks]
+      summary: Get a specific track with its modules
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Track detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TrackDetail"
+        "404":
+          description: Track not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+
+  # ───────────────────────────── ASSESSMENTS ──────────────────────────────
+  /assessments/pre:
+    get:
+      operationId: getPreAssessment
+      tags: [assessments]
+      summary: Get pre-assessment for the selected track
+      responses:
+        "200":
+          description: Pre-assessment
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Assessment"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+
+  /assessments/pre/submit:
+    post:
+      operationId: submitPreAssessment
+      tags: [assessments]
+      summary: Submit pre-assessment answers
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AssessmentSubmissionInput"
+      responses:
+        "200":
+          description: Assessment result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AssessmentResult"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+
+  # ───────────────────────────── PLATFORM ──────────────────────────────
+  /platform/stats:
+    get:
+      operationId: getPlatformStats
+      tags: [platform]
+      summary: Get public platform statistics
+      responses:
+        "200":
+          description: Platform stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PlatformStats"
+
 components:
   schemas:
     HealthStatus:
       type: object
+      required: [status]
       properties:
         status:
           type: string
-      required:
-        - status
 
+    ApiError:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: string
+        code:
+          type: ["string", "null"]
+
+    # ── Auth ──
+    OtpSendInput:
+      type: object
+      required: [contact, type]
+      properties:
+        contact:
+          type: string
+          description: Email or phone number
+        type:
+          type: string
+          enum: [email, phone]
+
+    OtpSendResult:
+      type: object
+      required: [message, expiresIn]
+      properties:
+        message:
+          type: string
+        expiresIn:
+          type: integer
+          description: Seconds until OTP expires
+
+    OtpVerifyInput:
+      type: object
+      required: [contact, otp]
+      properties:
+        contact:
+          type: string
+        otp:
+          type: string
+        type:
+          type: string
+          enum: [email, phone]
+
+    TokenRefreshInput:
+      type: object
+      required: [refreshToken]
+      properties:
+        refreshToken:
+          type: string
+
+    AuthResult:
+      type: object
+      required: [accessToken, refreshToken, user]
+      properties:
+        accessToken:
+          type: string
+        refreshToken:
+          type: string
+        user:
+          $ref: "#/components/schemas/UserProfile"
+
+    UserProfile:
+      type: object
+      required: [id, role, onboardingStep, createdAt]
+      properties:
+        id:
+          type: integer
+        email:
+          type: ["string", "null"]
+        phone:
+          type: ["string", "null"]
+        fullName:
+          type: ["string", "null"]
+        role:
+          type: string
+          enum: [student, mentor, tpo, employer, admin]
+        onboardingStep:
+          type: string
+          enum: [consent, profile, track_selection, pre_assessment, complete]
+        selectedTrackId:
+          type: ["integer", "null"]
+        avatarUrl:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+          format: date-time
+
+    ProfileCompletionInput:
+      type: object
+      required: [fullName]
+      properties:
+        fullName:
+          type: string
+          minLength: 2
+        college:
+          type: string
+        graduationYear:
+          type: ["integer", "null"]
+        city:
+          type: string
+
+    TrackSelectionInput:
+      type: object
+      required: [trackId]
+      properties:
+        trackId:
+          type: integer
+
+    # ── Consent / DPDP ──
+    ConsentStatus:
+      type: object
+      required: [userId, marketing, analytics, dataProcessing, thirdParty, updatedAt]
+      properties:
+        userId:
+          type: integer
+        marketing:
+          type: boolean
+        analytics:
+          type: boolean
+        dataProcessing:
+          type: boolean
+        thirdParty:
+          type: boolean
+        updatedAt:
+          type: string
+          format: date-time
+
+    ConsentCaptureInput:
+      type: object
+      required: [dataProcessing]
+      properties:
+        marketing:
+          type: boolean
+        analytics:
+          type: boolean
+        dataProcessing:
+          type: boolean
+        thirdParty:
+          type: boolean
+
+    ConsentWithdrawInput:
+      type: object
+      required: [consentType]
+      properties:
+        consentType:
+          type: string
+          enum: [marketing, analytics, dataProcessing, thirdParty]
+        reason:
+          type: string
+
+    ConsentHistoryEntry:
+      type: object
+      required: [id, userId, consentType, action, ipAddress, createdAt]
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+        consentType:
+          type: string
+        action:
+          type: string
+          enum: [granted, withdrawn, updated]
+        ipAddress:
+          type: string
+        userAgent:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+          format: date-time
+
+    DataRequest:
+      type: object
+      required: [id, userId, type, status, createdAt]
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+        type:
+          type: string
+          enum: [download, deletion, correction]
+        status:
+          type: string
+          enum: [pending, processing, completed, rejected]
+        notes:
+          type: ["string", "null"]
+        completedAt:
+          type: ["string", "null"]
+          format: date-time
+        createdAt:
+          type: string
+          format: date-time
+
+    DataDeletionInput:
+      type: object
+      required: [reason]
+      properties:
+        reason:
+          type: string
+
+    DataCorrectionInput:
+      type: object
+      required: [field, currentValue, requestedValue]
+      properties:
+        field:
+          type: string
+        currentValue:
+          type: string
+        requestedValue:
+          type: string
+        supportingNote:
+          type: string
+
+    # ── Tracks ──
+    Track:
+      type: object
+      required: [id, name, slug, domain, description, difficulty, durationWeeks, totalModules, enrolledCount]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        slug:
+          type: string
+        domain:
+          type: string
+          enum: [soc, vapt, grc, ai_security, cloud_security, forensics]
+        description:
+          type: string
+        difficulty:
+          type: string
+          enum: [beginner, intermediate, advanced]
+        durationWeeks:
+          type: integer
+        totalModules:
+          type: integer
+        enrolledCount:
+          type: integer
+        iconUrl:
+          type: ["string", "null"]
+        accentColor:
+          type: string
+
+    TrackDetail:
+      type: object
+      required: [id, name, slug, domain, description, difficulty, durationWeeks, modules]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        slug:
+          type: string
+        domain:
+          type: string
+        description:
+          type: string
+        difficulty:
+          type: string
+        durationWeeks:
+          type: integer
+        accentColor:
+          type: string
+        modules:
+          type: array
+          items:
+            $ref: "#/components/schemas/LearningModule"
+
+    LearningModule:
+      type: object
+      required: [id, title, order, lessonCount]
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        description:
+          type: ["string", "null"]
+        order:
+          type: integer
+        lessonCount:
+          type: integer
+
+    # ── Assessments ──
+    Assessment:
+      type: object
+      required: [id, title, type, totalQuestions, durationMinutes, questions]
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        type:
+          type: string
+          enum: [pre_assessment, module_quiz, final_exam]
+        totalQuestions:
+          type: integer
+        durationMinutes:
+          type: integer
+        questions:
+          type: array
+          items:
+            $ref: "#/components/schemas/AssessmentQuestion"
+
+    AssessmentQuestion:
+      type: object
+      required: [id, questionText, questionType, options]
+      properties:
+        id:
+          type: integer
+        questionText:
+          type: string
+        questionType:
+          type: string
+          enum: [mcq, multi_select, true_false]
+        options:
+          type: array
+          items:
+            $ref: "#/components/schemas/AssessmentOption"
+
+    AssessmentOption:
+      type: object
+      required: [id, optionText]
+      properties:
+        id:
+          type: integer
+        optionText:
+          type: string
+
+    AssessmentSubmissionInput:
+      type: object
+      required: [assessmentId, answers]
+      properties:
+        assessmentId:
+          type: integer
+        answers:
+          type: array
+          items:
+            $ref: "#/components/schemas/AnswerInput"
+
+    AnswerInput:
+      type: object
+      required: [questionId, selectedOptionIds]
+      properties:
+        questionId:
+          type: integer
+        selectedOptionIds:
+          type: array
+          items:
+            type: integer
+
+    AssessmentResult:
+      type: object
+      required: [attemptId, score, totalMarks, percentage, passed, feedback]
+      properties:
+        attemptId:
+          type: integer
+        score:
+          type: integer
+        totalMarks:
+          type: integer
+        percentage:
+          type: number
+        passed:
+          type: boolean
+        feedback:
+          type: string
+        suggestedTrackLevel:
+          type: ["string", "null"]
+
+    # ── Platform ──
+    PlatformStats:
+      type: object
+      required: [totalStudents, totalMentors, totalTracks, totalLabs, totalJobs, averageRating]
+      properties:
+        totalStudents:
+          type: integer
+        totalMentors:
+          type: integer
+        totalTracks:
+          type: integer
+        totalLabs:
+          type: integer
+        totalJobs:
+          type: integer
+        averageRating:
+          type: number
+        placementRate:
+          type: number
