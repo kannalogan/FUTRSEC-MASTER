@@ -48,7 +48,7 @@ router.get("/assessments/pre", requireAuth, async (req: AuthRequest, res): Promi
       const options = await db
         .select({
           id: assessmentOptionsTable.id,
-          optionText: assessmentOptionsTable.optionText,
+          text: assessmentOptionsTable.optionText,
         })
         .from(assessmentOptionsTable)
         .where(eq(assessmentOptionsTable.questionId, q.id))
@@ -56,8 +56,8 @@ router.get("/assessments/pre", requireAuth, async (req: AuthRequest, res): Promi
 
       return {
         id: q.id,
-        questionText: q.questionText,
-        questionType: q.questionType,
+        text: q.questionText,
+        type: q.questionType,
         options,
       };
     })
@@ -129,7 +129,7 @@ router.post("/assessments/pre/submit", requireAuth, async (req: AuthRequest, res
       );
 
     const correctIds = correctOptions.map((o) => o.id).sort();
-    const selectedIds = answer.selectedOptionIds.sort();
+    const selectedIds = [...answer.selectedOptionIds].sort();
     const isCorrect =
       correctIds.length === selectedIds.length &&
       correctIds.every((id, i) => id === selectedIds[i]);
@@ -217,6 +217,11 @@ router.post("/assessments/pre/submit", requireAuth, async (req: AuthRequest, res
     score: totalScore,
   });
 
+  eventBus.emit("user.onboarding_complete", {
+    type: "user.onboarding_complete",
+    userId: req.user.userId,
+  });
+
   res.json({
     attemptId: attempt.id,
     score: totalScore,
@@ -224,7 +229,7 @@ router.post("/assessments/pre/submit", requireAuth, async (req: AuthRequest, res
     percentage,
     passed,
     feedback,
-    suggestedTrackLevel,
+    suggestedTrackLevel: result.suggestedTrackLevel ?? null,
   });
 });
 

@@ -602,13 +602,16 @@ components:
           type: ["integer", "null"]
         city:
           type: string
+        role:
+          type: string
+          enum: [student, professional, mentor]
 
     TrackSelectionInput:
       type: object
-      required: [trackId]
+      required: [trackSlug]
       properties:
-        trackId:
-          type: integer
+        trackSlug:
+          type: string
 
     # ── Consent / DPDP ──
     ConsentStatus:
@@ -809,13 +812,13 @@ components:
 
     AssessmentQuestion:
       type: object
-      required: [id, questionText, questionType, options]
+      required: [id, text, type, options]
       properties:
         id:
           type: integer
-        questionText:
+        text:
           type: string
-        questionType:
+        type:
           type: string
           enum: [mcq, multi_select, true_false]
         options:
@@ -825,11 +828,11 @@ components:
 
     AssessmentOption:
       type: object
-      required: [id, optionText]
+      required: [id, text]
       properties:
         id:
           type: integer
-        optionText:
+        text:
           type: string
 
     AssessmentSubmissionInput:

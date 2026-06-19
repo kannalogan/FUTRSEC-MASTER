@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { eq, or } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 import { v4 as uuidv4 } from "uuid";
 import { db } from "@workspace/db";
@@ -7,6 +7,7 @@ import {
   usersTable,
   studentProfilesTable,
   refreshTokensTable,
+  tracksTable,
 } from "@workspace/db";
 import {
   SendOtpBody,
@@ -23,6 +24,21 @@ import { eventBus } from "../lib/events";
 const router = Router();
 
 const OTP_STORE = new Map<string, { otp: string; expiresAt: number; attempts: number }>();
+
+// ── Helper: serialize user for JSON responses ──────────────────────────────
+function serializeUser(user: typeof usersTable.$inferSelect) {
+  return {
+    id: user.id,
+    email: user.email ?? null,
+    phone: user.phone ?? null,
+    fullName: user.fullName ?? null,
+    role: user.role,
+    onboardingStep: user.onboardingStep,
+    selectedTrackId: user.selectedTrackId ?? null,
+    avatarUrl: user.avatarUrl ?? null,
+    createdAt: user.createdAt.toISOString(),
+  };
+}
 
 router.post("/auth/send-otp", async (req: AuthRequest, res): Promise<void> => {
   const parsed = SendOtpBody.safeParse(req.body);
@@ -93,8 +109,6 @@ router.post("/auth/verify-otp", async (req: AuthRequest, res): Promise<void> => 
 
   let [user] = await db.select().from(usersTable).where(whereClause);
 
-  const isNewUser = !user;
-
   if (!user) {
     const [created] = await db
       .insert(usersTable)
@@ -136,17 +150,7 @@ router.post("/auth/verify-otp", async (req: AuthRequest, res): Promise<void> => 
   res.json({
     accessToken,
     refreshToken,
-    user: {
-      id: user.id,
-      email: user.email ?? null,
-      phone: user.phone ?? null,
-      fullName: user.fullName ?? null,
-      role: user.role,
-      onboardingStep: user.onboardingStep,
-      selectedTrackId: user.selectedTrackId ?? null,
-      avatarUrl: user.avatarUrl ?? null,
-      createdAt: user.createdAt.toISOString(),
-    },
+    user: serializeUser(user),
   });
 });
 
@@ -206,29 +210,19 @@ router.post("/auth/refresh", async (req: AuthRequest, res): Promise<void> => {
   const newAccessToken = signAccessToken({ userId: user.id, role: user.role });
   const newRefreshToken = signRefreshToken({ userId: user.id });
   const newHash = await bcrypt.hash(newRefreshToken, 10);
-  const expiresAt = new Date();
-  expiresAt.setDate(expiresAt.getDate() + REFRESH_TOKEN_TTL_DAYS);
+  const newExpiresAt = new Date();
+  newExpiresAt.setDate(newExpiresAt.getDate() + REFRESH_TOKEN_TTL_DAYS);
 
   await db.insert(refreshTokensTable).values({
     userId: user.id,
     tokenHash: newHash,
-    expiresAt,
+    expiresAt: newExpiresAt,
   });
 
   res.json({
     accessToken: newAccessToken,
     refreshToken: newRefreshToken,
-    user: {
-      id: user.id,
-      email: user.email ?? null,
-      phone: user.phone ?? null,
-      fullName: user.fullName ?? null,
-      role: user.role,
-      onboardingStep: user.onboardingStep,
-      selectedTrackId: user.selectedTrackId ?? null,
-      avatarUrl: user.avatarUrl ?? null,
-      createdAt: user.createdAt.toISOString(),
-    },
+    user: serializeUser(user),
   });
 });
 
@@ -263,17 +257,7 @@ router.get("/auth/me", requireAuth, async (req: AuthRequest, res): Promise<void>
     return;
   }
 
-  res.json({
-    id: user.id,
-    email: user.email ?? null,
-    phone: user.phone ?? null,
-    fullName: user.fullName ?? null,
-    role: user.role,
-    onboardingStep: user.onboardingStep,
-    selectedTrackId: user.selectedTrackId ?? null,
-    avatarUrl: user.avatarUrl ?? null,
-    createdAt: user.createdAt.toISOString(),
-  });
+  res.json(serializeUser(user));
 });
 
 router.post("/auth/complete-profile", requireAuth, async (req: AuthRequest, res): Promise<void> => {
@@ -288,7 +272,7 @@ router.post("/auth/complete-profile", requireAuth, async (req: AuthRequest, res)
     return;
   }
 
-  const { fullName, college, graduationYear, city } = parsed.data;
+  const { fullName, college, graduationYear, city, role } = parsed.data;
 
   const [user] = await db
     .update(usersTable)
@@ -305,20 +289,11 @@ router.post("/auth/complete-profile", requireAuth, async (req: AuthRequest, res)
       ...(college ? { college } : {}),
       ...(graduationYear ? { graduationYear } : {}),
       ...(city ? { city } : {}),
+      ...(role ? { currentRole: role } : {}),
     })
     .where(eq(studentProfilesTable.userId, req.user.userId));
 
-  res.json({
-    id: user.id,
-    email: user.email ?? null,
-    phone: user.phone ?? null,
-    fullName: user.fullName ?? null,
-    role: user.role,
-    onboardingStep: user.onboardingStep,
-    selectedTrackId: user.selectedTrackId ?? null,
-    avatarUrl: user.avatarUrl ?? null,
-    createdAt: user.createdAt.toISOString(),
-  });
+  res.json(serializeUser(user));
 });
 
 router.post("/auth/select-track", requireAuth, async (req: AuthRequest, res): Promise<void> => {
@@ -333,32 +308,39 @@ router.post("/auth/select-track", requireAuth, async (req: AuthRequest, res): Pr
     return;
   }
 
+  const { trackSlug } = parsed.data;
+
+  const [track] = await db
+    .select()
+    .from(tracksTable)
+    .where(eq(tracksTable.slug, trackSlug));
+
+  if (!track) {
+    res.status(400).json({ error: `Track "${trackSlug}" not found` });
+    return;
+  }
+
   const [user] = await db
     .update(usersTable)
     .set({
-      selectedTrackId: parsed.data.trackId,
+      selectedTrackId: track.id,
       onboardingStep: "pre_assessment",
     })
     .where(eq(usersTable.id, req.user.userId))
     .returning();
 
+  await db
+    .update(tracksTable)
+    .set({ enrolledCount: track.enrolledCount + 1 })
+    .where(eq(tracksTable.id, track.id));
+
   eventBus.emit("track.selected", {
     type: "track.selected",
     userId: req.user.userId,
-    trackId: parsed.data.trackId,
+    trackId: track.id,
   });
 
-  res.json({
-    id: user.id,
-    email: user.email ?? null,
-    phone: user.phone ?? null,
-    fullName: user.fullName ?? null,
-    role: user.role,
-    onboardingStep: user.onboardingStep,
-    selectedTrackId: user.selectedTrackId ?? null,
-    avatarUrl: user.avatarUrl ?? null,
-    createdAt: user.createdAt.toISOString(),
-  });
+  res.json(serializeUser(user));
 });
 
 export default router;

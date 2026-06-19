@@ -6,10 +6,10 @@
  * OpenAPI spec version: 0.1.0
  */
 
-export type AssessmentQuestionQuestionType = typeof AssessmentQuestionQuestionType[keyof typeof AssessmentQuestionQuestionType];
+export type AssessmentQuestionType = typeof AssessmentQuestionType[keyof typeof AssessmentQuestionType];
 
 
-export const AssessmentQuestionQuestionType = {
+export const AssessmentQuestionType = {
   mcq: 'mcq',
   multi_select: 'multi_select',
   true_false: 'true_false',

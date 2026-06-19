@@ -98,6 +98,15 @@ export interface AuthResult {
   user: UserProfile;
 }
 
+export type ProfileCompletionInputRole = typeof ProfileCompletionInputRole[keyof typeof ProfileCompletionInputRole];
+
+
+export const ProfileCompletionInputRole = {
+  student: 'student',
+  professional: 'professional',
+  mentor: 'mentor',
+} as const;
+
 export interface ProfileCompletionInput {
   /** @minLength 2 */
   fullName: string;
@@ -105,10 +114,11 @@ export interface ProfileCompletionInput {
   /** @nullable */
   graduationYear?: number | null;
   city?: string;
+  role?: ProfileCompletionInputRole;
 }
 
 export interface TrackSelectionInput {
-  trackId: number;
+  trackSlug: string;
 }
 
 export interface ConsentStatus {
@@ -270,10 +280,10 @@ export const AssessmentType = {
   final_exam: 'final_exam',
 } as const;
 
-export type AssessmentQuestionQuestionType = typeof AssessmentQuestionQuestionType[keyof typeof AssessmentQuestionQuestionType];
+export type AssessmentQuestionType = typeof AssessmentQuestionType[keyof typeof AssessmentQuestionType];
 
 
-export const AssessmentQuestionQuestionType = {
+export const AssessmentQuestionType = {
   mcq: 'mcq',
   multi_select: 'multi_select',
   true_false: 'true_false',
@@ -281,13 +291,13 @@ export const AssessmentQuestionQuestionType = {
 
 export interface AssessmentOption {
   id: number;
-  optionText: string;
+  text: string;
 }
 
 export interface AssessmentQuestion {
   id: number;
-  questionText: string;
-  questionType: AssessmentQuestionQuestionType;
+  text: string;
+  type: AssessmentQuestionType;
   options: AssessmentOption[];
 }
 

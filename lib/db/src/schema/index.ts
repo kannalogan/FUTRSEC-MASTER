@@ -6,3 +6,4 @@ export * from "./labs";
 export * from "./jobs";
 export * from "./assignments";
 export * from "./ai";
+export * from "./relations";

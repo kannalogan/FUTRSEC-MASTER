@@ -1,0 +1,4 @@
+- [Schema field names](schema-field-names.md) — actual column names that differ from intuitive guesses in workers/export code
+- [OpenAPI contract bugs](openapi-contract-bugs.md) — recurring mismatch patterns between spec and frontend/route expectations
+- [Redis graceful degradation](redis-degradation.md) — pattern for BullMQ + Redis to degrade without crashing the server
+- [Drizzle relations](drizzle-relations.md) — all relations live in lib/db/src/schema/relations.ts, exported from index.ts

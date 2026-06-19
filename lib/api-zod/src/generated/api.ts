@@ -108,7 +108,8 @@ export const CompleteProfileBody = zod.object({
   "fullName": zod.string().min(completeProfileBodyFullNameMin),
   "college": zod.string().optional(),
   "graduationYear": zod.number().nullish(),
-  "city": zod.string().optional()
+  "city": zod.string().optional(),
+  "role": zod.enum(['student', 'professional', 'mentor']).optional()
 })
 
 export const CompleteProfileResponse = zod.object({
@@ -128,7 +129,7 @@ export const CompleteProfileResponse = zod.object({
  * @summary Select a learning track during onboarding
  */
 export const SelectTrackBody = zod.object({
-  "trackId": zod.number()
+  "trackSlug": zod.string()
 })
 
 export const SelectTrackResponse = zod.object({
@@ -300,11 +301,11 @@ export const GetPreAssessmentResponse = zod.object({
   "durationMinutes": zod.number(),
   "questions": zod.array(zod.object({
   "id": zod.number(),
-  "questionText": zod.string(),
-  "questionType": zod.enum(['mcq', 'multi_select', 'true_false']),
+  "text": zod.string(),
+  "type": zod.enum(['mcq', 'multi_select', 'true_false']),
   "options": zod.array(zod.object({
   "id": zod.number(),
-  "optionText": zod.string()
+  "text": zod.string()
 }))
 }))
 })

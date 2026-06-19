@@ -6,11 +6,11 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { AssessmentOption } from './assessmentOption';
-import type { AssessmentQuestionQuestionType } from './assessmentQuestionQuestionType';
+import type { AssessmentQuestionType } from './assessmentQuestionType';
 
 export interface AssessmentQuestion {
   id: number;
-  questionText: string;
-  questionType: AssessmentQuestionQuestionType;
+  text: string;
+  type: AssessmentQuestionType;
   options: AssessmentOption[];
 }

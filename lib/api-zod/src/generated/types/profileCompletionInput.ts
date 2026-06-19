@@ -5,6 +5,7 @@
  * FUTRSEC - Cybersecurity Learning + Mentorship + AI + Placement Ecosystem API
  * OpenAPI spec version: 0.1.0
  */
+import type { ProfileCompletionInputRole } from './profileCompletionInputRole';
 
 export interface ProfileCompletionInput {
   /** @minLength 2 */
@@ -13,4 +14,5 @@ export interface ProfileCompletionInput {
   /** @nullable */
   graduationYear?: number | null;
   city?: string;
+  role?: ProfileCompletionInputRole;
 }

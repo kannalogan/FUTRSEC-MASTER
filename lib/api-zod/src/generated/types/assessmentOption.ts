@@ -8,5 +8,5 @@
 
 export interface AssessmentOption {
   id: number;
-  optionText: string;
+  text: string;
 }

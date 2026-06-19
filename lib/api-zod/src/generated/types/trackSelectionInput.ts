@@ -7,5 +7,5 @@
  */
 
 export interface TrackSelectionInput {
-  trackId: number;
+  trackSlug: string;
 }

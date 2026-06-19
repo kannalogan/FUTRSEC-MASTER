@@ -1,15 +1,6 @@
 import { Queue, Worker, type Job } from "bullmq";
 import { logger } from "./logger";
-
-const REDIS_HOST = process.env["REDIS_HOST"] ?? "localhost";
-const REDIS_PORT = parseInt(process.env["REDIS_PORT"] ?? "6379", 10);
-const REDIS_PASSWORD = process.env["REDIS_PASSWORD"];
-
-const redisConnection = {
-  host: REDIS_HOST,
-  port: REDIS_PORT,
-  ...(REDIS_PASSWORD ? { password: REDIS_PASSWORD } : {}),
-};
+import { redisConnectionOptions } from "./redis";
 
 export const QUEUE_NAMES = {
   EMAIL: "email",
@@ -30,21 +21,44 @@ let queues: Partial<Record<QueueName, Queue>> = {};
 
 export function getQueue(name: QueueName): Queue {
   if (!queues[name]) {
-    queues[name] = new Queue(name, { connection: redisConnection });
+    queues[name] = new Queue(name, {
+      connection: redisConnectionOptions,
+      defaultJobOptions: {
+        removeOnComplete: { count: 100 },
+        removeOnFail: { count: 200 },
+      },
+    });
     logger.info({ queue: name }, "BullMQ queue initialized");
   }
   return queues[name]!;
+}
+
+async function safeAddJob<T>(
+  queueName: QueueName,
+  jobName: string,
+  data: T,
+  opts?: Parameters<Queue["add"]>[2]
+): Promise<Job<T> | null> {
+  try {
+    const queue = getQueue(queueName);
+    return (await queue.add(jobName, data, opts)) as Job<T>;
+  } catch (err) {
+    logger.warn(
+      { err: (err as Error).message, queue: queueName, job: jobName },
+      "Job not queued — Redis may be unavailable"
+    );
+    return null;
+  }
 }
 
 export async function addEmailJob(data: {
   to: string;
   subject: string;
   template: string;
-  variables: Record<string, string>;
+  variables?: Record<string, string>;
   userId?: number;
 }) {
-  const queue = getQueue(QUEUE_NAMES.EMAIL);
-  return queue.add("send_email", data, {
+  return safeAddJob(QUEUE_NAMES.EMAIL, "send_email", data, {
     attempts: 3,
     backoff: { type: "exponential", delay: 2000 },
   });
@@ -55,18 +69,19 @@ export async function addNotificationJob(data: {
   type: string;
   title: string;
   message: string;
+  link?: string;
   metadata?: Record<string, unknown>;
 }) {
-  const queue = getQueue(QUEUE_NAMES.NOTIFICATION);
-  return queue.add("send_notification", data, { attempts: 2 });
+  return safeAddJob(QUEUE_NAMES.NOTIFICATION, "send_notification", data, {
+    attempts: 2,
+  });
 }
 
 export async function addDataExportJob(data: {
   userId: number;
   requestId: number;
 }) {
-  const queue = getQueue(QUEUE_NAMES.DATA_EXPORT);
-  return queue.add("export_user_data", data, {
+  return safeAddJob(QUEUE_NAMES.DATA_EXPORT, "export_user_data", data, {
     attempts: 2,
     delay: 1000,
   });
@@ -77,8 +92,7 @@ export async function addDataDeletionJob(data: {
   requestId: number;
   reason: string;
 }) {
-  const queue = getQueue(QUEUE_NAMES.DATA_DELETION);
-  return queue.add("delete_user_data", data, {
+  return safeAddJob(QUEUE_NAMES.DATA_DELETION, "delete_user_data", data, {
     attempts: 1,
     delay: 24 * 60 * 60 * 1000,
   });
@@ -89,8 +103,17 @@ export async function addAiJob(data: {
   jobType: string;
   input: Record<string, unknown>;
 }) {
-  const queue = getQueue(QUEUE_NAMES.AI_JOB);
-  return queue.add("ai_process", data, { attempts: 2 });
+  return safeAddJob(QUEUE_NAMES.AI_JOB, "ai_process", data, { attempts: 2 });
+}
+
+export async function addBroadcastJob(data: {
+  broadcastId: number;
+  recipientIds: number[];
+}) {
+  return safeAddJob(QUEUE_NAMES.BROADCAST, "deliver_broadcast", data, {
+    attempts: 3,
+    backoff: { type: "exponential", delay: 1000 },
+  });
 }
 
 export function createWorker(
@@ -98,7 +121,7 @@ export function createWorker(
   processor: (job: Job) => Promise<void>
 ): Worker {
   const worker = new Worker(queueName, processor, {
-    connection: redisConnection,
+    connection: redisConnectionOptions,
     concurrency: 5,
   });
 
@@ -108,9 +131,13 @@ export function createWorker(
 
   worker.on("failed", (job, err) => {
     logger.error(
-      { queue: queueName, jobId: job?.id, err },
+      { queue: queueName, jobId: job?.id, err: err.message },
       "Job failed"
     );
+  });
+
+  worker.on("error", (err) => {
+    logger.error({ queue: queueName, err: err.message }, "Worker error");
   });
 
   return worker;
