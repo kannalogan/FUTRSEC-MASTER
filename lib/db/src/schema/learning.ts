@@ -139,6 +139,29 @@ export const lessonBookmarksTable = pgTable("lesson_bookmarks", {
     .defaultNow(),
 });
 
+export const lessonProgressTable = pgTable("lesson_progress", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  lessonId: integer("lesson_id").notNull(),
+  moduleId: integer("module_id").notNull(),
+  completedAt: timestamp("completed_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+  timeSpentSeconds: integer("time_spent_seconds").notNull().default(0),
+});
+
+export const moduleEnrollmentsTable = pgTable("module_enrollments", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  moduleId: integer("module_id").notNull(),
+  trackId: integer("track_id").notNull(),
+  startedAt: timestamp("started_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+  completedAt: timestamp("completed_at", { withTimezone: true }),
+  progressPercent: integer("progress_percent").notNull().default(0),
+});
+
 export const insertTrackSchema = createInsertSchema(tracksTable).omit({
   id: true,
   createdAt: true,
@@ -149,3 +172,5 @@ export type InsertTrack = z.infer<typeof insertTrackSchema>;
 export type Track = typeof tracksTable.$inferSelect;
 export type LearningModule = typeof learningModulesTable.$inferSelect;
 export type Lesson = typeof lessonsTable.$inferSelect;
+export type LessonProgress = typeof lessonProgressTable.$inferSelect;
+export type ModuleEnrollment = typeof moduleEnrollmentsTable.$inferSelect;

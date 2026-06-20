@@ -1,0 +1,1033 @@
+FUTRSEC
+
+MASTER OF MASTER OF MASTER PROMPT
+
+PART 2
+
+STUDENT DASHBOARD
+
+Continue from PART 1.
+
+DO NOT overwrite architecture.
+
+Maintain database compatibility.
+
+Maintain DPDP compatibility.
+
+Maintain RBAC compatibility.
+
+Student Dashboard should NOT look like:
+
+- Admin Dashboard
+- LMS
+- Traditional Course Website
+
+Student Dashboard should feel like:
+
+TryHackMe
+
++
+
+Coursera
+
++
+
+LinkedIn Learning
+
++
+
+Hack The Box
+
++
+
+Notion
+
++
+
+Linear
+
++
+
+Duolingo
+
++
+
+ChatGPT
+
+---------------------------------------------------
+
+THEME
+
+Create Hybrid Premium Theme.
+
+Background
+
+#F8F8F6
+
+Sidebar
+
+#08111F
+
+Cards
+
+White Glass Cards
+
+Border
+
+Soft Grey
+
+SOC Accent
+
+#2563EB
+
+VAPT Accent
+
+#F97316
+
+GRC Accent
+
+#10B981
+
+AI
+
+Purple Gradient
+
+Success
+
+#22C55E
+
+Warning
+
+#F59E0B
+
+Danger
+
+#EF4444
+
+---------------------------------------------------
+
+TYPOGRAPHY
+
+Heading
+
+Space Grotesk
+
+Body
+
+Inter
+
+Code
+
+Jetbrains Mono
+
+---------------------------------------------------
+
+TRACK BASED DASHBOARD
+
+Student chooses:
+
+SOC
+
+OR
+
+VAPT
+
+OR
+
+GRC
+
+Only relevant modules should appear.
+
+Example
+
+SOC student
+
+Show:
+
+SOC Learning
+
+SOC Labs
+
+SOC Jobs
+
+SOC Mock Interviews
+
+SOC AI Career Coach
+
+Hide:
+
+VAPT
+
+GRC
+
+Show:
+
+Explore VAPT 🔒
+
+Explore GRC 🔒
+
+---------------------------------------------------
+
+SIDEBAR
+
+MAIN
+
+Dashboard
+
+Learning
+
+My Courses
+
+Calendar
+
+Roadmap
+
+Bookmarks
+
+Community
+
+-----------------------------------
+
+CAREER
+
+Career Track
+
+Pre Assessment
+
+Checkpoints
+
+Assignments
+
+Tasks
+
+Projects
+
+Portfolio
+
+Career Roadmap
+
+-----------------------------------
+
+LABS
+
+SOC Lab
+
+VAPT Lab
+
+GRC Lab
+
+Cloud Lab
+
+CTF Challenges
+
+Sandbox
+
+Virtual Machines
+
+Lab Reports
+
+-----------------------------------
+
+WORK
+
+Internship
+
+Certifications
+
+Placements
+
+Jobs
+
+Applications
+
+Company Challenges
+
+Mock Interviews
+
+Interview History
+
+Offer Tracker
+
+-----------------------------------
+
+PROFILE
+
+Profile
+
+Resume
+
+Achievements
+
+Leaderboard
+
+Badges
+
+Skill Tree
+
+Certificates
+
+Social Links
+
+-----------------------------------
+
+AI & JOBS
+
+AI Job Agent
+
+AI Career Coach
+
+AI Resume Analyzer
+
+AI Skill Gap Analyzer
+
+AI Interview Coach
+
+AI Mock Interview
+
+AI English Coach
+
+AI Placement Predictor
+
+-----------------------------------
+
+ACCOUNT
+
+Subscription
+
+Payments
+
+Notifications
+
+DPDP Consent Center
+
+Privacy
+
+Settings
+
+Help Center
+
+Support
+
+---------------------------------------------------
+
+DASHBOARD HOME
+
+Top Hero
+
+Good Morning
+
+Student Name
+
+Track Badge
+
+SOC / VAPT / GRC
+
+Trial Day
+
+Day 5 / 15
+
+Countdown
+
+10 Days Remaining
+
+-----------------------------------
+
+KPI Cards
+
+Profile Completion
+
+Tasks Completed
+
+Learning Hours
+
+Checkpoint Progress
+
+FTS
+
+Subscription
+
+AI Readiness Score
+
+Placement Readiness
+
+-----------------------------------
+
+Timeline
+
+CP1
+
+↓
+
+CP2
+
+↓
+
+CP3
+
+↓
+
+CP4
+
+↓
+
+CP5
+
+↓
+
+Subscribe
+
+↓
+
+AI Job Agent
+
+-----------------------------------
+
+RECENT ACTIVITY
+
+Show
+
+Lessons
+
+Labs
+
+Assessments
+
+Assignments
+
+AI Interviews
+
+Applications
+
+---------------------------------------------------
+
+LEARNING MODULE
+
+SOC
+
+Create:
+
+SOC Fundamentals
+
+SIEM
+
+Splunk
+
+QRadar
+
+Wazuh
+
+Threat Hunting
+
+Malware Analysis
+
+Incident Response
+
+Detection Engineering
+
+-----------------------------------
+
+VAPT
+
+Create:
+
+OWASP Top 10
+
+Burp Suite
+
+Nmap
+
+Metasploit
+
+API Security
+
+AD Pentesting
+
+Mobile Pentesting
+
+Cloud Pentesting
+
+-----------------------------------
+
+GRC
+
+Create:
+
+ISO27001
+
+NIST
+
+DPDP
+
+GDPR
+
+Risk Assessment
+
+Compliance
+
+Vendor Risk
+
+Audit
+
+-----------------------------------
+
+Every Module contains:
+
+Videos
+
+Articles
+
+PDF
+
+Notes
+
+Bookmarks
+
+Quizzes
+
+Assignments
+
+Resources
+
+Discussion
+
+Completion %
+
+Certificates
+
+---------------------------------------------------
+
+LAB SYSTEM
+
+Every Lab must WORK.
+
+SOC LAB
+
+SIEM Lab
+
+Splunk Lab
+
+QRadar Lab
+
+Wazuh Lab
+
+Threat Hunting Lab
+
+Incident Response Lab
+
+Malware Analysis Lab
+
+Detection Engineering Lab
+
+-----------------------------------
+
+VAPT LAB
+
+Burp Lab
+
+OWASP Lab
+
+Nmap Lab
+
+Metasploit Lab
+
+API Lab
+
+AD Lab
+
+Mobile Pentest Lab
+
+Cloud Pentest Lab
+
+-----------------------------------
+
+GRC LAB
+
+ISO Lab
+
+NIST Lab
+
+DPDP Lab
+
+GDPR Lab
+
+Risk Lab
+
+Audit Lab
+
+-----------------------------------
+
+LAB FLOW
+
+Student opens Lab
+
+↓
+
+Instructions
+
+↓
+
+Launch Environment
+
+↓
+
+Perform Tasks
+
+↓
+
+Submit Answers
+
+↓
+
+Score Generated
+
+↓
+
+Update Analytics
+
+↓
+
+Update Mentor Dashboard
+
+---------------------------------------------------
+
+ASSESSMENTS
+
+MCQ
+
+Multi Select
+
+Scenario Based
+
+Timed
+
+Adaptive
+
+-----------------------------------
+
+Result Page
+
+Score
+
+Correct
+
+Wrong
+
+Difficulty
+
+Time Taken
+
+Explanations
+
+National Rank
+
+Track Rank
+
+-----------------------------------
+
+Checkpoint linked
+
+↓
+
+Feeds FTS
+
+-----------------------------------
+
+Practice Assessment
+
+↓
+
+No FTS Impact
+
+---------------------------------------------------
+
+AI MOCK INTERVIEW
+
+THIS IS VERY IMPORTANT.
+
+Student selects
+
+SOC
+
+or
+
+VAPT
+
+or
+
+GRC
+
+AI asks questions.
+
+Student answers:
+
+Voice
+
+Text
+
+Video
+
+-----------------------------------
+
+AI evaluates:
+
+Technical Accuracy
+
+Communication
+
+Grammar
+
+Confidence
+
+Pronunciation
+
+Vocabulary
+
+Speaking Speed
+
+Logical Thinking
+
+STAR Method
+
+Body Language
+
+Eye Contact
+
+-----------------------------------
+
+Generate
+
+Interview Score
+
+PDF Report
+
+Improvement Plan
+
+Video Recording
+
+Progress History
+
+Trend Graph
+
+---------------------------------------------------
+
+AI ENGLISH COACH
+
+Student speaks.
+
+AI checks:
+
+Grammar
+
+Pronunciation
+
+Confidence
+
+Fluency
+
+Professional Tone
+
+Communication
+
+Generate:
+
+Mistakes
+
+Corrections
+
+Exercises
+
+Practice Questions
+
+Improvement Plan
+
+---------------------------------------------------
+
+AI RESUME ANALYZER
+
+Upload Resume
+
+AI checks:
+
+ATS Score
+
+Formatting
+
+Grammar
+
+Skills
+
+Missing Skills
+
+Job Match
+
+Suggestions
+
+Generate:
+
+Improved Resume
+
+Download
+
+---------------------------------------------------
+
+AI SKILL GAP ANALYZER
+
+Current Skills
+
+↓
+
+Missing Skills
+
+↓
+
+Recommended Courses
+
+↓
+
+Recommended Labs
+
+↓
+
+Estimated Completion Time
+
+---------------------------------------------------
+
+AI CAREER ROADMAP
+
+Example
+
+Current
+
+SOC Beginner
+
+↓
+
+SIEM
+
+↓
+
+Threat Hunting
+
+↓
+
+Incident Response
+
+↓
+
+SOC Analyst
+
+↓
+
+SOC L2
+
+↓
+
+Threat Hunter
+
+Estimated
+
+8 Months
+
+---------------------------------------------------
+
+JOBS
+
+Show only:
+
+Relevant Track Jobs
+
+SOC
+
+↓
+
+SOC Jobs
+
+VAPT
+
+↓
+
+VAPT Jobs
+
+GRC
+
+↓
+
+GRC Jobs
+
+-----------------------------------
+
+Job Card
+
+Company
+
+Role
+
+Location
+
+Salary
+
+Skills
+
+Apply
+
+Save
+
+-----------------------------------
+
+Applications
+
+Applied
+
+Interview
+
+Rejected
+
+Selected
+
+Offer Received
+
+---------------------------------------------------
+
+PROFILE
+
+Personal
+
+Education
+
+Skills
+
+Certifications
+
+Projects
+
+Resume
+
+Social Links
+
+Portfolio
+
+Achievements
+
+Badges
+
+Leaderboard
+
+---------------------------------------------------
+
+DPDP CONSENT CENTER
+
+Implement:
+
+Consent History
+
+Data Download
+
+Delete Account
+
+Withdraw Consent
+
+Correction Request
+
+Cookie Preferences
+
+Retention Policy
+
+Consent Audit Trail
+
+Show:
+
+What Data Collected
+
+Why Collected
+
+Who Accessed
+
+Purpose
+
+When Accessed
+
+---------------------------------------------------
+
+DATABASE CONNECTION
+
+Every page must connect to database.
+
+No hardcoded values.
+
+All modules must use:
+
+Prisma
+
+PostgreSQL
+
+Redis
+
+BullMQ
+
+Event Bus
+
+-----------------------------------
+
+Every action should create:
+
+Audit Log
+
+Analytics Event
+
+Notification Event
+
+AI Recommendation Event
+
+---------------------------------------------------
+
+MOBILE RESPONSIVE
+
+320px
+
+375px
+
+768px
+
+1024px
+
+1440px
+
+-----------------------------------
+
+EMPTY STATES
+
+LOADING STATES
+
+ERROR STATES
+
+SKELETONS
+
+Must be implemented.
+
+-----------------------------------
+
+NO PLACEHOLDERS.
+
+NO "COMING SOON".
+
+EVERY PAGE MUST WORK.
+
+EVERY BUTTON MUST WORK.
+
+EVERY FEATURE MUST WORK.
+
+Build Student Dashboard as a
+
+GLOBAL CYBERSECURITY LEARNING + AI + CAREER PLATFORM.
+
+Premium.
+
+Elegant.
+
+Fast.
+
+Professional.
+
+Enterprise Grade.
+
+Production Ready.

@@ -5,6 +5,11 @@ import consentRouter from "./consent";
 import tracksRouter from "./tracks";
 import assessmentsRouter from "./assessments";
 import platformRouter from "./platform";
+import dashboardRouter from "./dashboard";
+import learningRouter from "./learning";
+import labsRouter from "./labs";
+import jobsRouter from "./jobs";
+import profileRouter from "./profile";
 
 const router: IRouter = Router();
 
@@ -14,5 +19,10 @@ router.use(consentRouter);
 router.use(tracksRouter);
 router.use(assessmentsRouter);
 router.use(platformRouter);
+router.use(dashboardRouter);
+router.use(learningRouter);
+router.use(labsRouter);
+router.use(jobsRouter);
+router.use(profileRouter);
 
 export default router;
