@@ -12,11 +12,17 @@ function createTransport() {
   if (!SMTP_HOST || !SMTP_USER || !SMTP_PASS) {
     return null;
   }
+  const secure = SMTP_PORT === 465;
+  logger.info(
+    { host: SMTP_HOST, port: SMTP_PORT, secure, user: SMTP_USER, from: SMTP_FROM },
+    "Creating SMTP transport"
+  );
   return nodemailer.createTransport({
     host: SMTP_HOST,
     port: SMTP_PORT,
-    secure: SMTP_PORT === 465,
+    secure,
     auth: { user: SMTP_USER, pass: SMTP_PASS },
+    tls: { rejectUnauthorized: false },
   });
 }
 
