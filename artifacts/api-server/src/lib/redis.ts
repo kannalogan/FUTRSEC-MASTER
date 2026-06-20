@@ -1,21 +1,42 @@
-import Redis from "ioredis";
+import Redis, { type RedisOptions } from "ioredis";
 import { logger } from "./logger";
 
+const REDIS_URL = process.env["REDIS_URL"];
 const REDIS_HOST = process.env["REDIS_HOST"] ?? "localhost";
 const REDIS_PORT = parseInt(process.env["REDIS_PORT"] ?? "6379", 10);
 const REDIS_PASSWORD = process.env["REDIS_PASSWORD"];
 const REDIS_DB = parseInt(process.env["REDIS_DB"] ?? "0", 10);
 
+function buildConnectionOptions(): RedisOptions {
+  if (REDIS_URL) {
+    try {
+      const parsed = new URL(REDIS_URL);
+      const isTls = parsed.protocol === "rediss:";
+      return {
+        host: parsed.hostname,
+        port: parseInt(parsed.port || "6379", 10),
+        ...(parsed.username ? { username: parsed.username } : {}),
+        ...(parsed.password ? { password: decodeURIComponent(parsed.password) } : {}),
+        db: parseInt(parsed.pathname.replace(/^\//, "") || "0", 10),
+        ...(isTls ? { tls: {} } : {}),
+      };
+    } catch {
+      logger.warn({ url: REDIS_URL }, "Failed to parse REDIS_URL — falling back to REDIS_HOST/PORT");
+    }
+  }
+  return {
+    host: REDIS_HOST,
+    port: REDIS_PORT,
+    db: REDIS_DB,
+    ...(REDIS_PASSWORD ? { password: REDIS_PASSWORD } : {}),
+  };
+}
+
 let _client: Redis | null = null;
 let _available = false;
 let _connectAttempted = false;
 
-export const redisConnectionOptions = {
-  host: REDIS_HOST,
-  port: REDIS_PORT,
-  db: REDIS_DB,
-  ...(REDIS_PASSWORD ? { password: REDIS_PASSWORD } : {}),
-};
+export const redisConnectionOptions = buildConnectionOptions();
 
 export function getRedisClient(): Redis {
   if (!_client) {

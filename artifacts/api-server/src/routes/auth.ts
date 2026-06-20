@@ -20,6 +20,7 @@ import { signAccessToken, signRefreshToken, verifyRefreshToken, REFRESH_TOKEN_TT
 import { requireAuth, type AuthRequest } from "../middlewares/auth";
 import { logger } from "../lib/logger";
 import { eventBus } from "../lib/events";
+import { sendEmail, buildOtpEmail } from "../lib/email";
 
 const router = Router();
 
@@ -60,9 +61,32 @@ router.post("/auth/send-otp", async (req: AuthRequest, res): Promise<void> => {
   const expiresAt = Date.now() + 5 * 60 * 1000;
   OTP_STORE.set(key, { otp, expiresAt, attempts: 0 });
 
-  req.log.info({ contact, type }, "OTP generated");
+  const isDev = process.env["NODE_ENV"] === "development";
 
-  res.json({ message: "OTP sent successfully", expiresIn: 300 });
+  if (isDev) {
+    req.log.info({ contact, type, otp }, "OTP generated [DEV — not emailed]");
+  } else {
+    req.log.info({ contact, type }, "OTP generated");
+  }
+
+  if (type === "email") {
+    const { html, text } = buildOtpEmail(otp);
+    sendEmail({ to: contact, subject: "Your FUTRSEC sign-in code", html, text }).catch(
+      (err: unknown) => {
+        req.log.error(
+          { err: (err as Error).message, contact },
+          "Failed to send OTP email"
+        );
+      }
+    );
+  }
+
+  const responseBody: Record<string, unknown> = {
+    message: "OTP sent successfully",
+    expiresIn: 300,
+  };
+  if (isDev) responseBody.otp = otp;
+  res.json(responseBody);
 });
 
 router.post("/auth/verify-otp", async (req: AuthRequest, res): Promise<void> => {
