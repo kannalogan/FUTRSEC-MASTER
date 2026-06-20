@@ -13,10 +13,6 @@ function createTransport() {
     return null;
   }
   const secure = SMTP_PORT === 465;
-  logger.info(
-    { host: SMTP_HOST, port: SMTP_PORT, secure, user: SMTP_USER, from: SMTP_FROM },
-    "Creating SMTP transport"
-  );
   return nodemailer.createTransport({
     host: SMTP_HOST,
     port: SMTP_PORT,
