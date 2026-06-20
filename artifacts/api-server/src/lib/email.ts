@@ -1,8 +1,24 @@
+import nodemailer from "nodemailer";
 import { logger } from "./logger";
 
-const RESEND_API_KEY = process.env["RESEND_API_KEY"];
-const FROM_EMAIL = "FUTRSEC <noreply@futrsec.com>";
+const SMTP_HOST = process.env["SMTP_HOST"];
+const SMTP_PORT = parseInt(process.env["SMTP_PORT"] ?? "587", 10);
+const SMTP_USER = process.env["SMTP_USER"];
+const SMTP_PASS = process.env["SMTP_PASS"];
+const SMTP_FROM = process.env["SMTP_FROM"] ?? "FUTRSEC <noreply@futrsec.com>";
 const IS_DEV = process.env["NODE_ENV"] === "development";
+
+function createTransport() {
+  if (!SMTP_HOST || !SMTP_USER || !SMTP_PASS) {
+    return null;
+  }
+  return nodemailer.createTransport({
+    host: SMTP_HOST,
+    port: SMTP_PORT,
+    secure: SMTP_PORT === 465,
+    auth: { user: SMTP_USER, pass: SMTP_PASS },
+  });
+}
 
 export interface SendEmailOptions {
   to: string;
@@ -12,50 +28,43 @@ export interface SendEmailOptions {
 }
 
 export async function sendEmail(opts: SendEmailOptions): Promise<void> {
-  if (!RESEND_API_KEY) {
+  const transport = createTransport();
+
+  if (!transport) {
     if (IS_DEV) {
       logger.warn(
         { to: opts.to, subject: opts.subject },
-        "Email skipped — RESEND_API_KEY not set (dev mode)"
+        "Email skipped — SMTP not configured (set SMTP_HOST, SMTP_USER, SMTP_PASS)"
       );
     } else {
       logger.error(
         { to: opts.to, subject: opts.subject },
-        "Email not sent — RESEND_API_KEY missing in production"
+        "Email not sent — SMTP credentials missing in production"
       );
     }
     return;
   }
 
-  const response = await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${RESEND_API_KEY}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      from: FROM_EMAIL,
-      to: [opts.to],
+  try {
+    const info = await transport.sendMail({
+      from: SMTP_FROM,
+      to: opts.to,
       subject: opts.subject,
       html: opts.html,
       ...(opts.text ? { text: opts.text } : {}),
-    }),
-  });
+    });
 
-  if (!response.ok) {
-    const body = await response.text().catch(() => "(no body)");
-    logger.error(
-      { to: opts.to, subject: opts.subject, status: response.status, body },
-      "Resend API error"
+    logger.info(
+      { to: opts.to, subject: opts.subject, messageId: info.messageId },
+      "Email sent successfully"
     );
-    throw new Error(`Resend API error ${response.status}: ${body}`);
+  } catch (err) {
+    logger.error(
+      { to: opts.to, subject: opts.subject, err: (err as Error).message },
+      "Failed to send email via SMTP"
+    );
+    throw err;
   }
-
-  const data = (await response.json()) as { id?: string };
-  logger.info(
-    { to: opts.to, subject: opts.subject, messageId: data.id },
-    "Email sent successfully"
-  );
 }
 
 export function buildOtpEmail(otp: string): { html: string; text: string } {
@@ -83,7 +92,7 @@ export function buildOtpEmail(otp: string): { html: string; text: string } {
                 <span style="font-size: 40px; font-weight: 700; letter-spacing: 10px; color: #08111F; font-family: monospace;">${otp}</span>
               </div>
               <p style="margin: 0; color: #999; font-size: 13px; line-height: 1.5;">
-                If you didn't request this code, you can safely ignore this email. Someone may have typed your email address by mistake.
+                If you didn't request this code, you can safely ignore this email.
               </p>
             </td>
           </tr>
