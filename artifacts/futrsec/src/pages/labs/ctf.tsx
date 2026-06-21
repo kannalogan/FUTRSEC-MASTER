@@ -154,7 +154,7 @@ export default function CTFPage() {
                     transition={{ duration: 0.2, delay: idx * 0.04 }}
                     whileHover={{ y: -2 }}
                   >
-                    <Card className="bg-white border-border/60 hover:shadow-md transition-all h-full flex flex-col">
+                    <Card className="bg-card border-border/60 hover:shadow-md transition-all h-full flex flex-col">
                       <CardContent className="p-5 flex flex-col flex-1">
                         <div className="flex items-start justify-between gap-2 mb-3">
                           <div className="h-10 w-10 rounded-xl bg-amber-50 flex items-center justify-center shrink-0">
@@ -208,7 +208,7 @@ export default function CTFPage() {
 
           {/* Leaderboard + badges */}
           <div className="space-y-5">
-            <Card className="bg-white border-border/60">
+            <Card className="bg-card border-border/60">
               <CardContent className="p-5">
                 <div className="flex items-center gap-2 mb-3">
                   <Trophy className="h-4 w-4 text-amber-500" />
@@ -258,7 +258,7 @@ export default function CTFPage() {
               </CardContent>
             </Card>
 
-            <Card className="bg-white border-border/60">
+            <Card className="bg-card border-border/60">
               <CardContent className="p-5">
                 <div className="flex items-center gap-2 mb-3">
                   <Zap className="h-4 w-4 text-amber-500" />

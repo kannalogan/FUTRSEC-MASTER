@@ -55,7 +55,7 @@ export default function AIJobAgentPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.2, delay: idx * 0.04 }}
             >
-              <Card className="bg-white border-border/60 overflow-hidden">
+              <Card className="bg-card border-border/60 overflow-hidden">
                 <CardContent className="p-5">
                   <div className="flex items-start justify-between gap-3 mb-3">
                     <div className="flex items-center gap-3 min-w-0">

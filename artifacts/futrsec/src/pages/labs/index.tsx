@@ -30,7 +30,7 @@ function LabCard({ lab, onOpen }: { lab: any; onOpen: (lab: any) => void }) {
   return (
     <motion.div whileHover={{ y: -2 }} transition={{ duration: 0.15 }}>
       <Card
-        className="bg-white border-border/60 hover:shadow-md transition-all cursor-pointer h-full"
+        className="bg-card border-border/60 hover:shadow-md transition-all cursor-pointer h-full"
         onClick={() => onOpen(lab)}
       >
         <CardContent className="p-5">

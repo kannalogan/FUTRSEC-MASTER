@@ -46,7 +46,7 @@ function NotificationRow({ n, idx }: { n: AppNotification; idx: number }) {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.2, delay: idx * 0.03 }}
     >
-      <Card className={`border-border/60 ${n.isRead ? "bg-white" : "bg-primary/[0.03] border-primary/20"}`}>
+      <Card className={`border-border/60 ${n.isRead ? "bg-card" : "bg-primary/[0.03] border-primary/20"}`}>
         <CardContent className="p-4 flex gap-3">
           <div className="h-9 w-9 rounded-xl flex items-center justify-center shrink-0" style={{ backgroundColor: bg }}>
             <Icon className="h-[18px] w-[18px]" style={{ color }} />

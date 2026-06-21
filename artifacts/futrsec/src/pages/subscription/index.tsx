@@ -44,7 +44,7 @@ function PlanCard({
 }) {
   const highlight = plan.id.startsWith("premium");
   return (
-    <Card className={`relative border-border/60 h-full ${highlight ? "border-primary/40 shadow-md" : "bg-white"}`}>
+    <Card className={`relative border-border/60 h-full ${highlight ? "border-primary/40 shadow-md" : "bg-card"}`}>
       {highlight && (
         <div className="absolute -top-2.5 left-1/2 -translate-x-1/2">
           <Badge className="bg-primary text-white border-primary gap-1 text-[10px]">
@@ -221,7 +221,7 @@ export default function SubscriptionPage() {
           ) : (
             <div className="space-y-2">
               {payments.map((p) => (
-                <Card key={p.id} className="bg-white border-border/60">
+                <Card key={p.id} className="bg-card border-border/60">
                   <CardContent className="p-4 flex items-center gap-3">
                     <div className="h-9 w-9 rounded-lg bg-muted/50 flex items-center justify-center shrink-0">
                       <Receipt className="h-4.5 w-4.5 text-muted-foreground/60" />
@@ -250,7 +250,7 @@ export default function SubscriptionPage() {
           ) : (
             <div className="space-y-2">
               {invoices.map((inv) => (
-                <Card key={inv.id} className="bg-white border-border/60">
+                <Card key={inv.id} className="bg-card border-border/60">
                   <CardContent className="p-4 flex items-center gap-3">
                     <div className="h-9 w-9 rounded-lg bg-muted/50 flex items-center justify-center shrink-0">
                       <FileText className="h-4.5 w-4.5 text-muted-foreground/60" />

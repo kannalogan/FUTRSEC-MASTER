@@ -44,7 +44,7 @@ export default function CalendarPage() {
     <div className="p-6 max-w-5xl mx-auto">
       <PageHeader title="Calendar" subtitle="Track deadlines, interviews, and milestones" icon={CalendarIcon} />
 
-      <div className="bg-white border border-border/60 rounded-xl shadow-sm overflow-hidden mb-6">
+      <div className="bg-card border border-border/60 rounded-xl shadow-sm overflow-hidden mb-6">
         <div className="flex items-center justify-between px-6 py-4 border-b">
           <h2 className="font-semibold text-foreground">{monthName}</h2>
           <div className="flex items-center gap-2">
@@ -94,7 +94,7 @@ export default function CalendarPage() {
       ) : (
         <div className="space-y-2">
           {upcoming.map((e: any) => (
-            <div key={e.id} className="flex items-center gap-3 bg-white border border-border/60 rounded-lg px-4 py-3">
+            <div key={e.id} className="flex items-center gap-3 bg-card border border-border/60 rounded-lg px-4 py-3">
               <div className="h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: TYPE_COLORS[e.type] ?? "#2563EB" }} />
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-foreground truncate">{e.title}</p>

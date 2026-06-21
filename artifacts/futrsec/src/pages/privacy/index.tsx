@@ -145,7 +145,7 @@ export default function PrivacyCenter() {
           { icon: Trash2, label: "Right to Erasure", desc: "Delete your account", color: "#EF4444" },
           { icon: Lock, label: "Right to Withdraw", desc: "Withdraw any consent", color: "#F97316" },
         ].map((right) => (
-          <div key={right.label} className="p-3 bg-white rounded-xl border border-border/60 text-center">
+          <div key={right.label} className="p-3 bg-card rounded-xl border border-border/60 text-center">
             <div className="h-8 w-8 rounded-lg flex items-center justify-center mx-auto mb-2" style={{ backgroundColor: `${right.color}15` }}>
               <right.icon className="h-4 w-4" style={{ color: right.color }} />
             </div>
@@ -167,7 +167,7 @@ export default function PrivacyCenter() {
 
         {/* Consent Settings */}
         <TabsContent value="consent">
-          <Card className="bg-white border-border/60">
+          <Card className="bg-card border-border/60">
             <CardHeader className="pb-3 pt-4 px-5">
               <CardTitle className="text-sm font-semibold flex items-center gap-2">
                 <ToggleLeft className="h-4 w-4 text-primary" />Consent Preferences
@@ -210,7 +210,7 @@ export default function PrivacyCenter() {
 
         {/* Cookie Preferences */}
         <TabsContent value="cookies">
-          <Card className="bg-white border-border/60">
+          <Card className="bg-card border-border/60">
             <CardHeader className="pb-3 pt-4 px-5">
               <CardTitle className="text-sm font-semibold flex items-center gap-2">
                 <Cookie className="h-4 w-4 text-primary" />Cookie Preferences
@@ -268,7 +268,7 @@ export default function PrivacyCenter() {
         {/* My Data */}
         <TabsContent value="data">
           <div className="space-y-4">
-            <Card className="bg-white border-border/60">
+            <Card className="bg-card border-border/60">
               <CardHeader className="pb-3 pt-4 px-5">
                 <CardTitle className="text-sm font-semibold flex items-center gap-2">
                   <Database className="h-4 w-4 text-primary" />Data We Collect
@@ -295,7 +295,7 @@ export default function PrivacyCenter() {
               </CardContent>
             </Card>
 
-            <Card className="bg-white border-border/60">
+            <Card className="bg-card border-border/60">
               <CardContent className="p-5">
                 <div className="flex items-start gap-3">
                   <div className="h-9 w-9 rounded-lg bg-blue-50 flex items-center justify-center shrink-0">
@@ -325,7 +325,7 @@ export default function PrivacyCenter() {
 
         {/* Audit Trail */}
         <TabsContent value="history">
-          <Card className="bg-white border-border/60">
+          <Card className="bg-card border-border/60">
             <CardHeader className="pb-3 pt-4 px-5">
               <CardTitle className="text-sm font-semibold flex items-center gap-2">
                 <History className="h-4 w-4 text-primary" />Consent Audit Trail
@@ -361,7 +361,7 @@ export default function PrivacyCenter() {
         {/* Data Requests */}
         <TabsContent value="requests">
           <div className="space-y-4">
-            <Card className="bg-white border-border/60">
+            <Card className="bg-card border-border/60">
               <CardContent className="p-5 space-y-3">
                 <div className="flex items-start gap-3">
                   <div className="h-9 w-9 rounded-lg bg-orange-50 flex items-center justify-center shrink-0">
@@ -378,7 +378,7 @@ export default function PrivacyCenter() {
               </CardContent>
             </Card>
 
-            <Card className="bg-white border-border/60 border-red-100">
+            <Card className="bg-card border-border/60 border-red-100">
               <CardContent className="p-5">
                 <div className="flex items-start gap-3">
                   <div className="h-9 w-9 rounded-lg bg-red-50 flex items-center justify-center shrink-0">
@@ -411,7 +411,7 @@ export default function PrivacyCenter() {
         {/* Policy & Terms */}
         <TabsContent value="legal">
           <div className="space-y-4">
-            <Card className="bg-white border-border/60">
+            <Card className="bg-card border-border/60">
               <CardHeader className="pb-3 pt-4 px-5">
                 <CardTitle className="text-sm font-semibold flex items-center gap-2">
                   <FileText className="h-4 w-4 text-primary" />Privacy Policy
@@ -442,7 +442,7 @@ export default function PrivacyCenter() {
               </CardContent>
             </Card>
 
-            <Card className="bg-white border-border/60">
+            <Card className="bg-card border-border/60">
               <CardHeader className="pb-3 pt-4 px-5">
                 <CardTitle className="text-sm font-semibold flex items-center gap-2">
                   <ScrollText className="h-4 w-4 text-primary" />Terms of Service

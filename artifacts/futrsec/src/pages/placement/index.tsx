@@ -148,7 +148,7 @@ export default function PlacementPage() {
           </h2>
           <div className="space-y-2">
             {offers.map((o) => (
-              <Card key={o.id} className="bg-white border-border/60">
+              <Card key={o.id} className="bg-card border-border/60">
                 <CardContent className="p-4 flex items-center gap-3">
                   <div className="h-9 w-9 rounded-lg bg-emerald-50 flex items-center justify-center shrink-0">
                     <Gift className="h-4.5 w-4.5 text-emerald-500" />
@@ -183,7 +183,7 @@ export default function PlacementPage() {
           {stages.map((s) => (
             <motion.div key={s.applicationId} whileHover={{ y: -1 }} transition={{ duration: 0.15 }}>
               <Card
-                className="bg-white border-border/60 hover:shadow-md transition-all cursor-pointer"
+                className="bg-card border-border/60 hover:shadow-md transition-all cursor-pointer"
                 onClick={() => setSelected(s)}
               >
                 <CardContent className="p-4 flex items-center gap-3">

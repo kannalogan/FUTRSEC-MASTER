@@ -87,18 +87,18 @@ export default function ResumeAnalyzer() {
       </div>
 
       {/* Upload */}
-      <Card className="bg-white border-border/60">
+      <Card className="bg-card border-border/60">
         <CardContent className="p-5">
           <div className="flex gap-1 mb-3 p-0.5 bg-muted rounded-lg w-fit">
             <button
               onClick={() => setMode("url")}
-              className={`px-3 py-1.5 text-xs font-medium rounded-md transition ${mode === "url" ? "bg-white shadow-sm text-foreground" : "text-muted-foreground"}`}
+              className={`px-3 py-1.5 text-xs font-medium rounded-md transition ${mode === "url" ? "bg-card shadow-sm text-foreground" : "text-muted-foreground"}`}
             >
               From URL
             </button>
             <button
               onClick={() => setMode("text")}
-              className={`px-3 py-1.5 text-xs font-medium rounded-md transition ${mode === "text" ? "bg-white shadow-sm text-foreground" : "text-muted-foreground"}`}
+              className={`px-3 py-1.5 text-xs font-medium rounded-md transition ${mode === "text" ? "bg-card shadow-sm text-foreground" : "text-muted-foreground"}`}
             >
               Paste text
             </button>
@@ -161,7 +161,7 @@ export default function ResumeAnalyzer() {
               </div>
             )}
             {/* Score card */}
-            <Card className="bg-white border-border/60">
+            <Card className="bg-card border-border/60">
               <CardContent className="p-5">
                 <div className="flex items-center justify-between gap-6 flex-wrap">
                   <div className="flex items-center gap-5">
@@ -203,7 +203,7 @@ export default function ResumeAnalyzer() {
 
             {/* Keywords */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <Card className="bg-white border-border/60">
+              <Card className="bg-card border-border/60">
                 <CardHeader className="pt-4 pb-2 px-5">
                   <CardTitle className="text-sm font-semibold flex items-center gap-2 text-green-700">
                     <CheckCircle2 className="h-4 w-4" />Keywords Found ({result.keywordsFound.length})
@@ -217,7 +217,7 @@ export default function ResumeAnalyzer() {
                   </div>
                 </CardContent>
               </Card>
-              <Card className="bg-white border-border/60">
+              <Card className="bg-card border-border/60">
                 <CardHeader className="pt-4 pb-2 px-5">
                   <CardTitle className="text-sm font-semibold flex items-center gap-2 text-red-600">
                     <XCircle className="h-4 w-4" />Missing Keywords ({result.keywordsMissing.length})
@@ -235,7 +235,7 @@ export default function ResumeAnalyzer() {
 
             {/* Strengths & Improvements */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <Card className="bg-white border-border/60">
+              <Card className="bg-card border-border/60">
                 <CardHeader className="pt-4 pb-2 px-5">
                   <CardTitle className="text-sm font-semibold flex items-center gap-2 text-green-700">
                     <CheckCircle2 className="h-4 w-4" />Strengths
@@ -250,7 +250,7 @@ export default function ResumeAnalyzer() {
                   ))}
                 </CardContent>
               </Card>
-              <Card className="bg-white border-border/60">
+              <Card className="bg-card border-border/60">
                 <CardHeader className="pt-4 pb-2 px-5">
                   <CardTitle className="text-sm font-semibold flex items-center gap-2 text-orange-600">
                     <AlertTriangle className="h-4 w-4" />Improvements

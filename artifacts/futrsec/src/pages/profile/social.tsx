@@ -52,7 +52,7 @@ export default function SocialLinksPage() {
       {isLoading ? (
         <CardSkeleton rows={4} />
       ) : (
-        <Card className="bg-white border-border/60">
+        <Card className="bg-card border-border/60">
           <CardContent className="p-5 space-y-4">
             {LINKS.map((link) => {
               const Icon = link.icon;

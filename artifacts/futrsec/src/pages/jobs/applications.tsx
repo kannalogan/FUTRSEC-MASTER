@@ -69,7 +69,7 @@ export default function ApplicationsPage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.2, delay: idx * 0.04 }}
               >
-                <Card className="bg-white border-border/60">
+                <Card className="bg-card border-border/60">
                   <CardContent className="p-4 flex items-center gap-3">
                     <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
                       <Briefcase className="h-5 w-5 text-primary" />

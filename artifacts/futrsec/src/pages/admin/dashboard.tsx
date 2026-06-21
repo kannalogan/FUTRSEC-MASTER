@@ -58,7 +58,7 @@ function StatCard({
   color: string;
 }) {
   return (
-    <Card className="bg-white border-border/60">
+    <Card className="bg-card border-border/60">
       <CardContent className="p-5 flex items-center gap-4">
         <div
           className="h-11 w-11 rounded-xl flex items-center justify-center shrink-0"
@@ -126,7 +126,7 @@ export default function AdminDashboardPage() {
           {/* Charts */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
             {/* Daily signups */}
-            <Card className="bg-white border-border/60">
+            <Card className="bg-card border-border/60">
               <CardContent className="p-5">
                 <h3 className="text-sm font-semibold mb-4 flex items-center gap-1.5">
                   <TrendingUp className="h-4 w-4 text-primary" />Daily Signups (last 14 days)
@@ -160,7 +160,7 @@ export default function AdminDashboardPage() {
             </Card>
 
             {/* Track distribution */}
-            <Card className="bg-white border-border/60">
+            <Card className="bg-card border-border/60">
               <CardContent className="p-5">
                 <h3 className="text-sm font-semibold mb-4 flex items-center gap-1.5">
                   <PieIcon className="h-4 w-4 text-primary" />Track Distribution
@@ -198,7 +198,7 @@ export default function AdminDashboardPage() {
           </div>
 
           {/* FTS distribution */}
-          <Card className="bg-white border-border/60 mb-4">
+          <Card className="bg-card border-border/60 mb-4">
             <CardContent className="p-5">
               <h3 className="text-sm font-semibold mb-4 flex items-center gap-1.5">
                 <BarChart3 className="h-4 w-4 text-primary" />Future Talent Score Distribution
@@ -217,7 +217,7 @@ export default function AdminDashboardPage() {
 
           {/* Trial vs Premium + Placement funnel */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            <Card className="bg-white border-border/60">
+            <Card className="bg-card border-border/60">
               <CardContent className="p-5">
                 <h3 className="text-sm font-semibold mb-4 flex items-center gap-1.5">
                   <Gauge className="h-4 w-4 text-primary" />Subscription Mix
@@ -239,7 +239,7 @@ export default function AdminDashboardPage() {
               </CardContent>
             </Card>
 
-            <Card className="bg-white border-border/60">
+            <Card className="bg-card border-border/60">
               <CardContent className="p-5">
                 <h3 className="text-sm font-semibold mb-4 flex items-center gap-1.5">
                   <Target className="h-4 w-4 text-primary" />Placement Funnel

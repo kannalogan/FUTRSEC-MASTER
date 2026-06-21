@@ -207,7 +207,7 @@ function QuizRunner({ lessonId, quiz, latestAttempt }: { lessonId: number; quiz:
 
   if (!started && !result) {
     return (
-      <div className="rounded-xl border border-border/60 bg-white p-6 text-center">
+      <div className="rounded-xl border border-border/60 bg-card p-6 text-center">
         <div className="h-12 w-12 rounded-2xl bg-orange-50 flex items-center justify-center mx-auto mb-3">
           <ClipboardList className="h-6 w-6 text-orange-500" />
         </div>
@@ -286,7 +286,7 @@ function QuizRunner({ lessonId, quiz, latestAttempt }: { lessonId: number; quiz:
       {quiz.questions.map((q: any, i: number) => {
         const multi = q.type === "multi-select";
         return (
-          <div key={q.id} className="rounded-lg border border-border/60 bg-white p-4">
+          <div key={q.id} className="rounded-lg border border-border/60 bg-card p-4">
             <p className="text-sm font-medium text-foreground mb-1">{i + 1}. {q.question}</p>
             <p className="text-[11px] text-muted-foreground mb-3">{multi ? "Select all that apply" : "Select one"} · {q.points} pts</p>
             <div className="space-y-2">
@@ -362,7 +362,7 @@ function Discussion({ lessonId }: { lessonId: number }) {
 
   return (
     <div className="space-y-5">
-      <div className="rounded-xl border border-border/60 bg-white p-4">
+      <div className="rounded-xl border border-border/60 bg-card p-4">
         <Textarea
           value={newPost}
           onChange={(e) => setNewPost(e.target.value)}
@@ -380,7 +380,7 @@ function Discussion({ lessonId }: { lessonId: number }) {
         <EmptyState icon={MessageSquare} title="No discussion yet" description="Be the first to start a conversation about this lesson." />
       ) : (
         posts.map((p) => (
-          <div key={p.id} className={`rounded-xl border bg-white p-4 ${p.isPinned ? "border-primary/40 bg-primary/[0.02]" : "border-border/60"}`}>
+          <div key={p.id} className={`rounded-xl border bg-card p-4 ${p.isPinned ? "border-primary/40 bg-primary/[0.02]" : "border-border/60"}`}>
             <div className="flex items-start gap-3">
               <Avatar className="h-8 w-8"><AvatarFallback className="text-xs bg-primary/10 text-primary">{initials(p.authorName)}</AvatarFallback></Avatar>
               <div className="flex-1 min-w-0">
@@ -466,7 +466,7 @@ function Notes({ lessonId, initial }: { lessonId: number; initial: any }) {
   });
 
   return (
-    <div className="rounded-xl border border-border/60 bg-white p-4">
+    <div className="rounded-xl border border-border/60 bg-card p-4">
       <div className="flex items-center justify-between mb-2">
         <p className="text-sm font-semibold text-foreground flex items-center gap-2"><StickyNote className="h-4 w-4 text-amber-500" />My Notes</p>
         <Button size="sm" disabled={!dirty || save.isPending} onClick={() => save.mutate()}>
@@ -533,7 +533,7 @@ function AiExplain({ lessonId, lessonTitle }: { lessonId: number; lessonTitle: s
       </div>
 
       {ask.isPending && (
-        <div className="rounded-xl border border-border/60 bg-white p-4 flex items-center gap-3 text-sm text-muted-foreground">
+        <div className="rounded-xl border border-border/60 bg-card p-4 flex items-center gap-3 text-sm text-muted-foreground">
           <Loader2 className="h-4 w-4 animate-spin text-primary" />Thinking through "{lessonTitle}"...
         </div>
       )}
@@ -543,7 +543,7 @@ function AiExplain({ lessonId, lessonTitle }: { lessonId: number; lessonTitle: s
         </div>
       )}
       {answer && !ask.isPending && (
-        <div className="rounded-xl border border-border/60 bg-white p-5">
+        <div className="rounded-xl border border-border/60 bg-card p-5">
           <div className="prose prose-sm max-w-none prose-headings:font-heading prose-p:text-foreground prose-li:text-foreground prose-strong:text-foreground prose-code:text-primary">
             <ReactMarkdown>{answer}</ReactMarkdown>
           </div>
@@ -671,7 +671,7 @@ export default function LessonPlayerPage() {
       <Tabs value={tab} onValueChange={setTab}>
         <TabsList className="w-full justify-start flex-wrap h-auto gap-1 bg-muted/50 p-1">
           {TAB_DEFS.map((t) => (
-            <TabsTrigger key={t.v} value={t.v} className="data-[state=active]:bg-white gap-1.5 text-xs">
+            <TabsTrigger key={t.v} value={t.v} className="data-[state=active]:bg-card gap-1.5 text-xs">
               <t.icon className="h-3.5 w-3.5" />{t.label}
               {t.badge && <span className="text-[10px] text-muted-foreground">{t.badge}</span>}
             </TabsTrigger>
@@ -680,7 +680,7 @@ export default function LessonPlayerPage() {
 
         <div className="mt-5">
           <TabsContent value="overview">
-            <div className="rounded-xl border border-border/60 bg-white p-5 space-y-4">
+            <div className="rounded-xl border border-border/60 bg-card p-5 space-y-4">
               <div>
                 <h3 className="font-heading font-bold text-foreground mb-2">About this lesson</h3>
                 <p className="text-sm text-muted-foreground leading-relaxed">{lesson.description || mod?.description || "Work through the content tabs to complete this lesson."}</p>
@@ -693,7 +693,7 @@ export default function LessonPlayerPage() {
                   { label: "Quiz", on: !!quiz, icon: ClipboardList },
                 ].map((x) => (
                   <button key={x.label} onClick={() => setTab(x.label.toLowerCase())} disabled={!x.on}
-                    className={`rounded-lg border p-3 text-left transition-all ${x.on ? "border-border/60 bg-white hover:border-primary hover:shadow-sm" : "border-dashed border-border/40 opacity-50 cursor-not-allowed"}`}>
+                    className={`rounded-lg border p-3 text-left transition-all ${x.on ? "border-border/60 bg-card hover:border-primary hover:shadow-sm" : "border-dashed border-border/40 opacity-50 cursor-not-allowed"}`}>
                     <x.icon className={`h-4 w-4 mb-1.5 ${x.on ? "text-primary" : "text-muted-foreground"}`} />
                     <p className="text-xs font-medium text-foreground">{x.label}{x.count ? ` (${x.count})` : ""}</p>
                     <p className="text-[10px] text-muted-foreground">{x.on ? "Available" : "Not included"}</p>
@@ -714,7 +714,7 @@ export default function LessonPlayerPage() {
 
           <TabsContent value="article">
             {article?.content ? (
-              <div className="rounded-xl border border-border/60 bg-white p-6">
+              <div className="rounded-xl border border-border/60 bg-card p-6">
                 <div className="prose prose-sm max-w-none prose-headings:font-heading prose-headings:text-foreground prose-p:text-foreground/90 prose-li:text-foreground/90 prose-strong:text-foreground prose-code:text-primary prose-code:bg-primary/5 prose-code:px-1 prose-code:rounded prose-a:text-primary">
                   <ReactMarkdown>{article.content}</ReactMarkdown>
                 </div>
@@ -729,7 +729,7 @@ export default function LessonPlayerPage() {
                   const Icon = RESOURCE_ICONS[r.type] ?? LinkIcon;
                   return (
                     <a key={r.id} href={r.url} target="_blank" rel="noopener noreferrer"
-                      className="flex items-center gap-3 p-3 rounded-lg border border-border/60 bg-white hover:border-primary hover:shadow-sm transition-all group">
+                      className="flex items-center gap-3 p-3 rounded-lg border border-border/60 bg-card hover:border-primary hover:shadow-sm transition-all group">
                       <div className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0"><Icon className="h-4 w-4 text-primary" /></div>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium text-foreground truncate group-hover:text-primary transition-colors">{r.title}</p>

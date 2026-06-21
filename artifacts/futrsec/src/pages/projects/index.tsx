@@ -60,7 +60,7 @@ export default function ProjectsPage() {
                 transition={{ duration: 0.2, delay: idx * 0.04 }}
                 whileHover={{ y: -2 }}
               >
-                <Card className="bg-white border-border/60 hover:shadow-md transition-all h-full flex flex-col">
+                <Card className="bg-card border-border/60 hover:shadow-md transition-all h-full flex flex-col">
                   <CardContent className="p-5 flex flex-col flex-1">
                     <div className="flex items-start justify-between gap-2 mb-3">
                       <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">

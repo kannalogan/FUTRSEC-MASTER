@@ -47,7 +47,7 @@ export default function AchievementsPage() {
                 { label: "Lessons Done", value: data.stats.lessons },
                 { label: "Applications", value: data.stats.applications },
               ].map((s) => (
-                <Card key={s.label} className="bg-white border-border/60">
+                <Card key={s.label} className="bg-card border-border/60">
                   <CardContent className="p-4 text-center">
                     <p className="text-2xl font-bold font-heading text-foreground">{s.value}</p>
                     <p className="text-xs text-muted-foreground mt-0.5">{s.label}</p>
@@ -64,7 +64,7 @@ export default function AchievementsPage() {
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.2, delay: idx * 0.03 }}
               >
-                <Card className={`border-border/60 transition-all ${badge.earned ? "bg-white hover:shadow-md" : "bg-muted/30"}`}>
+                <Card className={`border-border/60 transition-all ${badge.earned ? "bg-card hover:shadow-md" : "bg-muted/30"}`}>
                   <CardContent className="p-4 text-center">
                     <div className={`text-4xl mb-2 ${badge.earned ? "" : "grayscale opacity-40"}`}>
                       {badge.icon}

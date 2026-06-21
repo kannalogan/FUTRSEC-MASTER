@@ -47,7 +47,7 @@ export default function LabReportsPage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.2, delay: idx * 0.04 }}
               >
-                <Card className="bg-white border-border/60">
+                <Card className="bg-card border-border/60">
                   <CardContent className="p-5">
                     <div className="flex items-start justify-between gap-3 mb-2">
                       <div className="flex items-center gap-2">

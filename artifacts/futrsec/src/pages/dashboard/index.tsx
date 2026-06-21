@@ -5,16 +5,15 @@ import { Link, Redirect } from "wouter";
 import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
-  User, BookOpen, FlaskConical, Target, Zap, TrendingUp, Clock,
-  CheckCircle2, Lock, ChevronRight, Calendar, Briefcase, Shield, Star,
+  User, BookOpen, FlaskConical, Target, Zap, Clock,
+  CheckCircle2, Lock, ChevronRight, Briefcase, Shield, Star,
   AlertCircle, Bot, Flame
 } from "lucide-react";
 
 const TRACK_COLORS: Record<string, string> = {
-  soc: "#2563EB",
+  soc: "#3B82F6",
   vapt: "#F97316",
   grc: "#10B981",
   ai_security: "#8B5CF6",
@@ -31,21 +30,48 @@ const TRACK_LABELS: Record<string, string> = {
   forensics: "Digital Forensics",
 };
 
+function CircularProgress({ value, size = 84, stroke = 7, color = "#3B82F6", label, sub }: {
+  value: number; size?: number; stroke?: number; color?: string; label: string; sub?: string;
+}) {
+  const r = (size - stroke) / 2;
+  const c = 2 * Math.PI * r;
+  const pct = Math.max(0, Math.min(100, value));
+  const offset = c - (pct / 100) * c;
+  return (
+    <div className="flex flex-col items-center">
+      <div className="relative" style={{ width: size, height: size }}>
+        <svg width={size} height={size} className="-rotate-90">
+          <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth={stroke} />
+          <circle
+            cx={size / 2} cy={size / 2} r={r} fill="none" stroke={color} strokeWidth={stroke}
+            strokeDasharray={c} strokeDashoffset={offset} strokeLinecap="round"
+            style={{ transition: "stroke-dashoffset 0.8s ease", filter: `drop-shadow(0 0 6px ${color}99)` }}
+          />
+        </svg>
+        <div className="absolute inset-0 flex items-center justify-center">
+          <span className="text-lg font-bold font-heading text-white">{label}</span>
+        </div>
+      </div>
+      {sub && <span className="text-[11px] text-white/55 mt-1.5">{sub}</span>}
+    </div>
+  );
+}
+
 function KpiCard({ label, value, icon: Icon, color, suffix = "" }: {
   label: string; value: number | string; icon: React.ComponentType<any>; color: string; suffix?: string;
 }) {
   return (
-    <Card className="bg-white border-border/60 shadow-sm hover:shadow-md transition-shadow">
-      <CardContent className="p-4">
+    <Card className="glass-card hover-lift border-0">
+      <CardContent className="p-5">
         <div className="flex items-start justify-between">
           <div>
-            <p className="text-xs font-medium text-muted-foreground mb-1">{label}</p>
-            <p className="text-2xl font-bold font-heading text-foreground">
-              {value}<span className="text-sm font-normal text-muted-foreground">{suffix}</span>
+            <p className="text-[13px] font-medium text-muted-foreground mb-1.5">{label}</p>
+            <p className="text-3xl font-bold font-heading text-foreground">
+              {value}<span className="text-base font-normal text-muted-foreground">{suffix}</span>
             </p>
           </div>
-          <div className="h-9 w-9 rounded-xl flex items-center justify-center" style={{ backgroundColor: `${color}15` }}>
-            <Icon className="h-4.5 w-4.5" style={{ color }} />
+          <div className="h-11 w-11 rounded-xl flex items-center justify-center" style={{ backgroundColor: `${color}22`, boxShadow: `inset 0 0 0 1px ${color}33` }}>
+            <Icon className="h-5 w-5" style={{ color }} />
           </div>
         </div>
       </CardContent>
@@ -55,7 +81,7 @@ function KpiCard({ label, value, icon: Icon, color, suffix = "" }: {
 
 function CheckpointTimeline({ timeline }: { timeline: any[] }) {
   const statusIcon = (status: string) => {
-    if (status === "completed") return <CheckCircle2 className="h-4 w-4 text-green-500" />;
+    if (status === "completed") return <CheckCircle2 className="h-4 w-4 text-emerald" />;
     if (status === "locked") return <Lock className="h-4 w-4 text-muted-foreground/40" />;
     return <div className="h-4 w-4 rounded-full border-2 border-primary animate-pulse" />;
   };
@@ -66,14 +92,14 @@ function CheckpointTimeline({ timeline }: { timeline: any[] }) {
         <div key={cp.id} className="flex items-start gap-3">
           <div className="flex flex-col items-center">
             <div className={`h-8 w-8 rounded-full flex items-center justify-center border-2 transition-colors ${
-              cp.status === "completed" ? "border-green-500 bg-green-50" :
+              cp.status === "completed" ? "border-emerald bg-emerald/10" :
               cp.status === "locked" ? "border-border bg-muted/30" :
               "border-primary bg-primary/10"
             }`}>
               {statusIcon(cp.status)}
             </div>
             {i < timeline.length - 1 && (
-              <div className={`w-0.5 h-8 mt-0.5 ${cp.status === "completed" ? "bg-green-300" : "bg-border"}`} />
+              <div className={`w-0.5 h-8 mt-0.5 ${cp.status === "completed" ? "bg-emerald/40" : "bg-border"}`} />
             )}
           </div>
           <div className="pt-1.5 pb-3">
@@ -112,15 +138,15 @@ export default function DashboardHome() {
   const greeting = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
   const firstName = data?.user?.firstName || (user?.fullName?.split(" ")[0]) || "Student";
   const trackSlug = data?.track?.slug ?? null;
-  const trackColor = trackSlug ? (TRACK_COLORS[trackSlug] ?? "#2563EB") : "#2563EB";
+  const trackColor = trackSlug ? (TRACK_COLORS[trackSlug] ?? "#3B82F6") : "#3B82F6";
   const trackLabel = trackSlug ? (TRACK_LABELS[trackSlug] ?? trackSlug) : null;
 
   if (isLoading) {
     return (
-      <div className="p-6 lg:p-8 space-y-6">
-        <Skeleton className="h-32 rounded-2xl" />
+      <div className="p-6 lg:p-8 space-y-6 max-w-7xl mx-auto">
+        <Skeleton className="h-44 rounded-3xl" />
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          {[...Array(8)].map((_, i) => <Skeleton key={i} className="h-20 rounded-xl" />)}
+          {[...Array(8)].map((_, i) => <Skeleton key={i} className="h-28 rounded-2xl" />)}
         </div>
       </div>
     );
@@ -139,74 +165,108 @@ export default function DashboardHome() {
   const kpis = data?.kpis ?? {};
   const trial = data?.trial ?? {};
   const timeline = data?.checkpointTimeline ?? [];
+  const initial = (firstName?.[0] ?? "S").toUpperCase();
 
   return (
-    <div className="p-5 lg:p-8 space-y-6 max-w-7xl mx-auto">
+    <div className="p-5 lg:p-8 space-y-8 max-w-7xl mx-auto">
       {/* Hero */}
       <motion.div
-        initial={{ opacity: 0, y: -10 }}
+        initial={{ opacity: 0, y: -12 }}
         animate={{ opacity: 1, y: 0 }}
-        className="rounded-2xl overflow-hidden relative"
-        style={{ background: `linear-gradient(135deg, ${trackColor}18 0%, ${trackColor}08 100%)` }}
+        transition={{ duration: 0.4 }}
+        className="relative rounded-3xl overflow-hidden glass-card p-6 lg:p-8"
       >
-        <div className="border border-border/60 rounded-2xl p-5 lg:p-7">
-          <div className="flex items-start justify-between gap-4 flex-wrap">
-            <div>
-              <p className="text-muted-foreground text-sm mb-1">{greeting} 👋</p>
-              <h1 className="font-heading text-2xl lg:text-3xl font-bold text-foreground">
-                {firstName}
-              </h1>
-              {trackLabel && (
-                <div className="flex items-center gap-2 mt-2">
-                  <div className="h-2 w-2 rounded-full" style={{ backgroundColor: trackColor }} />
-                  <span className="text-sm font-medium" style={{ color: trackColor }}>{trackLabel}</span>
-                </div>
-              )}
+        {/* Animated ambient blobs */}
+        <motion.div
+          className="pointer-events-none absolute -top-24 -right-10 h-72 w-72 rounded-full blur-[90px]"
+          style={{ backgroundColor: `${trackColor}40` }}
+          animate={{ scale: [1, 1.15, 1], opacity: [0.5, 0.7, 0.5] }}
+          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+        />
+        <motion.div
+          className="pointer-events-none absolute -bottom-24 left-1/3 h-64 w-64 rounded-full bg-violet/30 blur-[90px]"
+          animate={{ scale: [1, 1.2, 1], opacity: [0.35, 0.55, 0.35] }}
+          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
+        />
+
+        <div className="relative flex items-start justify-between gap-6 flex-wrap">
+          <div className="flex items-center gap-5">
+            <div
+              className="h-16 w-16 lg:h-20 lg:w-20 rounded-2xl flex items-center justify-center text-2xl font-bold font-heading text-white shrink-0 ring-1 ring-white/10"
+              style={{ background: `linear-gradient(135deg, ${trackColor}, #8B5CF6)` }}
+            >
+              {initial}
             </div>
-            <div className="flex items-center gap-4">
-              {trial.isActive && (
-                <div className="text-right">
-                  <div className="flex items-center gap-2 justify-end">
-                    <Flame className="h-4 w-4 text-orange-500" />
-                    <span className="text-sm font-bold text-foreground">Day {trial.day} / {trial.totalDays}</span>
-                  </div>
-                  <p className="text-xs text-muted-foreground mt-0.5">{trial.daysRemaining} days remaining</p>
-                  <Progress value={(trial.day / trial.totalDays) * 100} className="h-1.5 mt-2 w-32" />
-                </div>
-              )}
+            <div>
+              <p className="text-muted-foreground text-sm mb-1">{greeting}</p>
+              <h1 className="text-page-title text-foreground">{firstName}</h1>
               {trackLabel && (
-                <div className="h-12 w-12 rounded-xl flex items-center justify-center border-2" style={{ borderColor: trackColor, backgroundColor: `${trackColor}15` }}>
-                  <Shield className="h-6 w-6" style={{ color: trackColor }} />
+                <div className="inline-flex items-center gap-2 mt-3 px-3 py-1.5 rounded-full bg-white/5 ring-1 ring-white/10">
+                  <span className="h-2 w-2 rounded-full" style={{ backgroundColor: trackColor, boxShadow: `0 0 8px ${trackColor}` }} />
+                  <span className="text-sm font-semibold" style={{ color: trackColor }}>{trackLabel}</span>
                 </div>
               )}
             </div>
           </div>
+
+          {/* Readiness rings */}
+          <div className="flex items-center gap-6">
+            <CircularProgress
+              value={Number(kpis.ftsScore ?? 0)}
+              color="#F59E0B"
+              label={String(kpis.ftsScore ?? 0)}
+              sub="FTS Score"
+            />
+            <CircularProgress
+              value={Number(kpis.aiReadiness ?? 0)}
+              color="#8B5CF6"
+              label={`${kpis.aiReadiness ?? 0}%`}
+              sub="AI Ready"
+            />
+            <CircularProgress
+              value={Number(kpis.placementReadiness ?? 0)}
+              color="#10B981"
+              label={`${kpis.placementReadiness ?? 0}%`}
+              sub="Placement"
+            />
+          </div>
         </div>
+
+        {trial.isActive && (
+          <div className="relative mt-6 flex items-center gap-3 rounded-2xl bg-white/[0.04] ring-1 ring-white/10 px-4 py-3">
+            <Flame className="h-5 w-5 text-orange-400 shrink-0" />
+            <span className="text-sm font-semibold text-white">Trial — Day {trial.day} / {trial.totalDays}</span>
+            <span className="text-xs text-white/55">{trial.daysRemaining} days remaining</span>
+            <div className="ml-auto h-2 w-40 max-w-[40vw] rounded-full bg-white/10 overflow-hidden">
+              <div className="h-full rounded-full bg-gradient-to-r from-orange-400 to-primary" style={{ width: `${(trial.day / trial.totalDays) * 100}%` }} />
+            </div>
+          </div>
+        )}
       </motion.div>
 
       {/* KPI Grid */}
       <div>
-        <h2 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-3">Overview</h2>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <KpiCard label="Profile Completion" value={kpis.profileCompletion ?? 0} suffix="%" icon={User} color="#2563EB" />
+        <h2 className="text-eyebrow text-muted-foreground mb-4">Overview</h2>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          <KpiCard label="Profile Completion" value={kpis.profileCompletion ?? 0} suffix="%" icon={User} color="#3B82F6" />
           <KpiCard label="Tasks Completed" value={kpis.tasksCompleted ?? 0} icon={CheckCircle2} color="#10B981" />
           <KpiCard label="Learning Hours" value={kpis.learningHours ?? 0} suffix="h" icon={BookOpen} color="#F97316" />
           <KpiCard label="Checkpoint Progress" value={kpis.checkpointProgress ?? 0} suffix="%" icon={Target} color="#8B5CF6" />
           <KpiCard label="FTS Score" value={kpis.ftsScore ?? 0} icon={Star} color="#F59E0B" />
           <KpiCard label="AI Readiness" value={kpis.aiReadiness ?? 0} suffix="%" icon={Bot} color="#8B5CF6" />
           <KpiCard label="Placement Ready" value={kpis.placementReadiness ?? 0} suffix="%" icon={Briefcase} color="#10B981" />
-          <KpiCard label="Subscription" value={kpis.subscriptionStatus === "trial" ? "Trial" : "Free"} icon={Zap} color="#2563EB" />
+          <KpiCard label="Subscription" value={kpis.subscriptionStatus === "trial" ? "Trial" : "Free"} icon={Zap} color="#3B82F6" />
         </div>
       </div>
 
       {/* Main grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Checkpoint timeline */}
-        <Card className="bg-white border-border/60 lg:col-span-1">
-          <CardHeader className="pb-3 pt-4 px-5">
-            <CardTitle className="text-sm font-semibold">Journey Timeline</CardTitle>
+        <Card className="glass-card border-0 lg:col-span-1">
+          <CardHeader className="pb-3 pt-5 px-6">
+            <CardTitle className="text-card-title">Journey Timeline</CardTitle>
           </CardHeader>
-          <CardContent className="px-5 pb-5">
+          <CardContent className="px-6 pb-6">
             {timeline.length > 0 ? (
               <CheckpointTimeline timeline={timeline} />
             ) : (
@@ -219,16 +279,16 @@ export default function DashboardHome() {
         </Card>
 
         {/* Quick actions + recent activity */}
-        <div className="lg:col-span-2 space-y-4">
+        <div className="lg:col-span-2 space-y-6">
           {/* Quick actions */}
-          <Card className="bg-white border-border/60">
-            <CardHeader className="pb-3 pt-4 px-5">
-              <CardTitle className="text-sm font-semibold">Quick Actions</CardTitle>
+          <Card className="glass-card border-0">
+            <CardHeader className="pb-3 pt-5 px-6">
+              <CardTitle className="text-card-title">Quick Actions</CardTitle>
             </CardHeader>
-            <CardContent className="px-5 pb-5">
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+            <CardContent className="px-6 pb-6">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                 {[
-                  { label: "Continue Learning", href: "/learning", icon: BookOpen, color: "#2563EB" },
+                  { label: "Continue Learning", href: "/learning", icon: BookOpen, color: "#3B82F6" },
                   { label: "Start a Lab", href: "/labs", icon: FlaskConical, color: "#F97316" },
                   { label: "Browse Jobs", href: "/jobs", icon: Briefcase, color: "#10B981" },
                   { label: "AI Career Coach", href: "/ai/career-coach", icon: Bot, color: "#8B5CF6" },
@@ -238,13 +298,13 @@ export default function DashboardHome() {
                   <Link
                     key={action.href}
                     href={action.href}
-                    className="flex items-center gap-2.5 p-3 rounded-lg border border-border/60 hover:border-border hover:shadow-sm transition-all group"
+                    className="flex items-center gap-3 p-3.5 rounded-xl bg-white/[0.03] ring-1 ring-white/[0.06] hover:ring-white/15 hover:bg-white/[0.06] transition-all group"
                   >
-                    <div className="h-7 w-7 rounded-lg flex items-center justify-center shrink-0" style={{ backgroundColor: `${action.color}15` }}>
-                      <action.icon className="h-3.5 w-3.5" style={{ color: action.color }} />
+                    <div className="h-9 w-9 rounded-xl flex items-center justify-center shrink-0" style={{ backgroundColor: `${action.color}22` }}>
+                      <action.icon className="h-4 w-4" style={{ color: action.color }} />
                     </div>
-                    <span className="text-xs font-medium text-foreground/80 group-hover:text-foreground">{action.label}</span>
-                    <ChevronRight className="h-3 w-3 ml-auto text-muted-foreground/40 group-hover:text-muted-foreground" />
+                    <span className="text-sm font-medium text-foreground/85 group-hover:text-foreground">{action.label}</span>
+                    <ChevronRight className="h-4 w-4 ml-auto text-muted-foreground/40 group-hover:text-muted-foreground" />
                   </Link>
                 ))}
               </div>
@@ -252,21 +312,21 @@ export default function DashboardHome() {
           </Card>
 
           {/* Recent Activity */}
-          <Card className="bg-white border-border/60">
-            <CardHeader className="pb-3 pt-4 px-5">
-              <CardTitle className="text-sm font-semibold">Recent Activity</CardTitle>
+          <Card className="glass-card border-0">
+            <CardHeader className="pb-3 pt-5 px-6">
+              <CardTitle className="text-card-title">Recent Activity</CardTitle>
             </CardHeader>
-            <CardContent className="px-5 pb-5">
+            <CardContent className="px-6 pb-6">
               {(data?.recentActivity?.labs?.length > 0 || data?.recentActivity?.applications?.length > 0) ? (
-                <div className="space-y-2">
+                <div className="space-y-2.5">
                   {data.recentActivity.labs?.slice(0, 3).map((lab: any) => (
-                    <div key={lab.id} className="flex items-center gap-3 p-2.5 rounded-lg bg-muted/30">
-                      <div className="h-7 w-7 rounded-lg bg-orange-50 flex items-center justify-center shrink-0">
-                        <FlaskConical className="h-3.5 w-3.5 text-orange-500" />
+                    <div key={lab.id} className="flex items-center gap-3 p-3 rounded-xl bg-white/[0.03] ring-1 ring-white/[0.05]">
+                      <div className="h-8 w-8 rounded-lg bg-orange-500/15 flex items-center justify-center shrink-0">
+                        <FlaskConical className="h-4 w-4 text-orange-400" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-xs font-medium text-foreground">Lab attempt</p>
-                        <p className="text-[11px] text-muted-foreground">{new Date(lab.startedAt).toLocaleDateString()}</p>
+                        <p className="text-sm font-medium text-foreground">Lab attempt</p>
+                        <p className="text-xs text-muted-foreground">{new Date(lab.startedAt).toLocaleDateString()}</p>
                       </div>
                       <Badge variant={lab.status === "completed" ? "default" : "secondary"} className="text-[10px]">
                         {lab.status}
@@ -274,13 +334,13 @@ export default function DashboardHome() {
                     </div>
                   ))}
                   {data.recentActivity.applications?.slice(0, 3).map((app: any) => (
-                    <div key={app.id} className="flex items-center gap-3 p-2.5 rounded-lg bg-muted/30">
-                      <div className="h-7 w-7 rounded-lg bg-blue-50 flex items-center justify-center shrink-0">
-                        <Briefcase className="h-3.5 w-3.5 text-blue-500" />
+                    <div key={app.id} className="flex items-center gap-3 p-3 rounded-xl bg-white/[0.03] ring-1 ring-white/[0.05]">
+                      <div className="h-8 w-8 rounded-lg bg-primary/15 flex items-center justify-center shrink-0">
+                        <Briefcase className="h-4 w-4 text-primary" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-xs font-medium text-foreground">Job application</p>
-                        <p className="text-[11px] text-muted-foreground">{new Date(app.appliedAt).toLocaleDateString()}</p>
+                        <p className="text-sm font-medium text-foreground">Job application</p>
+                        <p className="text-xs text-muted-foreground">{new Date(app.appliedAt).toLocaleDateString()}</p>
                       </div>
                       <Badge variant="secondary" className="text-[10px]">{app.status}</Badge>
                     </div>

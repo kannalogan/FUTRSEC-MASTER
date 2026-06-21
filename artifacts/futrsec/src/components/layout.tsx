@@ -1,26 +1,61 @@
 import { useState } from "react";
-import { Sidebar } from "@/components/sidebar";
+import { Link, useLocation } from "wouter";
+import { Sidebar, primaryNavForRole } from "@/components/sidebar";
 import { CookieBanner } from "@/components/cookie-banner";
-import { Menu } from "lucide-react";
+import { useAuth } from "@/hooks/use-auth";
+import { Menu, Shield } from "lucide-react";
+
+function MobileBottomNav() {
+  const { user } = useAuth();
+  const [location] = useLocation();
+  const items = primaryNavForRole(user?.role ?? null);
+
+  return (
+    <nav className="lg:hidden fixed bottom-0 inset-x-0 z-40 border-t border-white/[0.06] bg-sidebar/95 backdrop-blur-xl">
+      <div className="grid grid-cols-5">
+        {items.map((item) => {
+          const isActive = location === item.href;
+          return (
+            <Link
+              key={item.href + item.label}
+              href={item.href}
+              className={`flex flex-col items-center justify-center gap-1 py-2.5 text-[11px] font-medium transition-colors ${
+                isActive ? "text-primary" : "text-white/50 hover:text-white/80"
+              }`}
+            >
+              <item.icon className="h-5 w-5" />
+              <span className="truncate max-w-[64px]">{item.label}</span>
+            </Link>
+          );
+        })}
+      </div>
+    </nav>
+  );
+}
 
 export function Layout({ children }: { children: React.ReactNode }) {
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
   return (
     <div className="flex h-screen w-full bg-background overflow-hidden">
-      {/* Desktop sidebar */}
-      <aside className="hidden md:flex md:w-56 lg:w-60 shrink-0 flex-col border-r border-white/5 overflow-hidden">
+      {/* Desktop sidebar — 300px */}
+      <aside className="hidden lg:flex w-[300px] shrink-0 flex-col border-r border-white/[0.06] overflow-hidden">
         <Sidebar />
       </aside>
 
-      {/* Mobile sidebar overlay */}
+      {/* Tablet / mobile drawer overlay */}
       {mobileSidebarOpen && (
-        <div className="fixed inset-0 z-50 md:hidden">
+        <div className="fixed inset-0 z-50 lg:hidden">
           <div
-            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            className="absolute inset-0 bg-black/70 backdrop-blur-sm"
             onClick={() => setMobileSidebarOpen(false)}
           />
-          <aside className="relative z-10 w-64 h-full">
+          <aside
+            className="relative z-10 w-[300px] max-w-[85vw] h-full shadow-2xl"
+            onClick={(e) => {
+              if ((e.target as HTMLElement).closest("a")) setMobileSidebarOpen(false);
+            }}
+          >
             <Sidebar onClose={() => setMobileSidebarOpen(false)} />
           </aside>
         </div>
@@ -28,21 +63,30 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
       {/* Main content */}
       <main className="flex-1 flex flex-col min-h-0 overflow-hidden">
-        {/* Mobile header */}
-        <header className="md:hidden h-12 border-b border-border bg-card flex items-center px-4 gap-3 shrink-0">
+        {/* Mobile / tablet header */}
+        <header className="lg:hidden h-14 border-b border-white/[0.06] bg-sidebar flex items-center px-4 gap-3 shrink-0">
           <button
             onClick={() => setMobileSidebarOpen(true)}
-            className="p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+            className="p-2 rounded-lg text-white/60 hover:text-white hover:bg-white/[0.06] transition-colors"
+            aria-label="Open menu"
           >
             <Menu className="h-5 w-5" />
           </button>
-          <span className="font-heading font-bold text-sm tracking-tight">FUTRSEC</span>
+          <div className="flex items-center gap-2">
+            <div className="h-7 w-7 rounded-lg bg-gradient-to-br from-primary to-violet flex items-center justify-center">
+              <Shield className="h-4 w-4 text-white" />
+            </div>
+            <span className="font-heading font-bold text-base tracking-tight text-white">FUTRSEC</span>
+          </div>
         </header>
 
-        <div className="flex-1 overflow-y-auto">
+        <div className="flex-1 overflow-y-auto scrollbar-thin pb-20 lg:pb-0">
           {children}
         </div>
       </main>
+
+      {/* Mobile bottom nav */}
+      <MobileBottomNav />
       <CookieBanner />
     </div>
   );

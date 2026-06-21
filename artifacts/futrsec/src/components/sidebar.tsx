@@ -11,7 +11,7 @@ import {
   User, FileSearch, Star, BarChart2, TreePine, Link2,
   Bot, Mic2, ScanSearch, BrainCircuit, Brain, TrendingUp, Languages,
   CreditCard, Receipt, Bell, Lock, Settings, HelpCircle, HeadphonesIcon,
-  ChevronDown, ChevronRight, LogOut, Menu, X, ExternalLink,
+  ChevronDown, ChevronRight, LogOut, X,
   Gauge, Layers, BarChart3, AlertTriangle, Megaphone, ListChecks, UserCog
 } from "lucide-react";
 
@@ -20,7 +20,6 @@ type NavItem = {
   href: string;
   icon: React.ComponentType<{ className?: string }>;
   badge?: string;
-  locked?: boolean;
 };
 
 type NavSection = {
@@ -173,8 +172,128 @@ const EMPLOYER_NAV: NavSection[] = [
   },
 ];
 
+// Admin sees ONLY these menus — exactly the 22 platform-admin destinations,
+// grouped for scannability. No student/mentor/tpo/employer items ever render here.
+const ADMIN_NAV: NavSection[] = [
+  {
+    title: "PLATFORM",
+    items: [
+      { label: "Dashboard", href: "/admin/dashboard", icon: LayoutDashboard },
+      { label: "Analytics", href: "/admin/analytics", icon: BarChart3 },
+      { label: "Consent Logs", href: "/admin/consent-logs", icon: Shield },
+      { label: "Audit Logs", href: "/admin/audit-logs", icon: History },
+    ],
+  },
+  {
+    title: "PEOPLE",
+    items: [
+      { label: "Students", href: "/admin/students", icon: Users },
+      { label: "Mentors", href: "/admin/mentors", icon: UserCog },
+      { label: "TPO Management", href: "/admin/tpos", icon: GraduationCap },
+      { label: "Company Management", href: "/admin/companies", icon: Building },
+    ],
+  },
+  {
+    title: "LEARNING",
+    items: [
+      { label: "Tracks", href: "/admin/tracks", icon: Layers },
+      { label: "Courses", href: "/admin/courses", icon: BookOpen },
+      { label: "Labs", href: "/admin/labs", icon: FlaskConical },
+      { label: "Assessments", href: "/admin/assessments", icon: ClipboardCheck },
+      { label: "Certificates", href: "/admin/certificates", icon: Award },
+    ],
+  },
+  {
+    title: "CAREER",
+    items: [
+      { label: "Job Postings", href: "/admin/job-postings", icon: Briefcase },
+      { label: "Placements", href: "/admin/placements", icon: Award },
+      { label: "Campus Drives", href: "/campus/admin", icon: Building },
+    ],
+  },
+  {
+    title: "BILLING",
+    items: [
+      { label: "Subscriptions", href: "/admin/subscriptions", icon: CreditCard },
+      { label: "Payments", href: "/admin/payments", icon: Receipt },
+      { label: "Coupons", href: "/admin/coupons", icon: Gift },
+    ],
+  },
+  {
+    title: "AI",
+    items: [
+      { label: "AI Config", href: "/admin/ai-config", icon: BrainCircuit },
+      { label: "AI Usage", href: "/admin/ai-usage", icon: Bot },
+    ],
+  },
+  {
+    title: "SYSTEM",
+    items: [
+      { label: "Platform Settings", href: "/admin/settings", icon: Settings },
+    ],
+  },
+];
+
+export type Role = "admin" | "mentor" | "tpo" | "employer" | "student";
+
+function navForRole(role: string | null | undefined): NavSection[] {
+  switch (role) {
+    case "admin": return ADMIN_NAV;
+    case "mentor": return MENTOR_NAV;
+    case "tpo": return TPO_NAV;
+    case "employer": return EMPLOYER_NAV;
+    default: return NAV_SECTIONS; // student (and null) only
+  }
+}
+
+// Compact primary destinations for the mobile bottom bar (max 5 per role).
+export function primaryNavForRole(role: string | null | undefined): NavItem[] {
+  switch (role) {
+    case "admin":
+      return [
+        { label: "Dashboard", href: "/admin/dashboard", icon: LayoutDashboard },
+        { label: "Students", href: "/admin/students", icon: Users },
+        { label: "Courses", href: "/admin/courses", icon: BookOpen },
+        { label: "Billing", href: "/admin/payments", icon: Receipt },
+        { label: "Settings", href: "/admin/settings", icon: Settings },
+      ];
+    case "mentor":
+      return [
+        { label: "Overview", href: "/mentor", icon: Gauge },
+        { label: "Students", href: "/mentor/students", icon: Users },
+        { label: "Batches", href: "/mentor/batches", icon: Layers },
+        { label: "At-Risk", href: "/mentor/at-risk", icon: AlertTriangle },
+        { label: "Reports", href: "/mentor/reports", icon: FileText },
+      ];
+    case "tpo":
+      return [
+        { label: "Overview", href: "/tpo", icon: Gauge },
+        { label: "Placements", href: "/tpo/placements", icon: Briefcase },
+        { label: "Students", href: "/tpo/directory", icon: Users },
+        { label: "Drives", href: "/campus/tpo", icon: Building },
+        { label: "Reports", href: "/tpo/reports", icon: FileText },
+      ];
+    case "employer":
+      return [
+        { label: "Overview", href: "/employer", icon: Gauge },
+        { label: "Jobs", href: "/employer/jobs", icon: Briefcase },
+        { label: "Candidates", href: "/employer/candidates", icon: Users },
+        { label: "Offers", href: "/employer/offers", icon: Gift },
+        { label: "Settings", href: "/employer/settings", icon: Settings },
+      ];
+    default:
+      return [
+        { label: "Home", href: "/dashboard", icon: LayoutDashboard },
+        { label: "Learn", href: "/learning", icon: BookOpen },
+        { label: "Labs", href: "/labs", icon: FlaskConical },
+        { label: "Jobs", href: "/jobs", icon: Laptop },
+        { label: "Profile", href: "/profile", icon: User },
+      ];
+  }
+}
+
 const TRACK_COLORS: Record<string, string> = {
-  soc: "#2563EB",
+  soc: "#3B82F6",
   vapt: "#F97316",
   grc: "#10B981",
   ai_security: "#8B5CF6",
@@ -198,16 +317,19 @@ function NavLink({ item }: { item: NavItem }) {
   return (
     <Link
       href={item.href}
-      className={`flex items-center gap-2.5 px-3 py-1.5 rounded-md text-sm transition-all duration-150 group relative ${
+      className={`relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-base transition-all duration-150 group ${
         isActive
-          ? "bg-sidebar-accent text-white font-medium"
-          : "text-white/50 hover:text-white/90 hover:bg-white/5"
+          ? "bg-primary/15 text-white font-semibold"
+          : "text-white/55 hover:text-white hover:bg-white/[0.06]"
       }`}
     >
-      <item.icon className={`h-3.5 w-3.5 shrink-0 ${isActive ? "text-white" : "text-white/40 group-hover:text-white/70"}`} />
+      {isActive && (
+        <span className="absolute left-0 top-1/2 -translate-y-1/2 h-5 w-1 rounded-full bg-primary shadow-[0_0_12px_2px_rgba(59,130,246,0.7)]" />
+      )}
+      <item.icon className={`h-[18px] w-[18px] shrink-0 ${isActive ? "text-primary" : "text-white/40 group-hover:text-white/80"}`} />
       <span className="truncate">{item.label}</span>
       {item.badge && (
-        <span className="ml-auto text-[10px] font-medium bg-primary text-white px-1.5 py-0.5 rounded-full">{item.badge}</span>
+        <span className="ml-auto text-[11px] font-semibold bg-primary text-white px-2 py-0.5 rounded-full">{item.badge}</span>
       )}
     </Link>
   );
@@ -219,6 +341,9 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
   const { data: unreadCount } = useUnreadNotificationCount();
 
+  const role = user?.role ?? null;
+  const isStudent = !role || role === "student";
+
   const handleLogout = () => {
     logoutMutation.mutate(undefined, { onSettled: () => localLogout() });
   };
@@ -228,65 +353,66 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
   };
 
   // The career track is permanent (chosen once at onboarding) and is the single
-  // source of truth for what this student can access. There is intentionally NO
-  // track-switching UI here — only an admin can change a track.
+  // source of truth for what a student can access. Only students see it.
   const trackSlug = user?.careerTrack ?? null;
-  const trackColor = trackSlug ? (TRACK_COLORS[trackSlug] ?? "#2563EB") : "#2563EB";
+  const trackColor = trackSlug ? (TRACK_COLORS[trackSlug] ?? "#3B82F6") : "#3B82F6";
   const trackLabel = trackSlug ? (TRACK_LABELS[trackSlug] ?? trackSlug) : "No Track";
 
   // Locked "Explore" cards for the other tracks — visible but not accessible.
-  const lockedTracks = (["soc", "vapt", "grc"] as const).filter((t) => t !== trackSlug);
+  // Students only; no other role sees track concepts.
+  const lockedTracks = isStudent
+    ? (["soc", "vapt", "grc"] as const).filter((t) => t !== trackSlug)
+    : [];
+
+  const sections = navForRole(role);
 
   return (
-    <div className="flex flex-col h-full bg-[#08111F] text-white">
+    <div className="flex flex-col h-full bg-sidebar text-white relative overflow-hidden">
+      {/* Ambient glow */}
+      <div className="pointer-events-none absolute -top-24 -left-16 h-56 w-56 rounded-full bg-primary/20 blur-[80px]" />
+      <div className="pointer-events-none absolute top-1/3 -right-20 h-56 w-56 rounded-full bg-violet/15 blur-[90px]" />
+
       {/* Logo */}
-      <div className="flex items-center justify-between px-5 h-14 border-b border-white/5 shrink-0">
-        <div className="flex items-center gap-2">
-          <div className="h-7 w-7 rounded-lg bg-primary flex items-center justify-center">
-            <Shield className="h-4 w-4 text-white" />
+      <div className="relative flex items-center justify-between px-6 h-16 border-b border-white/[0.06] shrink-0">
+        <div className="flex items-center gap-2.5">
+          <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-primary to-violet flex items-center justify-center shadow-[0_0_18px_-2px_rgba(59,130,246,0.6)]">
+            <Shield className="h-5 w-5 text-white" />
           </div>
-          <span className="font-heading font-bold text-[15px] tracking-tight text-white">FUTRSEC</span>
+          <span className="font-heading font-bold text-lg tracking-tight text-white">FUTRSEC</span>
         </div>
         {onClose && (
           <button onClick={onClose} className="text-white/50 hover:text-white p-1">
-            <X className="h-4 w-4" />
+            <X className="h-5 w-5" />
           </button>
         )}
       </div>
 
-      {/* Track Badge */}
-      {trackSlug && (
-        <div className="px-4 py-3 border-b border-white/5">
-          <div className="flex items-center gap-2 bg-white/5 rounded-lg px-3 py-2">
-            <div className="h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: trackColor }} />
-            <span className="text-xs font-medium text-white/80 truncate">{trackLabel}</span>
-            <span className="ml-auto text-[10px] text-white/40 shrink-0">Active</span>
+      {/* Track Badge — students only */}
+      {isStudent && trackSlug && (
+        <div className="relative px-5 py-4 border-b border-white/[0.06]">
+          <div className="flex items-center gap-2.5 glass-card rounded-xl px-3.5 py-2.5">
+            <span className="h-2.5 w-2.5 rounded-full shrink-0" style={{ backgroundColor: trackColor, boxShadow: `0 0 10px 1px ${trackColor}` }} />
+            <span className="text-sm font-semibold text-white/90 truncate">{trackLabel}</span>
+            <span className="ml-auto text-[10px] uppercase tracking-wider text-white/40 shrink-0">Active</span>
           </div>
         </div>
       )}
 
       {/* Nav */}
-      <nav className="flex-1 overflow-y-auto py-2 px-2 scrollbar-thin">
-        {(user?.role === "mentor"
-          ? MENTOR_NAV
-          : user?.role === "tpo"
-            ? TPO_NAV
-            : user?.role === "employer"
-              ? EMPLOYER_NAV
-              : NAV_SECTIONS
-        ).map((section) => {
+      <nav className="relative flex-1 overflow-y-auto py-3 px-3 scrollbar-thin">
+        {sections.map((section) => {
           const isCollapsed = collapsed[section.title];
           return (
-            <div key={section.title} className="mb-1">
+            <div key={section.title} className="mb-2">
               <button
                 onClick={() => toggleSection(section.title)}
-                className="w-full flex items-center justify-between px-3 py-1.5 text-[10px] font-semibold tracking-widest text-white/30 hover:text-white/50 transition-colors uppercase"
+                className="w-full flex items-center justify-between px-3 py-2 text-eyebrow text-white/35 hover:text-white/60 transition-colors"
               >
                 {section.title}
-                {isCollapsed ? <ChevronRight className="h-2.5 w-2.5" /> : <ChevronDown className="h-2.5 w-2.5" />}
+                {isCollapsed ? <ChevronRight className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
               </button>
               {!isCollapsed && (
-                <div className="space-y-0.5">
+                <div className="space-y-1">
                   {section.items.map((item) => {
                     const withBadge =
                       item.href === "/notifications" && unreadCount && unreadCount > 0
@@ -300,61 +426,23 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
           );
         })}
 
-        {/* Admin-only */}
-        {user?.role === "admin" && (
-          <div className="mb-1 mt-2">
-            <div className="px-3 py-1.5 text-[10px] font-semibold tracking-widest text-white/30 uppercase">
-              Admin
-            </div>
-            <div className="space-y-0.5">
-              <NavLink item={{ label: "Overview", href: "/admin", icon: Gauge }} />
-              <NavLink item={{ label: "Dashboard", href: "/admin/dashboard", icon: LayoutDashboard }} />
-              <NavLink item={{ label: "Student Management", href: "/admin/students", icon: Users }} />
-              <NavLink item={{ label: "Track Management", href: "/admin/tracks", icon: Layers }} />
-              <NavLink item={{ label: "Courses", href: "/admin/courses", icon: BookOpen }} />
-              <NavLink item={{ label: "Labs", href: "/admin/labs", icon: FlaskConical }} />
-              <NavLink item={{ label: "Assessments", href: "/admin/assessments", icon: ClipboardCheck }} />
-              <NavLink item={{ label: "Certificates", href: "/admin/certificates", icon: Award }} />
-              <NavLink item={{ label: "Job Postings", href: "/admin/job-postings", icon: Briefcase }} />
-              <NavLink item={{ label: "AI Config", href: "/admin/ai-config", icon: BrainCircuit }} />
-              <NavLink item={{ label: "Platform Settings", href: "/admin/settings", icon: Settings }} />
-              <NavLink item={{ label: "Mentor Management", href: "/admin/mentors", icon: UserCog }} />
-              <NavLink item={{ label: "TPO Management", href: "/admin/tpos", icon: GraduationCap }} />
-              <NavLink item={{ label: "Company Management", href: "/admin/companies", icon: Building }} />
-              <NavLink item={{ label: "Jobs", href: "/admin/jobs", icon: Briefcase }} />
-              <NavLink item={{ label: "Applications", href: "/admin/applications", icon: Send }} />
-              <NavLink item={{ label: "Placements", href: "/admin/placements", icon: Award }} />
-              <NavLink item={{ label: "Subscriptions", href: "/admin/subscriptions", icon: CreditCard }} />
-              <NavLink item={{ label: "Payments", href: "/admin/payments", icon: Receipt }} />
-              <NavLink item={{ label: "AI Usage", href: "/admin/ai-usage", icon: Bot }} />
-              <NavLink item={{ label: "Campus Drives", href: "/campus/admin", icon: Building }} />
-              <NavLink item={{ label: "Coupons", href: "/admin/coupons", icon: Gift }} />
-              <NavLink item={{ label: "Analytics", href: "/admin/analytics", icon: BarChart3 }} />
-              <NavLink item={{ label: "Consent Logs", href: "/admin/consent-logs", icon: Shield }} />
-              <NavLink item={{ label: "Audit Logs", href: "/admin/audit-logs", icon: History }} />
-            </div>
-          </div>
-        )}
-
-        {/* Explore other tracks — locked, view-only */}
-        {user?.role !== "mentor" && trackSlug && lockedTracks.length > 0 && (
-          <div className="mb-1 mt-2">
-            <div className="px-3 py-1.5 text-[10px] font-semibold tracking-widest text-white/30 uppercase">
-              Explore
-            </div>
-            <div className="space-y-0.5">
+        {/* Explore other tracks — students only, locked/view-only */}
+        {isStudent && trackSlug && lockedTracks.length > 0 && (
+          <div className="mb-2 mt-3">
+            <div className="px-3 py-2 text-eyebrow text-white/35">Explore</div>
+            <div className="space-y-1">
               {lockedTracks.map((t) => (
                 <div
                   key={t}
                   title="Locked — your career track is fixed. Contact an admin to change tracks."
-                  className="flex items-center gap-2.5 px-3 py-1.5 rounded-md text-sm text-white/30 cursor-not-allowed select-none"
+                  className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-base text-white/30 cursor-not-allowed select-none"
                 >
                   <span
-                    className="h-2 w-2 rounded-full shrink-0"
-                    style={{ backgroundColor: TRACK_COLORS[t] ?? "#2563EB" }}
+                    className="h-2.5 w-2.5 rounded-full shrink-0"
+                    style={{ backgroundColor: TRACK_COLORS[t] ?? "#3B82F6" }}
                   />
                   <span className="truncate">{TRACK_LABELS[t] ?? t}</span>
-                  <Lock className="h-3 w-3 ml-auto shrink-0 text-white/30" />
+                  <Lock className="h-4 w-4 ml-auto shrink-0 text-white/30" />
                 </div>
               ))}
             </div>
@@ -363,25 +451,25 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
       </nav>
 
       {/* User footer */}
-      <div className="px-3 py-3 border-t border-white/5 shrink-0">
-        <div className="flex items-center gap-2.5 px-2 py-2">
-          <div className="h-7 w-7 rounded-full bg-primary/20 flex items-center justify-center shrink-0">
-            <span className="text-xs font-bold text-primary">
+      <div className="relative px-4 py-4 border-t border-white/[0.06] shrink-0">
+        <div className="flex items-center gap-3 glass-card rounded-xl px-3 py-2.5">
+          <div className="h-9 w-9 rounded-full bg-gradient-to-br from-primary/30 to-violet/30 flex items-center justify-center shrink-0 ring-1 ring-white/10">
+            <span className="text-sm font-bold text-white">
               {user?.fullName?.[0]?.toUpperCase() ?? user?.email?.[0]?.toUpperCase() ?? "U"}
             </span>
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-xs font-medium text-white truncate">
+            <p className="text-sm font-semibold text-white truncate">
               {user?.fullName ?? user?.email ?? "Student"}
             </p>
-            <p className="text-[10px] text-white/40 truncate">{user?.role ?? "student"}</p>
+            <p className="text-[11px] text-white/45 truncate capitalize">{role ?? "student"}</p>
           </div>
           <button
             onClick={handleLogout}
-            className="p-1.5 rounded-md text-white/30 hover:text-white/70 hover:bg-white/5 transition-colors"
+            className="p-2 rounded-lg text-white/40 hover:text-white hover:bg-white/[0.06] transition-colors"
             title="Log out"
           >
-            <LogOut className="h-3.5 w-3.5" />
+            <LogOut className="h-4 w-4" />
           </button>
         </div>
       </div>

@@ -42,7 +42,7 @@ export default function LeaderboardPage() {
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.2, delay: idx * 0.03 }}
               >
-                <Card className={`border-border/60 ${isMe ? "bg-primary/5 border-primary/30" : "bg-white"}`}>
+                <Card className={`border-border/60 ${isMe ? "bg-primary/5 border-primary/30" : "bg-card"}`}>
                   <CardContent className="p-3.5 flex items-center gap-3">
                     <div className="w-9 flex items-center justify-center shrink-0">
                       {row.rank <= 3 ? (

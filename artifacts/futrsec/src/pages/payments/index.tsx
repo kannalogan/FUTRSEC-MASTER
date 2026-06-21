@@ -55,7 +55,7 @@ export default function PaymentsPage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.2, delay: idx * 0.03 }}
               >
-                <Card className="bg-white border-border/60">
+                <Card className="bg-card border-border/60">
                   <CardContent className="p-4 flex items-center gap-3">
                     <div className="h-9 w-9 rounded-xl flex items-center justify-center shrink-0" style={{ backgroundColor: `${meta.color}15` }}>
                       <Icon className="h-[18px] w-[18px]" style={{ color: meta.color }} />

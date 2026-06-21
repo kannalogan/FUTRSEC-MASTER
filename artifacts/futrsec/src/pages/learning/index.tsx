@@ -35,7 +35,7 @@ function ModuleHero({ module, onContinue, continuing }: { module: any; onContinu
     try { await navigator.clipboard.writeText(url); toast({ title: "Module link copied" }); } catch { /* noop */ }
   };
   return (
-    <div className="rounded-xl overflow-hidden border border-border/60 bg-white">
+    <div className="rounded-xl overflow-hidden border border-border/60 bg-card">
       <div className={`bg-gradient-to-br ${d.grad} p-5 text-white relative`}>
         <div className="flex items-start justify-between gap-3">
           <div>
@@ -191,7 +191,7 @@ export default function LearningPage() {
                   const isSel = m.id === selectedModuleId;
                   return (
                     <button key={m.id} onClick={() => setSelectedModuleId(m.id)}
-                      className={`w-full text-left p-3 rounded-xl border transition-all ${isSel ? "border-primary bg-primary/5 shadow-sm" : "border-border/60 bg-white hover:border-border hover:shadow-sm"}`}>
+                      className={`w-full text-left p-3 rounded-xl border transition-all ${isSel ? "border-primary bg-primary/5 shadow-sm" : "border-border/60 bg-card hover:border-border hover:shadow-sm"}`}>
                       <div className="flex items-start justify-between gap-2">
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-1.5 mb-1">
@@ -225,7 +225,7 @@ export default function LearningPage() {
                 onContinue={() => continueMutation.mutate(selectedModuleId)}
                 continuing={continueMutation.isPending}
               />
-              <div className="rounded-xl border border-border/60 bg-white p-4">
+              <div className="rounded-xl border border-border/60 bg-card p-4">
                 <div className="flex items-center justify-between mb-3">
                   <h3 className="font-heading font-bold text-foreground">Lessons</h3>
                   <span className="text-xs text-muted-foreground">{lessonData.completedCount}/{lessonData.lessons?.length} done</span>
@@ -238,7 +238,7 @@ export default function LearningPage() {
                       const Icon = TYPE_ICONS[lesson.type] ?? Play;
                       return (
                         <Link key={lesson.id} href={`/learning/${selectedModuleId}/${lesson.id}`}>
-                          <div className={`flex items-center gap-3 p-3 rounded-lg border transition-all cursor-pointer hover:shadow-sm hover:border-primary/40 ${lesson.completed ? "bg-green-50/40 border-green-100" : "bg-white border-border/50"}`}>
+                          <div className={`flex items-center gap-3 p-3 rounded-lg border transition-all cursor-pointer hover:shadow-sm hover:border-primary/40 ${lesson.completed ? "bg-green-50/40 border-green-100" : "bg-card border-border/50"}`}>
                             <span className="text-xs font-bold text-muted-foreground/50 w-5 text-center">{i + 1}</span>
                             <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
                               {lesson.completed ? <CheckCircle2 className="h-4 w-4 text-green-500" /> : <Icon className="h-4 w-4 text-primary" />}

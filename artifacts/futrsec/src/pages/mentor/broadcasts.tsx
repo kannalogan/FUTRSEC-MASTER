@@ -17,8 +17,8 @@ import { Megaphone, Plus, Send, Archive } from "lucide-react";
 
 const STATUS_STYLE: Record<string, string> = {
   published: "bg-emerald-100 text-emerald-700",
-  draft: "bg-slate-100 text-slate-600",
-  archived: "bg-slate-100 text-slate-400",
+  draft: "bg-muted text-muted-foreground",
+  archived: "bg-muted text-muted-foreground/70",
 };
 
 export default function MentorBroadcastsPage() {

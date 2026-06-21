@@ -62,7 +62,7 @@ export default function OffersPage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.2, delay: idx * 0.04 }}
               >
-                <Card className="bg-white border-border/60 overflow-hidden">
+                <Card className="bg-card border-border/60 overflow-hidden">
                   <div className="h-1.5" style={{ backgroundColor: meta.color }} />
                   <CardContent className="p-5">
                     <div className="flex items-start justify-between gap-3 mb-3">

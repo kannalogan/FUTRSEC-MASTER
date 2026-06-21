@@ -7,8 +7,8 @@ import { Layers, Users } from "lucide-react";
 const STATUS_STYLE: Record<string, string> = {
   active: "bg-emerald-100 text-emerald-700",
   upcoming: "bg-blue-100 text-blue-700",
-  completed: "bg-slate-100 text-slate-700",
-  archived: "bg-slate-100 text-slate-500",
+  completed: "bg-muted text-foreground",
+  archived: "bg-muted text-muted-foreground",
 };
 
 export default function MentorBatchesPage() {

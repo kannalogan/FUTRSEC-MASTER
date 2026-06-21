@@ -98,7 +98,7 @@ function ChatPanel() {
   };
 
   return (
-    <Card className="bg-white border-border/60 flex flex-col h-[520px]">
+    <Card className="bg-card border-border/60 flex flex-col h-[520px]">
       <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-4">
         <AnimatePresence>
           {messages.map((msg, i) => (
@@ -213,7 +213,7 @@ function ReportPanel() {
         </div>
       </div>
 
-      <Card className="bg-white border-border/60">
+      <Card className="bg-card border-border/60">
         <CardHeader className="pb-2"><CardTitle className="text-sm flex items-center gap-2"><Target className="h-4 w-4 text-purple-600" />Placement Readiness</CardTitle></CardHeader>
         <CardContent className="space-y-3">
           <div className="flex items-end gap-3">
@@ -234,7 +234,7 @@ function ReportPanel() {
         </CardContent>
       </Card>
 
-      <Card className="bg-white border-border/60">
+      <Card className="bg-card border-border/60">
         <CardHeader className="pb-2"><CardTitle className="text-sm flex items-center gap-2"><Map className="h-4 w-4 text-blue-600" />Learning Roadmap</CardTitle></CardHeader>
         <CardContent className="space-y-3">
           {data.roadmap.map((r) => (
@@ -252,7 +252,7 @@ function ReportPanel() {
       </Card>
 
       <div className="grid sm:grid-cols-2 gap-4">
-        <Card className="bg-white border-border/60">
+        <Card className="bg-card border-border/60">
           <CardHeader className="pb-2"><CardTitle className="text-sm flex items-center gap-2"><Award className="h-4 w-4 text-amber-600" />Certifications</CardTitle></CardHeader>
           <CardContent className="space-y-2.5">
             {data.certifications.map((c) => (
@@ -264,7 +264,7 @@ function ReportPanel() {
           </CardContent>
         </Card>
 
-        <Card className="bg-white border-border/60">
+        <Card className="bg-card border-border/60">
           <CardHeader className="pb-2"><CardTitle className="text-sm flex items-center gap-2"><Building2 className="h-4 w-4 text-emerald-600" />Target Companies</CardTitle></CardHeader>
           <CardContent className="space-y-2.5">
             {data.targetCompanies.map((c) => (
@@ -277,7 +277,7 @@ function ReportPanel() {
         </Card>
       </div>
 
-      <Card className="bg-white border-border/60">
+      <Card className="bg-card border-border/60">
         <CardHeader className="pb-2"><CardTitle className="text-sm flex items-center gap-2"><TrendingUp className="h-4 w-4 text-cyan-600" />Expected Salary <span className="text-xs text-muted-foreground font-normal">({sal.currency})</span></CardTitle></CardHeader>
         <CardContent>
           <div className="grid grid-cols-3 gap-3">

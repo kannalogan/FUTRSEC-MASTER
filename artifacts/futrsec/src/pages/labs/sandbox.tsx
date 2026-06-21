@@ -139,7 +139,7 @@ export default function SandboxPage() {
                 key={d.id}
                 onClick={() => setActiveDrillId(d.id)}
                 className={`w-full text-left rounded-lg border p-3 transition-all ${
-                  isActive ? "border-primary/40 bg-primary/5 ring-1 ring-primary/20" : "border-border/60 bg-white hover:bg-muted/30"
+                  isActive ? "border-primary/40 bg-primary/5 ring-1 ring-primary/20" : "border-border/60 bg-card hover:bg-muted/30"
                 }`}
               >
                 <div className="flex items-center gap-2">

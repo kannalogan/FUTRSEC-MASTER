@@ -56,7 +56,7 @@ export default function HelpPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.2, delay: idx * 0.03 }}
             >
-              <Card className="bg-white border-border/60">
+              <Card className="bg-card border-border/60">
                 <button className="w-full text-left" onClick={() => setOpen(open === faq.id ? null : faq.id)}>
                   <CardContent className="p-4 flex items-center justify-between gap-3">
                     <span className="text-sm font-medium text-foreground">{faq.q}</span>

@@ -73,7 +73,7 @@ function ExplainPanel() {
 
   return (
     <div className="space-y-4">
-      <Card className="bg-white border-border/60">
+      <Card className="bg-card border-border/60">
         <CardContent className="pt-5 space-y-3">
           <div className="flex gap-2">
             <Input
@@ -107,7 +107,7 @@ function ExplainPanel() {
 
       {mut.data && (
         <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
-          <Card className="bg-white border-border/60">
+          <Card className="bg-card border-border/60">
             <CardHeader className="flex-row items-center justify-between space-y-0">
               <CardTitle className="text-base">Explanation</CardTitle>
               <ProviderTag provider={mut.data.provider} />
@@ -143,7 +143,7 @@ function SummarizePanel() {
 
   return (
     <div className="space-y-4">
-      <Card className="bg-white border-border/60">
+      <Card className="bg-card border-border/60">
         <CardContent className="pt-5 space-y-3">
           <Textarea
             value={content}
@@ -165,7 +165,7 @@ function SummarizePanel() {
 
       {mut.data && (
         <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
-          <Card className="bg-white border-border/60">
+          <Card className="bg-card border-border/60">
             <CardHeader className="flex-row items-center justify-between space-y-0">
               <CardTitle className="text-base">Summary</CardTitle>
               <ProviderTag provider={mut.data.provider} />
@@ -216,7 +216,7 @@ function QuizPanel() {
 
   return (
     <div className="space-y-4">
-      <Card className="bg-white border-border/60">
+      <Card className="bg-card border-border/60">
         <CardContent className="pt-5 space-y-3">
           <div className="flex gap-2">
             <Input
@@ -265,7 +265,7 @@ function QuizPanel() {
             </Card>
           )}
           {questions.map((q, qi) => (
-            <Card key={q.id} className="bg-white border-border/60">
+            <Card key={q.id} className="bg-card border-border/60">
               <CardContent className="pt-5 space-y-2.5">
                 <p className="text-sm font-medium">{qi + 1}. {q.question}</p>
                 <div className="space-y-1.5">
@@ -314,7 +314,7 @@ function QuizPanel() {
 
 function ListCard({ title, icon: Icon, color, items }: { title: string; icon: any; color: string; items: string[] }) {
   return (
-    <Card className="bg-white border-border/60">
+    <Card className="bg-card border-border/60">
       <CardHeader className="pb-2">
         <CardTitle className="text-sm flex items-center gap-2">
           <Icon className="h-4 w-4" style={{ color }} /> {title}

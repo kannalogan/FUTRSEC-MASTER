@@ -47,9 +47,9 @@ const AUDIENCE_OPTIONS: { value: MentorTaskAudience; label: string }[] = [
 
 const STATUS_STYLE: Record<string, string> = {
   published: "bg-emerald-100 text-emerald-700",
-  draft: "bg-slate-100 text-slate-600",
+  draft: "bg-muted text-muted-foreground",
   scheduled: "bg-blue-100 text-blue-700",
-  archived: "bg-slate-100 text-slate-400",
+  archived: "bg-muted text-muted-foreground/70",
 };
 
 function toLocalInput(date: Date) {

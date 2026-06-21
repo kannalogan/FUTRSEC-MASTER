@@ -61,7 +61,7 @@ export default function CheckpointsPage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.2, delay: idx * 0.04 }}
               >
-                <Card className={`bg-white border-border/60 ${isLocked ? "opacity-60" : ""}`}>
+                <Card className={`bg-card border-border/60 ${isLocked ? "opacity-60" : ""}`}>
                   <CardContent className="p-5 flex items-center gap-4">
                     <div className="shrink-0">
                       {isDone ? (

@@ -64,7 +64,7 @@ export default function PlacementPredictor() {
 
       {data && (
         <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
-          <Card className="bg-white border-border/60">
+          <Card className="bg-card border-border/60">
             <CardContent className="pt-6 flex flex-col items-center text-center gap-3">
               <div className="relative h-32 w-32">
                 <svg viewBox="0 0 120 120" className="h-32 w-32 -rotate-90">
@@ -85,7 +85,7 @@ export default function PlacementPredictor() {
             </CardContent>
           </Card>
 
-          <Card className="bg-white border-border/60">
+          <Card className="bg-card border-border/60">
             <CardHeader className="pb-2"><CardTitle className="text-sm">Readiness Factors</CardTitle></CardHeader>
             <CardContent className="space-y-3">
               {data.factors.map((f) => (

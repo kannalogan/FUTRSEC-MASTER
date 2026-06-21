@@ -51,7 +51,7 @@ export default function SkillGapAnalyzer() {
 
       {data && (
         <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
-          <Card className="bg-white border-border/60">
+          <Card className="bg-card border-border/60">
             <CardContent className="pt-5 space-y-2">
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium">Skill Coverage</span>
@@ -64,7 +64,7 @@ export default function SkillGapAnalyzer() {
           </Card>
 
           <div className="grid sm:grid-cols-2 gap-4">
-            <Card className="bg-white border-border/60">
+            <Card className="bg-card border-border/60">
               <CardHeader className="pb-2"><CardTitle className="text-sm flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-emerald-600" />Skills You Have</CardTitle></CardHeader>
               <CardContent>
                 {data.current.length ? (
@@ -73,7 +73,7 @@ export default function SkillGapAnalyzer() {
               </CardContent>
             </Card>
 
-            <Card className="bg-white border-border/60">
+            <Card className="bg-card border-border/60">
               <CardHeader className="pb-2"><CardTitle className="text-sm flex items-center gap-2"><AlertCircle className="h-4 w-4 text-amber-600" />Skills To Develop</CardTitle></CardHeader>
               <CardContent>
                 {data.gap.length ? (
@@ -83,7 +83,7 @@ export default function SkillGapAnalyzer() {
             </Card>
           </div>
 
-          <Card className="bg-white border-border/60">
+          <Card className="bg-card border-border/60">
             <CardHeader className="pb-2"><CardTitle className="text-sm flex items-center gap-2"><Target className="h-4 w-4 text-violet-600" />Required for Your Track</CardTitle></CardHeader>
             <CardContent>
               <div className="flex flex-wrap gap-1.5">

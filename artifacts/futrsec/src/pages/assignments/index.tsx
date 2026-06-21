@@ -77,7 +77,7 @@ export default function AssignmentsPage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.2, delay: idx * 0.04 }}
               >
-                <Card className="bg-white border-border/60 h-full flex flex-col">
+                <Card className="bg-card border-border/60 h-full flex flex-col">
                   <CardContent className="p-5 flex flex-col flex-1">
                     <div className="flex items-start justify-between gap-2 mb-2">
                       <h3 className="font-semibold text-sm text-foreground leading-tight">{a.title}</h3>

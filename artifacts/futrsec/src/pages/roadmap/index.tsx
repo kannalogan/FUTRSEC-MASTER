@@ -69,7 +69,7 @@ export default function RoadmapPage() {
             return (
               <motion.div key={m.id} className="relative flex items-start gap-4"
                 initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.04 }}>
-                <div className={`h-10 w-10 rounded-full flex items-center justify-center shrink-0 z-10 border-2 bg-white transition-all ${
+                <div className={`h-10 w-10 rounded-full flex items-center justify-center shrink-0 z-10 border-2 bg-card transition-all ${
                   m.done ? "border-green-500" : isActive ? "border-primary animate-pulse" : "border-border"
                 }`}>
                   {m.done ? <CheckCircle2 className="h-5 w-5 text-green-500" />
@@ -77,7 +77,7 @@ export default function RoadmapPage() {
                     : <Lock className="h-4 w-4 text-muted-foreground/40" />}
                 </div>
                 <div className={`flex-1 border rounded-xl px-4 py-3 shadow-sm ${
-                  m.done ? "bg-green-50/30 border-green-200" : isActive ? "bg-white border-primary/30" : "bg-white border-border/60"
+                  m.done ? "bg-green-50/30 border-green-200" : isActive ? "bg-card border-primary/30" : "bg-card border-border/60"
                 }`}>
                   <div className="flex items-center justify-between gap-2">
                     <p className={`text-sm font-medium ${m.done || isActive ? "text-foreground" : "text-muted-foreground"}`}>{m.title}</p>

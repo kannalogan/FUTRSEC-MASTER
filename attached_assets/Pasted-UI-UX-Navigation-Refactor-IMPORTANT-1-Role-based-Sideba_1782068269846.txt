@@ -1,0 +1,237 @@
+UI/UX + Navigation Refactor (IMPORTANT)
+
+1. Role-based Sidebar Separation
+
+ADMIN:
+Show ONLY admin menus.
+
+Remove ALL student menus:
+- Learning
+- My Courses
+- Calendar
+- Roadmap
+- Bookmarks
+- Community
+- Career Track
+- Pre Assessment
+- Checkpoints
+- Assignments
+- Tasks
+- Projects
+- Career Roadmap
+- My Labs
+- CTF Challenges
+- Sandbox
+- Virtual Machines
+- Lab Reports
+- Jobs
+- Applications
+- Internships
+- Certifications
+- Mock Interviews
+- Interview History
+- Offer Tracker
+- Profile
+- Resume
+- Achievements
+- Leaderboard
+- Skill Tree
+- Social Links
+- AI Explain Tutor
+- AI Job Agent
+- AI Career Coach
+- Resume Analyzer
+- Skill Gap Analyzer
+- AI Mock Interview
+- AI English Coach
+- Placement Predictor
+
+ADMIN should show ONLY:
+
+Dashboard
+Students
+Mentors
+Tracks
+Courses
+Labs
+Assessments
+Certificates
+Job Postings
+AI Config
+Platform Settings
+TPO Management
+Company Management
+Placements
+Subscriptions
+Payments
+AI Usage
+Campus Drives
+Coupons
+Analytics
+Consent Logs
+Audit Logs
+
+-------------------------------------------------
+
+2. Role Isolation
+
+student:
+only student dashboard
+
+mentor:
+only mentor dashboard
+
+tpo:
+only tpo dashboard
+
+employer:
+only employer dashboard
+
+admin:
+only admin dashboard
+
+No cross-sidebar rendering.
+No shared menu component.
+
+-------------------------------------------------
+
+3. Premium Modern UI Redesign
+
+Current UI looks outdated.
+
+Redesign entire platform using 2026 SaaS style.
+
+Reference:
+
+- Linear.app
+- Notion AI
+- Vercel Dashboard
+- Framer
+- Stripe Dashboard
+- Sentry
+- Clerk
+- AppSecure.security
+
+Design Language:
+
+Dark theme:
+#030712
+#0F172A
+#111827
+
+Accent:
+Electric Blue #3B82F6
+Purple #8B5CF6
+Emerald #10B981
+
+Use:
+
+✓ Glassmorphism cards
+✓ Soft shadows
+✓ Gradient borders
+✓ Hover lift animation
+✓ Smooth transitions
+✓ Modern rounded corners (18-24px)
+✓ Skeleton loaders
+✓ Beautiful empty states
+✓ Interactive charts
+✓ Premium iconography
+
+-------------------------------------------------
+
+4. Typography Upgrade
+
+Current text is too small.
+
+Use:
+
+Page title:
+40px
+font-weight:700
+
+Section title:
+24px
+
+Card title:
+18px
+
+Body:
+16px
+
+Sidebar:
+16px
+
+Sidebar section title:
+13px uppercase with letter spacing
+
+Buttons:
+16px semibold
+
+Increase line spacing.
+
+No tiny text anywhere.
+
+-------------------------------------------------
+
+5. Dashboard Hero Section
+
+Current hero is plain.
+
+Create premium hero:
+
+- Large greeting
+- User avatar
+- Track badge
+- FTS score
+- Trial progress ring
+- AI readiness
+- Placement readiness
+- Animated background glow
+- Floating gradient blobs
+
+Should feel like:
+
+"Wow, this platform is premium."
+
+-------------------------------------------------
+
+6. Cards redesign
+
+Every card:
+
+- Glass background
+- Soft gradient border
+- Hover scale 1.02
+- Shadow blur
+- Animated progress bar
+- Bigger icons
+- Better spacing
+
+-------------------------------------------------
+
+7. Responsive
+
+Desktop:
+sidebar 300px
+
+Tablet:
+collapsible sidebar
+
+Mobile:
+bottom nav + drawer
+
+-------------------------------------------------
+
+8. IMPORTANT
+
+Keep all existing APIs.
+
+Only redesign UI and sidebar architecture.
+
+No functionality break.
+No route changes.
+No API changes.
+
+Goal:
+
+FUTRSEC should visually look like a premium global cybersecurity platform and significantly better than the current dashboard.

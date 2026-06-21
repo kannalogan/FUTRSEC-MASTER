@@ -66,12 +66,12 @@ export default function SkillTreePage() {
                   className="relative flex gap-4 items-start"
                 >
                   <div
-                    className="h-14 w-14 rounded-2xl flex items-center justify-center shrink-0 z-10 border-2 bg-white"
+                    className="h-14 w-14 rounded-2xl flex items-center justify-center shrink-0 z-10 border-2 bg-card"
                     style={{ borderColor: `${meta.color}40` }}
                   >
                     <Icon className="h-6 w-6" style={{ color: meta.color }} />
                   </div>
-                  <Card className={`flex-1 border-border/60 ${phase.status === "locked" ? "bg-muted/30" : "bg-white"}`}>
+                  <Card className={`flex-1 border-border/60 ${phase.status === "locked" ? "bg-muted/30" : "bg-card"}`}>
                     <CardContent className="p-4 flex items-center justify-between gap-3">
                       <div>
                         <div className="flex items-center gap-2 mb-0.5">

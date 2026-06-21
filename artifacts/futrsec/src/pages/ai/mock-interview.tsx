@@ -132,7 +132,7 @@ export default function AIMockInterview() {
       )}
 
       {phase === "active" && (
-        <Card className="bg-white border-border/60">
+        <Card className="bg-card border-border/60">
           <CardContent className="pt-5 space-y-4">
             <div className="flex items-center justify-between">
               <Badge variant="outline">Question {index + 1} of {total}</Badge>
@@ -185,7 +185,7 @@ function SetupPanel(props: {
   voiceAvailable: boolean; onStart: () => void; starting: boolean; error: string | null;
 }) {
   return (
-    <Card className="bg-white border-border/60">
+    <Card className="bg-card border-border/60">
       <CardContent className="pt-5 space-y-5">
         <Field label="Difficulty">
           <div className="flex gap-2">
@@ -238,7 +238,7 @@ function ResultPanel({ result, onReset, difficulty }: { result: FinishRes; onRes
 
   return (
     <div className="space-y-4">
-      <Card className="bg-white border-border/60">
+      <Card className="bg-card border-border/60">
         <CardContent className="pt-6 text-center space-y-3">
           <div className="inline-flex h-20 w-20 rounded-full items-center justify-center" style={{ backgroundColor: `${scoreColor}15` }}>
             <span className="text-3xl font-bold" style={{ color: scoreColor }}>{result.overallScore}</span>
@@ -254,7 +254,7 @@ function ResultPanel({ result, onReset, difficulty }: { result: FinishRes; onRes
         </CardContent>
       </Card>
 
-      <Card className="bg-white border-border/60">
+      <Card className="bg-card border-border/60">
         <CardHeader className="pb-2"><CardTitle className="text-sm">Score Breakdown</CardTitle></CardHeader>
         <CardContent className="grid sm:grid-cols-2 gap-3">
           {Object.entries(e.scores).map(([k, v]) => (
@@ -272,7 +272,7 @@ function ResultPanel({ result, onReset, difficulty }: { result: FinishRes; onRes
       </div>
       <ListCard title="Recommendations" icon={ArrowRight} color="#2563EB" items={e.recommendations} />
 
-      <Card className="bg-white border-border/60">
+      <Card className="bg-card border-border/60">
         <CardHeader className="pb-2"><CardTitle className="text-sm">Question-by-Question</CardTitle></CardHeader>
         <CardContent className="space-y-3">
           {e.perQuestion.map((q, i) => (
@@ -298,7 +298,7 @@ function PastInterviews() {
   });
   if (!data || data.length === 0) return null;
   return (
-    <Card className="bg-white border-border/60">
+    <Card className="bg-card border-border/60">
       <CardHeader className="pb-2"><CardTitle className="text-sm flex items-center gap-2"><History className="h-4 w-4 text-muted-foreground" />Past Interviews</CardTitle></CardHeader>
       <CardContent className="space-y-1.5">
         {data.slice(0, 6).map((it) => (
@@ -328,7 +328,7 @@ function Chip({ active, onClick, disabled, children }: { active: boolean; onClic
 }
 function ListCard({ title, icon: Icon, color, items }: { title: string; icon: any; color: string; items: string[] }) {
   return (
-    <Card className="bg-white border-border/60">
+    <Card className="bg-card border-border/60">
       <CardHeader className="pb-2"><CardTitle className="text-sm flex items-center gap-2"><Icon className="h-4 w-4" style={{ color }} />{title}</CardTitle></CardHeader>
       <CardContent><ul className="space-y-1.5 text-sm">{items.map((it, i) => <li key={i} className="flex gap-2"><span style={{ color }} className="mt-0.5">•</span><span className="text-foreground/90">{it}</span></li>)}</ul></CardContent>
     </Card>

@@ -57,7 +57,7 @@ function ModuleCard({
   const solved = mod.solved;
 
   return (
-    <div className={`rounded-xl border p-3.5 ${solved ? "border-green-200 bg-green-50/50" : "border-border/60 bg-white"}`}>
+    <div className={`rounded-xl border p-3.5 ${solved ? "border-green-200 bg-green-50/50" : "border-border/60 bg-card"}`}>
       <div className="flex items-start gap-2.5">
         <div className={`h-6 w-6 rounded-full flex items-center justify-center shrink-0 text-xs font-bold ${
           solved ? "bg-green-500 text-white" : "bg-primary/10 text-primary"

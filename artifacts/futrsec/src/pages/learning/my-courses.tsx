@@ -32,7 +32,7 @@ function ModuleCard({ m, badge, accent }: { m: any; badge: React.ReactNode; acce
   });
 
   return (
-    <div className="bg-white border border-border/60 rounded-xl p-5 shadow-sm hover:shadow-md transition-all flex flex-col">
+    <div className="bg-card border border-border/60 rounded-xl p-5 shadow-sm hover:shadow-md transition-all flex flex-col">
       <div className="flex items-start justify-between mb-3">
         <div className={`h-10 w-10 rounded-xl ${accent} flex items-center justify-center`}><BookOpen className="h-5 w-5" /></div>
         {badge}
@@ -100,7 +100,7 @@ export default function MyCoursesPage() {
       <Tabs value={tab} onValueChange={setTab}>
         <TabsList className="bg-muted/50">
           {tabs.map((t) => (
-            <TabsTrigger key={t.v} value={t.v} className="data-[state=active]:bg-white gap-1.5">
+            <TabsTrigger key={t.v} value={t.v} className="data-[state=active]:bg-card gap-1.5">
               <t.icon className="h-3.5 w-3.5" />{t.label}
               <span className="text-[10px] text-muted-foreground">{t.count}</span>
             </TabsTrigger>
@@ -150,7 +150,7 @@ export default function MyCoursesPage() {
                 {d.saved.map((b, i) => (
                   <motion.div key={b.id} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.03 }}>
                     <Link href={`/learning/${b.moduleId}/${b.lessonId}`}>
-                      <div className="flex items-center gap-3 p-3 rounded-lg border border-border/60 bg-white hover:border-primary/40 hover:shadow-sm transition-all cursor-pointer">
+                      <div className="flex items-center gap-3 p-3 rounded-lg border border-border/60 bg-card hover:border-primary/40 hover:shadow-sm transition-all cursor-pointer">
                         <div className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0"><Bookmark className="h-4 w-4 fill-primary text-primary" /></div>
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-medium text-foreground truncate">{b.lessonTitle}</p>

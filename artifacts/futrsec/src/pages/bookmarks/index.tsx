@@ -44,7 +44,7 @@ export default function BookmarksPage() {
             const color = TYPE_COLORS[b.lessonType] ?? "#2563EB";
             return (
               <motion.div key={b.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }}>
-                <div className="bg-white border border-border/60 rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow flex items-start gap-4 group">
+                <div className="bg-card border border-border/60 rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow flex items-start gap-4 group">
                   <div className="h-10 w-10 rounded-xl flex items-center justify-center shrink-0" style={{ backgroundColor: `${color}15` }}>
                     <Icon className="h-5 w-5" style={{ color }} />
                   </div>

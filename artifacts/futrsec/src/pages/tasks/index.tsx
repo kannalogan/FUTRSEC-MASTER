@@ -83,7 +83,7 @@ export default function TasksPage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.18, delay: idx * 0.03 }}
               >
-                <Card className={`bg-white border-border/60 ${t.done ? "opacity-65" : ""}`}>
+                <Card className={`bg-card border-border/60 ${t.done ? "opacity-65" : ""}`}>
                   <CardContent className="p-4 flex items-center gap-3">
                     {t.done ? (
                       <CheckCircle2 className="h-5 w-5 text-emerald-500 shrink-0" />

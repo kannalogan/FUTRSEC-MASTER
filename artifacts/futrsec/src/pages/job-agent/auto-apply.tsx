@@ -169,7 +169,7 @@ export default function JobAgentAutoApplyPage() {
           )}
 
           {/* Settings */}
-          <Card className="bg-white border-border/60">
+          <Card className="bg-card border-border/60">
             <CardContent className="p-5 space-y-5">
               <div className="flex items-center justify-between gap-4">
                 <div>

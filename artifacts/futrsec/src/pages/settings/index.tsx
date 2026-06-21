@@ -61,7 +61,7 @@ export default function SettingsPage() {
       <PageHeader icon={SettingsIcon} title="Settings" subtitle="Manage your account preferences" />
 
       <div className="space-y-5">
-        <Card className="bg-white border-border/60">
+        <Card className="bg-card border-border/60">
           <CardHeader className="pb-3 pt-4 px-5">
             <CardTitle className="text-sm font-semibold flex items-center gap-2">
               <Bell className="h-4 w-4 text-primary" />Notifications
@@ -80,7 +80,7 @@ export default function SettingsPage() {
           </CardContent>
         </Card>
 
-        <Card className="bg-white border-border/60">
+        <Card className="bg-card border-border/60">
           <CardHeader className="pb-3 pt-4 px-5">
             <CardTitle className="text-sm font-semibold flex items-center gap-2">
               <Shield className="h-4 w-4 text-primary" />Privacy

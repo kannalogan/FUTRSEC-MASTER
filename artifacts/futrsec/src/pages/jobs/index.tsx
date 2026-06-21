@@ -30,7 +30,7 @@ function JobCard({ job, onSelect }: { job: any; onSelect: (job: any) => void }) 
   return (
     <motion.div whileHover={{ y: -1 }} transition={{ duration: 0.15 }}>
       <Card
-        className={`bg-white border-border/60 hover:shadow-md transition-all cursor-pointer ${job.applied ? "border-l-2 border-l-green-400" : ""}`}
+        className={`bg-card border-border/60 hover:shadow-md transition-all cursor-pointer ${job.applied ? "border-l-2 border-l-green-400" : ""}`}
         onClick={() => onSelect(job)}
       >
         <CardContent className="p-4">
@@ -198,7 +198,7 @@ function ApplicationsTab() {
       {applications.map((app: any) => {
         const style = STATUS_COLORS[app.status] ?? STATUS_COLORS.applied;
         return (
-          <div key={app.id} className="flex items-center gap-3 p-4 bg-white rounded-xl border border-border/60">
+          <div key={app.id} className="flex items-center gap-3 p-4 bg-card rounded-xl border border-border/60">
             <div className="h-9 w-9 rounded-lg bg-muted/50 flex items-center justify-center shrink-0">
               <Building className="h-4.5 w-4.5 text-muted-foreground/60" />
             </div>

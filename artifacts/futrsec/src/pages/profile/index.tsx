@@ -26,7 +26,7 @@ const TRACK_LABELS: Record<string, string> = {
 
 function StatCard({ label, value, icon: Icon, color }: { label: string; value: number | string; icon: React.ComponentType<any>; color: string }) {
   return (
-    <div className="flex items-center gap-3 p-3 bg-white rounded-xl border border-border/60">
+    <div className="flex items-center gap-3 p-3 bg-card rounded-xl border border-border/60">
       <div className="h-9 w-9 rounded-lg flex items-center justify-center shrink-0" style={{ backgroundColor: `${color}15` }}>
         <Icon className="h-4.5 w-4.5" style={{ color }} />
       </div>
@@ -110,7 +110,7 @@ export default function ProfilePage() {
   return (
     <div className="p-5 lg:p-8 max-w-5xl mx-auto space-y-5">
       {/* Header card */}
-      <Card className="bg-white border-border/60">
+      <Card className="bg-card border-border/60">
         <CardContent className="p-5 lg:p-6">
           <div className="flex items-start justify-between gap-4 flex-wrap">
             <div className="flex items-center gap-4">
@@ -168,7 +168,7 @@ export default function ProfilePage() {
       </div>
 
       {/* FTS Breakdown */}
-      <Card className="bg-white border-border/60">
+      <Card className="bg-card border-border/60">
         <CardHeader className="pb-3 pt-4 px-5">
           <CardTitle className="text-sm font-semibold flex items-center gap-2">
             <TrendingUp className="h-4 w-4 text-primary" />FTS Score Breakdown
@@ -193,7 +193,7 @@ export default function ProfilePage() {
       </Card>
 
       {/* Personal Info */}
-      <Card className="bg-white border-border/60">
+      <Card className="bg-card border-border/60">
         <CardHeader className="pb-3 pt-4 px-5">
           <CardTitle className="text-sm font-semibold flex items-center gap-2">
             <User className="h-4 w-4 text-primary" />Personal Information

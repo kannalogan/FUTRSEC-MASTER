@@ -80,7 +80,7 @@ export default function CareerRoadmapPage() {
                   className="relative flex gap-4"
                 >
                   <div
-                    className="h-10 w-10 rounded-full flex items-center justify-center shrink-0 z-10 bg-white border-2"
+                    className="h-10 w-10 rounded-full flex items-center justify-center shrink-0 z-10 bg-card border-2"
                     style={{ borderColor: meta.color }}
                   >
                     {isDone ? (

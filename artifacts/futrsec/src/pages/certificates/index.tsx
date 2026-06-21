@@ -49,7 +49,7 @@ export default function CertificatesPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.2, delay: idx * 0.04 }}
             >
-              <Card className="bg-white border-border/60 overflow-hidden hover:shadow-md transition-all">
+              <Card className="bg-card border-border/60 overflow-hidden hover:shadow-md transition-all">
                 <div className="bg-gradient-to-br from-primary/90 to-primary p-5 text-white relative">
                   <div className="flex items-start justify-between">
                     <Award className="h-8 w-8 opacity-90" />

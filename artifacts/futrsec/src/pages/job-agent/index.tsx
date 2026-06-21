@@ -67,7 +67,7 @@ function RecommendedCard({ job }: { job: RecommendedJob }) {
 
   return (
     <motion.div whileHover={{ y: -1 }} transition={{ duration: 0.15 }}>
-      <Card className="bg-white border-border/60 hover:shadow-md transition-all h-full">
+      <Card className="bg-card border-border/60 hover:shadow-md transition-all h-full">
         <CardContent className="p-4">
           <div className="flex items-start justify-between gap-3">
             <div className="flex items-start gap-3 flex-1 min-w-0">
@@ -176,7 +176,7 @@ export default function JobAgentPage() {
           const Icon = c.icon;
           const value = overview ? (overview as unknown as Record<string, number>)[c.key] ?? 0 : 0;
           return (
-            <Card key={c.key} className="bg-white border-border/60">
+            <Card key={c.key} className="bg-card border-border/60">
               <CardContent className="p-4">
                 <div className="flex items-center gap-2">
                   <div className="h-8 w-8 rounded-lg flex items-center justify-center shrink-0" style={{ backgroundColor: `${c.color}18` }}>
@@ -198,7 +198,7 @@ export default function JobAgentPage() {
       </div>
 
       {/* Placement readiness */}
-      <Card className="bg-white border-border/60 mb-6">
+      <Card className="bg-card border-border/60 mb-6">
         <CardContent className="p-5">
           <div className="flex items-center justify-between gap-4 mb-3">
             <div className="flex items-center gap-2">

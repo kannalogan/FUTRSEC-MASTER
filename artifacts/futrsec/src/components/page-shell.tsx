@@ -10,16 +10,16 @@ export function PageHeader({
   icon?: React.ComponentType<{ className?: string }>;
 }) {
   return (
-    <div className="flex items-start justify-between mb-6 gap-4">
-      <div className="flex items-center gap-3">
+    <div className="flex items-start justify-between mb-7 gap-4">
+      <div className="flex items-center gap-3.5">
         {Icon && (
-          <div className="h-9 w-9 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
-            <Icon className="h-[18px] w-[18px] text-primary" />
+          <div className="h-12 w-12 rounded-2xl bg-primary/15 flex items-center justify-center shrink-0 ring-1 ring-primary/20">
+            <Icon className="h-6 w-6 text-primary" />
           </div>
         )}
         <div>
-          <h1 className="text-xl font-heading font-bold text-foreground tracking-tight">{title}</h1>
-          {subtitle && <p className="text-sm text-muted-foreground mt-0.5">{subtitle}</p>}
+          <h1 className="text-3xl font-heading font-bold text-foreground tracking-tight">{title}</h1>
+          {subtitle && <p className="text-base text-muted-foreground mt-1">{subtitle}</p>}
         </div>
       </div>
       {actions && <div className="flex items-center gap-2 shrink-0">{actions}</div>}
@@ -29,7 +29,7 @@ export function PageHeader({
 
 export function CardSkeleton({ rows = 3 }: { rows?: number }) {
   return (
-    <div className="bg-white border border-border/60 rounded-xl p-5 shadow-sm space-y-3">
+    <div className="bg-card border border-border/60 rounded-xl p-5 shadow-sm space-y-3">
       <Skeleton className="h-5 w-2/3" />
       {Array.from({ length: rows }).map((_, i) => (
         <Skeleton key={i} className="h-4" style={{ width: `${90 - i * 10}%` }} />

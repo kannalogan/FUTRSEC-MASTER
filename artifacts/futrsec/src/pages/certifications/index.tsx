@@ -50,7 +50,7 @@ export default function CertificationsPage() {
               transition={{ duration: 0.2, delay: idx * 0.04 }}
               whileHover={{ y: -2 }}
             >
-              <Card className="bg-white border-border/60 hover:shadow-md transition-all overflow-hidden">
+              <Card className="bg-card border-border/60 hover:shadow-md transition-all overflow-hidden">
                 <div className="h-1.5 bg-gradient-to-r from-amber-400 to-amber-600" />
                 <CardContent className="p-5">
                   <div className="flex items-center justify-center h-14 w-14 rounded-2xl bg-amber-50 mx-auto mb-3">

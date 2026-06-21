@@ -20,7 +20,7 @@ function StatCard({
   color: string;
 }) {
   return (
-    <Card className="bg-white border-border/60">
+    <Card className="bg-card border-border/60">
       <CardContent className="p-5 flex items-center gap-4">
         <div className="h-11 w-11 rounded-xl flex items-center justify-center shrink-0" style={{ backgroundColor: `${color}18` }}>
           <Icon className="h-5 w-5" style={{ color }} />
@@ -77,7 +77,7 @@ export default function AnalyticsPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Job readiness radial */}
-        <Card className="bg-white border-border/60">
+        <Card className="bg-card border-border/60">
           <CardContent className="p-5">
             <h3 className="text-sm font-semibold mb-4 flex items-center gap-1.5">
               <Rocket className="h-4 w-4 text-primary" />Job Readiness
@@ -96,7 +96,7 @@ export default function AnalyticsPage() {
         </Card>
 
         {/* Progress breakdown */}
-        <Card className="bg-white border-border/60">
+        <Card className="bg-card border-border/60">
           <CardContent className="p-5">
             <h3 className="text-sm font-semibold mb-4 flex items-center gap-1.5">
               <Target className="h-4 w-4 text-primary" />Progress Breakdown
@@ -116,7 +116,7 @@ export default function AnalyticsPage() {
         </Card>
 
         {/* Metrics comparison */}
-        <Card className="bg-white border-border/60 lg:col-span-2">
+        <Card className="bg-card border-border/60 lg:col-span-2">
           <CardContent className="p-5">
             <h3 className="text-sm font-semibold mb-4 flex items-center gap-1.5">
               <BarChart3 className="h-4 w-4 text-primary" />Metrics Overview

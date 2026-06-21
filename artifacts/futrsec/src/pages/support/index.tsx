@@ -39,7 +39,7 @@ export default function SupportPage() {
 
       {ticketId ? (
         <motion.div initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }}>
-          <Card className="bg-white border-emerald-200/60">
+          <Card className="bg-card border-emerald-200/60">
             <CardContent className="p-8 text-center">
               <div className="h-14 w-14 rounded-2xl bg-emerald-50 flex items-center justify-center mx-auto mb-4">
                 <CheckCircle2 className="h-7 w-7 text-emerald-500" />
@@ -53,7 +53,7 @@ export default function SupportPage() {
           </Card>
         </motion.div>
       ) : (
-        <Card className="bg-white border-border/60">
+        <Card className="bg-card border-border/60">
           <CardHeader className="pb-3 pt-4 px-5">
             <CardTitle className="text-sm font-semibold flex items-center gap-2">
               <Mail className="h-4 w-4 text-primary" />Submit a Ticket

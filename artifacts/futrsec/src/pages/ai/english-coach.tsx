@@ -64,7 +64,7 @@ export default function AIEnglishCoach() {
         </div>
       </div>
 
-      <Card className="bg-white border-border/60">
+      <Card className="bg-card border-border/60">
         <CardContent className="pt-5 space-y-3">
           <div className="flex flex-wrap gap-2">
             {PROMPTS.map((p) => (
@@ -102,7 +102,7 @@ export default function AIEnglishCoach() {
 
       {mut.data && (
         <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
-          <Card className="bg-white border-border/60">
+          <Card className="bg-card border-border/60">
             <CardContent className="pt-5 flex items-center gap-5">
               <div className="text-center">
                 <div className="text-4xl font-bold text-teal-700">{mut.data.overall}</div>
@@ -119,7 +119,7 @@ export default function AIEnglishCoach() {
             </CardContent>
           </Card>
 
-          <Card className="bg-white border-border/60">
+          <Card className="bg-card border-border/60">
             <CardContent className="pt-4 space-y-1">
               <p className="text-sm text-foreground">{mut.data.summary}</p>
               {mut.data.pronunciationNote && <p className="text-xs text-muted-foreground">{mut.data.pronunciationNote}</p>}
@@ -128,7 +128,7 @@ export default function AIEnglishCoach() {
           </Card>
 
           {mut.data.corrections.length > 0 && (
-            <Card className="bg-white border-border/60">
+            <Card className="bg-card border-border/60">
               <CardHeader className="pb-2"><CardTitle className="text-sm flex items-center gap-2"><AlertTriangle className="h-4 w-4 text-amber-600" />Corrections</CardTitle></CardHeader>
               <CardContent className="space-y-2">
                 {mut.data.corrections.map((c, i) => (
@@ -144,11 +144,11 @@ export default function AIEnglishCoach() {
           )}
 
           <div className="grid sm:grid-cols-2 gap-4">
-            <Card className="bg-white border-border/60">
+            <Card className="bg-card border-border/60">
               <CardHeader className="pb-2"><CardTitle className="text-sm flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-emerald-600" />Highlights</CardTitle></CardHeader>
               <CardContent><ul className="space-y-1.5 text-sm">{mut.data.highlights.map((h, i) => <li key={i} className="flex gap-2"><span className="text-emerald-500 mt-0.5">•</span><span>{h}</span></li>)}</ul></CardContent>
             </Card>
-            <Card className="bg-white border-border/60">
+            <Card className="bg-card border-border/60">
               <CardHeader className="pb-2"><CardTitle className="text-sm flex items-center gap-2"><ArrowRight className="h-4 w-4 text-blue-600" />Improvement Plan</CardTitle></CardHeader>
               <CardContent className="space-y-2">
                 {mut.data.roadmap.map((r, i) => (
