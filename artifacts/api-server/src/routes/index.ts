@@ -12,6 +12,8 @@ import jobsRouter from "./jobs";
 import profileRouter from "./profile";
 import platformExtendedRouter from "./platform-extended";
 import adminRouter from "./admin";
+import aiRouter from "./ai";
+import aiInterviewRouter from "./ai-interview";
 
 const router: IRouter = Router();
 
@@ -27,6 +29,8 @@ router.use(labsRouter);
 router.use(jobsRouter);
 router.use(profileRouter);
 router.use(platformExtendedRouter);
+router.use(aiRouter);
+router.use(aiInterviewRouter);
 router.use(adminRouter);
 
 export default router;

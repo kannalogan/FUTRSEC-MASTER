@@ -1,302 +1,336 @@
 import { useState } from "react";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiFetch } from "@/lib/api";
+import { printReport, escapeHtml } from "@/lib/print-report";
+import { useVoiceStatus, useVoiceRecorder } from "@/lib/voice";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import {
-  Mic2, User, Bot, ChevronRight, Play, Square, RotateCcw,
-  Star, TrendingUp, MessageSquare, CheckCircle2, Clock, Award
+  Mic2, Send, Loader2, Download, RotateCcw, Trophy, Mic, Square,
+  CheckCircle2, AlertTriangle, ArrowRight, History,
 } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
 
-type InterviewState = "setup" | "in_progress" | "completed";
-
-const SOC_QUESTIONS = [
-  "Walk me through how you would investigate a phishing alert triggered in your SIEM.",
-  "What is the difference between an IDS and IPS? Give a practical example.",
-  "How would you triage a potential ransomware incident?",
-  "Explain the MITRE ATT&CK framework and how you use it in SOC operations.",
-  "What log sources would you monitor for detecting lateral movement?",
-];
-
-const VAPT_QUESTIONS = [
-  "Explain the difference between black-box and white-box penetration testing.",
-  "Walk me through your methodology for testing a web application for SQL injection.",
-  "How would you perform a privilege escalation on a compromised Windows system?",
-  "What is the OWASP Top 10 and which vulnerabilities do you find most common?",
-  "How do you write a professional penetration test report?",
-];
-
-const GRC_QUESTIONS = [
-  "Explain the key clauses of ISO 27001 and how you would implement an ISMS.",
-  "How would you conduct an information security risk assessment?",
-  "What are the obligations of a Data Fiduciary under the DPDP Act 2023?",
-  "How do you manage vendor risk in a supply chain context?",
-  "Walk me through your process for conducting an internal security audit.",
-];
-
-const QUESTIONS_MAP: Record<string, string[]> = {
-  soc: SOC_QUESTIONS,
-  vapt: VAPT_QUESTIONS,
-  grc: GRC_QUESTIONS,
+type StartRes = { interviewId: number; interviewType: string; difficulty: string; totalQuestions: number; trackName: string; index: number; question: string };
+type AnswerRes = { done: boolean; answered: number; total: number; index: number | null; question: string | null };
+type Evaluation = {
+  scores: { technical: number; grammar: number; communication: number; confidence: number; thinking: number; quality: number };
+  overall: number;
+  strengths: string[];
+  weaknesses: string[];
+  recommendations: string[];
+  perQuestion: Array<{ question: string; answer: string; score: number; feedback: string }>;
 };
+type FinishRes = { interviewId: number; overallScore: number; evaluation: Evaluation; provider: string };
+type InterviewListItem = { id: number; status: string; interviewType: string; difficulty: string; totalQuestions: number; overallScore: number | null; completedAt: string | null; createdAt: string };
+
+type Phase = "setup" | "active" | "result";
 
 export default function AIMockInterview() {
-  const [state, setState] = useState<InterviewState>("setup");
-  const [selectedTrack, setSelectedTrack] = useState("soc");
-  const [currentQ, setCurrentQ] = useState(0);
-  const [answers, setAnswers] = useState<string[]>([]);
-  const [currentAnswer, setCurrentAnswer] = useState("");
-  const [isRecording, setIsRecording] = useState(false);
-  const [scores, setScores] = useState<any[]>([]);
-  const { toast } = useToast();
+  const [phase, setPhase] = useState<Phase>("setup");
+  const [difficulty, setDifficulty] = useState<"beginner" | "intermediate" | "advanced">("intermediate");
+  const [interviewType, setInterviewType] = useState<"text" | "voice">("text");
+  const [totalQuestions, setTotalQuestions] = useState(5);
 
-  const questions = QUESTIONS_MAP[selectedTrack] ?? SOC_QUESTIONS;
+  const [interviewId, setInterviewId] = useState<number | null>(null);
+  const [question, setQuestion] = useState("");
+  const [index, setIndex] = useState(0);
+  const [total, setTotal] = useState(5);
+  const [answer, setAnswer] = useState("");
+  const [result, setResult] = useState<FinishRes | null>(null);
 
-  const evaluateMutation = useMutation({
-    mutationFn: async ({ question, answer }: { question: string; answer: string }) => {
-      return apiFetch<any>("/api/ai/evaluate-answer", {
-        method: "POST",
-        body: JSON.stringify({ question, answer, track: selectedTrack }),
-      }).catch(() => ({
-        technicalAccuracy: Math.floor(Math.random() * 30) + 60,
-        communication: Math.floor(Math.random() * 30) + 60,
-        completeness: Math.floor(Math.random() * 30) + 55,
-        feedback: "Good attempt! Consider structuring your answer using the STAR method and including more specific examples from your experience.",
-      }));
-    },
-    onSuccess: (data: any) => {
-      setScores((prev) => [...prev, data]);
+  const qc = useQueryClient();
+  const voiceStatus = useVoiceStatus();
+  const recorder = useVoiceRecorder();
+
+  const startMut = useMutation({
+    mutationFn: () => apiFetch<StartRes>("/api/ai/interview/start", {
+      method: "POST",
+      body: JSON.stringify({ interviewType, difficulty, totalQuestions }),
+    }),
+    onSuccess: (d) => {
+      setInterviewId(d.interviewId);
+      setQuestion(d.question);
+      setIndex(d.index);
+      setTotal(d.totalQuestions);
+      setAnswer("");
+      setPhase("active");
     },
   });
 
-  const handleStartInterview = () => {
-    setState("in_progress");
-    setCurrentQ(0);
-    setAnswers([]);
-    setScores([]);
-    setCurrentAnswer("");
+  const answerMut = useMutation({
+    mutationFn: (text: string) => apiFetch<AnswerRes>(`/api/ai/interview/${interviewId}/answer`, {
+      method: "POST",
+      body: JSON.stringify({ answer: text }),
+    }),
+    onSuccess: (d) => {
+      if (d.done) {
+        finishMut.mutate();
+      } else {
+        setQuestion(d.question ?? "");
+        setIndex(d.index ?? 0);
+        setAnswer("");
+      }
+    },
+  });
+
+  const finishMut = useMutation({
+    mutationFn: () => apiFetch<FinishRes>(`/api/ai/interview/${interviewId}/finish`, { method: "POST" }),
+    onSuccess: (d) => {
+      setResult(d);
+      setPhase("result");
+      qc.invalidateQueries({ queryKey: ["ai", "interviews"] });
+    },
+  });
+
+  const submitAnswer = () => {
+    if (!answer.trim() || answerMut.isPending || finishMut.isPending) return;
+    answerMut.mutate(answer.trim());
   };
 
-  const handleSubmitAnswer = () => {
-    if (!currentAnswer.trim()) {
-      toast({ title: "Please provide an answer", variant: "destructive" });
-      return;
-    }
-    const newAnswers = [...answers, currentAnswer];
-    setAnswers(newAnswers);
-    evaluateMutation.mutate({ question: questions[currentQ], answer: currentAnswer });
-    setCurrentAnswer("");
-
-    if (currentQ < questions.length - 1) {
-      setCurrentQ((prev) => prev + 1);
+  const handleVoice = async () => {
+    if (recorder.recording) {
+      const text = await recorder.stopAndTranscribe();
+      if (text) setAnswer((prev) => (prev ? prev + " " : "") + text);
     } else {
-      setState("completed");
+      recorder.start();
     }
   };
 
-  const toggleRecording = () => {
-    setIsRecording((prev) => !prev);
-    if (!isRecording) {
-      setTimeout(() => {
-        setIsRecording(false);
-        setCurrentAnswer((prev) => prev + " [Voice transcription would appear here with a real microphone integration]");
-      }, 3000);
-    }
+  const reset = () => {
+    setPhase("setup");
+    setInterviewId(null);
+    setResult(null);
+    setAnswer("");
   };
-
-  const avgScore = scores.length > 0
-    ? Math.round(scores.reduce((sum, s) => sum + ((s.technicalAccuracy + s.communication + s.completeness) / 3), 0) / scores.length)
-    : 0;
-
-  if (state === "setup") {
-    return (
-      <div className="p-5 lg:p-8 max-w-2xl mx-auto space-y-5">
-        <div className="flex items-center gap-3">
-          <div className="h-10 w-10 rounded-xl bg-green-100 flex items-center justify-center">
-            <Mic2 className="h-5 w-5 text-green-600" />
-          </div>
-          <div>
-            <h1 className="font-heading text-xl font-bold text-foreground">AI Mock Interview</h1>
-            <p className="text-sm text-muted-foreground">Practice with real interview questions for your track</p>
-          </div>
-        </div>
-
-        <Card className="bg-white border-border/60">
-          <CardContent className="p-5 space-y-4">
-            <div>
-              <p className="text-sm font-semibold text-foreground mb-3">Select your track</p>
-              <div className="grid grid-cols-3 gap-2">
-                {[
-                  { id: "soc", label: "SOC Analyst", color: "#2563EB" },
-                  { id: "vapt", label: "VAPT Professional", color: "#F97316" },
-                  { id: "grc", label: "GRC Specialist", color: "#10B981" },
-                ].map((t) => (
-                  <button
-                    key={t.id}
-                    onClick={() => setSelectedTrack(t.id)}
-                    className={`p-3 rounded-xl border-2 text-sm font-medium transition-all ${
-                      selectedTrack === t.id ? "text-white" : "border-border/60 bg-white text-muted-foreground hover:border-border"
-                    }`}
-                    style={selectedTrack === t.id ? { borderColor: t.color, backgroundColor: t.color } : {}}
-                  >
-                    {t.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-            <div className="bg-muted/30 rounded-xl p-4 space-y-2">
-              <p className="text-sm font-medium text-foreground">Interview Format</p>
-              <div className="flex flex-wrap gap-3 text-xs text-muted-foreground">
-                <span className="flex items-center gap-1"><MessageSquare className="h-3.5 w-3.5" />{questions.length} questions</span>
-                <span className="flex items-center gap-1"><Clock className="h-3.5 w-3.5" />~20 minutes</span>
-                <span className="flex items-center gap-1"><Star className="h-3.5 w-3.5" />AI-scored feedback</span>
-              </div>
-              <div className="mt-3 space-y-1.5">
-                {questions.slice(0, 3).map((q, i) => (
-                  <div key={i} className="flex items-start gap-2 text-xs text-muted-foreground">
-                    <span className="font-bold text-foreground/60 shrink-0">Q{i + 1}.</span>
-                    <span className="line-clamp-1">{q}</span>
-                  </div>
-                ))}
-                <p className="text-xs text-primary">...and {questions.length - 3} more questions</p>
-              </div>
-            </div>
-            <Button className="w-full gap-2" onClick={handleStartInterview}>
-              <Play className="h-4 w-4" />Start Interview
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
-  if (state === "completed") {
-    return (
-      <div className="p-5 lg:p-8 max-w-2xl mx-auto space-y-5">
-        <div className="flex items-center gap-3">
-          <div className="h-10 w-10 rounded-xl bg-green-100 flex items-center justify-center">
-            <Award className="h-5 w-5 text-green-600" />
-          </div>
-          <h1 className="font-heading text-xl font-bold text-foreground">Interview Complete!</h1>
-        </div>
-
-        <Card className="bg-white border-border/60">
-          <CardContent className="p-5 text-center">
-            <div className="h-20 w-20 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-3">
-              <span className="text-3xl font-bold font-heading text-primary">{avgScore}</span>
-            </div>
-            <p className="text-sm font-medium text-foreground">Overall Score</p>
-            <div className="grid grid-cols-3 gap-3 mt-4">
-              {scores.length > 0 && (
-                <>
-                  <div className="text-center">
-                    <p className="text-lg font-bold text-foreground">{Math.round(scores.reduce((s, sc) => s + sc.technicalAccuracy, 0) / scores.length)}</p>
-                    <p className="text-xs text-muted-foreground">Technical</p>
-                  </div>
-                  <div className="text-center">
-                    <p className="text-lg font-bold text-foreground">{Math.round(scores.reduce((s, sc) => s + sc.communication, 0) / scores.length)}</p>
-                    <p className="text-xs text-muted-foreground">Communication</p>
-                  </div>
-                  <div className="text-center">
-                    <p className="text-lg font-bold text-foreground">{Math.round(scores.reduce((s, sc) => s + sc.completeness, 0) / scores.length)}</p>
-                    <p className="text-xs text-muted-foreground">Completeness</p>
-                  </div>
-                </>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-
-        <div className="space-y-3">
-          {questions.slice(0, answers.length).map((q, i) => (
-            <Card key={i} className="bg-white border-border/60">
-              <CardContent className="p-4">
-                <p className="text-xs font-semibold text-muted-foreground mb-1">Q{i + 1}</p>
-                <p className="text-sm font-medium text-foreground mb-2">{q}</p>
-                <p className="text-xs text-muted-foreground mb-3 bg-muted/30 p-2 rounded-lg">{answers[i]}</p>
-                {scores[i] && (
-                  <p className="text-xs text-foreground/70 italic border-l-2 border-primary pl-2">{scores[i].feedback}</p>
-                )}
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-
-        <Button className="w-full gap-2" onClick={() => setState("setup")}>
-          <RotateCcw className="h-4 w-4" />Practice Again
-        </Button>
-      </div>
-    );
-  }
 
   return (
-    <div className="p-5 lg:p-8 max-w-2xl mx-auto space-y-4">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="h-9 w-9 rounded-xl bg-green-100 flex items-center justify-center">
-            <Mic2 className="h-4.5 w-4.5 text-green-600" />
-          </div>
-          <div>
-            <p className="text-sm font-semibold text-foreground">Mock Interview</p>
-            <p className="text-xs text-muted-foreground capitalize">{selectedTrack.toUpperCase()} Track</p>
-          </div>
+    <div className="p-5 lg:p-8 max-w-3xl mx-auto flex flex-col gap-5">
+      <div className="flex items-center gap-3">
+        <div className="h-10 w-10 rounded-xl bg-rose-100 flex items-center justify-center">
+          <Mic2 className="h-5 w-5 text-rose-600" />
         </div>
-        <div className="text-right">
-          <p className="text-sm font-bold text-foreground">{currentQ + 1} / {questions.length}</p>
-          <Progress value={((currentQ) / questions.length) * 100} className="h-1.5 w-20 mt-1" />
+        <div>
+          <h1 className="font-heading text-xl font-bold text-foreground">AI Mock Interview</h1>
+          <p className="text-sm text-muted-foreground">Practice track-specific interview questions and get scored feedback</p>
         </div>
       </div>
 
-      <Card className="bg-white border-border/60">
-        <CardContent className="p-5 space-y-4">
-          <div className="flex items-start gap-3">
-            <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
-              <Bot className="h-4 w-4 text-primary" />
-            </div>
-            <div className="bg-muted/30 rounded-2xl rounded-tl-sm p-4 flex-1">
-              <p className="text-xs font-semibold text-primary mb-1">Question {currentQ + 1}</p>
-              <p className="text-sm text-foreground leading-relaxed">{questions[currentQ]}</p>
-            </div>
-          </div>
+      {phase === "setup" && (
+        <SetupPanel
+          difficulty={difficulty} setDifficulty={setDifficulty}
+          interviewType={interviewType} setInterviewType={setInterviewType}
+          totalQuestions={totalQuestions} setTotalQuestions={setTotalQuestions}
+          voiceAvailable={!!voiceStatus.data?.input}
+          onStart={() => startMut.mutate()}
+          starting={startMut.isPending}
+          error={startMut.isError ? (startMut.error as Error).message : null}
+        />
+      )}
 
-          <div className="flex items-start gap-3">
-            <div className="h-8 w-8 rounded-full bg-muted/50 flex items-center justify-center shrink-0 mt-0.5">
-              <User className="h-4 w-4 text-muted-foreground" />
+      {phase === "active" && (
+        <Card className="bg-white border-border/60">
+          <CardContent className="pt-5 space-y-4">
+            <div className="flex items-center justify-between">
+              <Badge variant="outline">Question {index + 1} of {total}</Badge>
+              <span className="text-xs text-muted-foreground capitalize">{difficulty} · {interviewType}</span>
             </div>
-            <div className="flex-1">
-              <textarea
-                value={currentAnswer}
-                onChange={(e) => setCurrentAnswer(e.target.value)}
-                placeholder="Type your answer here, or use the microphone to speak..."
-                className="w-full h-28 text-sm border border-border/60 rounded-xl p-3 resize-none focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/50 bg-white"
-              />
-            </div>
-          </div>
+            <Progress value={(index / total) * 100} className="h-1.5" />
+            <p className="text-base font-medium text-foreground">{question}</p>
 
+            <Textarea
+              value={answer}
+              onChange={(e) => setAnswer(e.target.value)}
+              placeholder="Type your answer here… (or use the mic if voice is available)"
+              className="min-h-[140px] text-sm"
+              disabled={answerMut.isPending || finishMut.isPending}
+            />
+
+            {recorder.error && <p className="text-xs text-red-600">{recorder.error}</p>}
+
+            <div className="flex items-center gap-2">
+              {voiceStatus.data?.input && (
+                <Button type="button" variant={recorder.recording ? "destructive" : "outline"} size="sm"
+                  onClick={handleVoice} disabled={recorder.transcribing || answerMut.isPending}>
+                  {recorder.transcribing ? <Loader2 className="h-4 w-4 animate-spin" /> : recorder.recording ? <><Square className="h-4 w-4 mr-1.5" />Stop & Transcribe</> : <><Mic className="h-4 w-4 mr-1.5" />Record</>}
+                </Button>
+              )}
+              <Button className="ml-auto" onClick={submitAnswer} disabled={!answer.trim() || answerMut.isPending || finishMut.isPending}>
+                {answerMut.isPending || finishMut.isPending
+                  ? <Loader2 className="h-4 w-4 animate-spin" />
+                  : index + 1 >= total ? <>Finish <Trophy className="h-4 w-4 ml-1.5" /></> : <>Next <ArrowRight className="h-4 w-4 ml-1.5" /></>}
+              </Button>
+            </div>
+            {(answerMut.isError || finishMut.isError) && (
+              <p className="text-xs text-red-600">{((answerMut.error || finishMut.error) as Error)?.message}</p>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      {phase === "result" && result && <ResultPanel result={result} onReset={reset} difficulty={difficulty} />}
+
+      <PastInterviews />
+    </div>
+  );
+}
+
+function SetupPanel(props: {
+  difficulty: string; setDifficulty: (d: any) => void;
+  interviewType: string; setInterviewType: (t: any) => void;
+  totalQuestions: number; setTotalQuestions: (n: number) => void;
+  voiceAvailable: boolean; onStart: () => void; starting: boolean; error: string | null;
+}) {
+  return (
+    <Card className="bg-white border-border/60">
+      <CardContent className="pt-5 space-y-5">
+        <Field label="Difficulty">
           <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              className={`gap-1.5 ${isRecording ? "border-red-300 text-red-600 bg-red-50" : ""}`}
-              onClick={toggleRecording}
-            >
-              {isRecording ? <><Square className="h-3.5 w-3.5" />Stop</> : <><Mic2 className="h-3.5 w-3.5" />Record</>}
-            </Button>
-            <Button
-              className="flex-1 gap-1.5"
-              onClick={handleSubmitAnswer}
-              disabled={!currentAnswer.trim() || evaluateMutation.isPending}
-            >
-              {evaluateMutation.isPending ? "Evaluating..." : currentQ === questions.length - 1 ? "Submit & Finish" : "Next Question"}
-              <ChevronRight className="h-4 w-4" />
-            </Button>
+            {["beginner", "intermediate", "advanced"].map((d) => (
+              <Chip key={d} active={props.difficulty === d} onClick={() => props.setDifficulty(d)}>{d}</Chip>
+            ))}
+          </div>
+        </Field>
+        <Field label="Number of questions">
+          <div className="flex gap-2">
+            {[3, 5, 8].map((n) => <Chip key={n} active={props.totalQuestions === n} onClick={() => props.setTotalQuestions(n)}>{n}</Chip>)}
+          </div>
+        </Field>
+        <Field label="Mode">
+          <div className="flex gap-2">
+            <Chip active={props.interviewType === "text"} onClick={() => props.setInterviewType("text")}>Text</Chip>
+            <Chip active={props.interviewType === "voice"} onClick={() => props.setInterviewType("voice")} disabled={!props.voiceAvailable}>
+              Voice {props.voiceAvailable ? "" : "(unavailable)"}
+            </Chip>
+          </div>
+          {!props.voiceAvailable && <p className="text-[11px] text-muted-foreground mt-1.5">Voice transcription needs an AI provider with audio support. You can still answer by typing.</p>}
+        </Field>
+        {props.error && <p className="text-xs text-red-600">{props.error}</p>}
+        <Button className="w-full" onClick={props.onStart} disabled={props.starting}>
+          {props.starting ? <Loader2 className="h-4 w-4 animate-spin mr-1.5" /> : <Mic2 className="h-4 w-4 mr-1.5" />}
+          Start Interview
+        </Button>
+      </CardContent>
+    </Card>
+  );
+}
+
+function ResultPanel({ result, onReset, difficulty }: { result: FinishRes; onReset: () => void; difficulty: string }) {
+  const e = result.evaluation;
+  const scoreColor = result.overallScore >= 70 ? "#10B981" : result.overallScore >= 50 ? "#F97316" : "#EF4444";
+
+  const exportPdf = () => {
+    const html = `
+      <h2>Overall Score: ${result.overallScore}/100</h2>
+      <div class="grid">
+        ${Object.entries(e.scores).map(([k, v]) => `<div class="stat"><div class="label">${escapeHtml(k)}</div><div class="value">${v}</div></div>`).join("")}
+      </div>
+      <h2>Strengths</h2><ul>${e.strengths.map((s) => `<li>${escapeHtml(s)}</li>`).join("")}</ul>
+      <h2>Areas to Improve</h2><ul>${e.weaknesses.map((s) => `<li>${escapeHtml(s)}</li>`).join("")}</ul>
+      <h2>Recommendations</h2><ul>${e.recommendations.map((s) => `<li>${escapeHtml(s)}</li>`).join("")}</ul>
+      <h2>Question-by-Question</h2>
+      ${e.perQuestion.map((q, i) => `<h3>Q${i + 1} — ${q.score}/100</h3><p><strong>Q:</strong> ${escapeHtml(q.question)}</p><p><strong>Your answer:</strong> ${escapeHtml(q.answer || "(no answer)")}</p><p><strong>Feedback:</strong> ${escapeHtml(q.feedback)}</p>`).join("")}`;
+    printReport(`Mock Interview Report (${difficulty})`, html);
+  };
+
+  return (
+    <div className="space-y-4">
+      <Card className="bg-white border-border/60">
+        <CardContent className="pt-6 text-center space-y-3">
+          <div className="inline-flex h-20 w-20 rounded-full items-center justify-center" style={{ backgroundColor: `${scoreColor}15` }}>
+            <span className="text-3xl font-bold" style={{ color: scoreColor }}>{result.overallScore}</span>
+          </div>
+          <div>
+            <p className="text-sm text-muted-foreground">Overall Interview Score</p>
+            <Badge variant="outline" className="mt-1 text-[10px]">{result.provider !== "mock" ? `Live AI · ${result.provider}` : "Offline scoring"}</Badge>
+          </div>
+          <div className="flex justify-center gap-2 pt-1">
+            <Button size="sm" onClick={exportPdf}><Download className="h-3.5 w-3.5 mr-1.5" />Export PDF</Button>
+            <Button size="sm" variant="outline" onClick={onReset}><RotateCcw className="h-3.5 w-3.5 mr-1.5" />New Interview</Button>
           </div>
         </CardContent>
       </Card>
+
+      <Card className="bg-white border-border/60">
+        <CardHeader className="pb-2"><CardTitle className="text-sm">Score Breakdown</CardTitle></CardHeader>
+        <CardContent className="grid sm:grid-cols-2 gap-3">
+          {Object.entries(e.scores).map(([k, v]) => (
+            <div key={k}>
+              <div className="flex justify-between text-xs mb-1"><span className="capitalize font-medium">{k}</span><span className="text-muted-foreground">{v}/100</span></div>
+              <Progress value={v} className="h-1.5" />
+            </div>
+          ))}
+        </CardContent>
+      </Card>
+
+      <div className="grid sm:grid-cols-2 gap-4">
+        <ListCard title="Strengths" icon={CheckCircle2} color="#10B981" items={e.strengths} />
+        <ListCard title="Areas to Improve" icon={AlertTriangle} color="#F97316" items={e.weaknesses} />
+      </div>
+      <ListCard title="Recommendations" icon={ArrowRight} color="#2563EB" items={e.recommendations} />
+
+      <Card className="bg-white border-border/60">
+        <CardHeader className="pb-2"><CardTitle className="text-sm">Question-by-Question</CardTitle></CardHeader>
+        <CardContent className="space-y-3">
+          {e.perQuestion.map((q, i) => (
+            <div key={i} className="border-b border-border/40 pb-3 last:border-0 last:pb-0">
+              <div className="flex justify-between gap-2">
+                <p className="text-sm font-medium">Q{i + 1}. {q.question}</p>
+                <Badge variant="outline" className="text-[10px] shrink-0">{q.score}/100</Badge>
+              </div>
+              <p className="text-xs text-muted-foreground mt-1 italic">"{q.answer || "(no answer)"}"</p>
+              <p className="text-xs text-foreground/80 mt-1">{q.feedback}</p>
+            </div>
+          ))}
+        </CardContent>
+      </Card>
     </div>
+  );
+}
+
+function PastInterviews() {
+  const { data } = useQuery({
+    queryKey: ["ai", "interviews"],
+    queryFn: () => apiFetch<InterviewListItem[]>("/api/ai/interviews"),
+  });
+  if (!data || data.length === 0) return null;
+  return (
+    <Card className="bg-white border-border/60">
+      <CardHeader className="pb-2"><CardTitle className="text-sm flex items-center gap-2"><History className="h-4 w-4 text-muted-foreground" />Past Interviews</CardTitle></CardHeader>
+      <CardContent className="space-y-1.5">
+        {data.slice(0, 6).map((it) => (
+          <div key={it.id} className="flex items-center justify-between text-sm border-b border-border/40 pb-1.5 last:border-0 last:pb-0">
+            <span className="text-muted-foreground capitalize">{it.difficulty} · {it.interviewType} · {it.totalQuestions} Qs</span>
+            <span className="flex items-center gap-2">
+              <span className="text-[11px] text-muted-foreground">{new Date(it.createdAt).toLocaleDateString("en-IN")}</span>
+              {it.overallScore != null ? <Badge variant="outline" className="text-[10px]">{it.overallScore}/100</Badge> : <Badge variant="outline" className="text-[10px] capitalize">{it.status.replace("_", " ")}</Badge>}
+            </span>
+          </div>
+        ))}
+      </CardContent>
+    </Card>
+  );
+}
+
+function Field({ label, children }: { label: string; children: React.ReactNode }) {
+  return <div className="space-y-2"><label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{label}</label>{children}</div>;
+}
+function Chip({ active, onClick, disabled, children }: { active: boolean; onClick: () => void; disabled?: boolean; children: React.ReactNode }) {
+  return (
+    <button onClick={onClick} disabled={disabled}
+      className={`text-xs px-3 py-1.5 rounded-full border capitalize transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${active ? "bg-rose-600 text-white border-rose-600" : "border-border/60 text-muted-foreground hover:border-rose-300"}`}>
+      {children}
+    </button>
+  );
+}
+function ListCard({ title, icon: Icon, color, items }: { title: string; icon: any; color: string; items: string[] }) {
+  return (
+    <Card className="bg-white border-border/60">
+      <CardHeader className="pb-2"><CardTitle className="text-sm flex items-center gap-2"><Icon className="h-4 w-4" style={{ color }} />{title}</CardTitle></CardHeader>
+      <CardContent><ul className="space-y-1.5 text-sm">{items.map((it, i) => <li key={i} className="flex gap-2"><span style={{ color }} className="mt-0.5">•</span><span className="text-foreground/90">{it}</span></li>)}</ul></CardContent>
+    </Card>
   );
 }

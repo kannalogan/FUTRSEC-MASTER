@@ -224,6 +224,84 @@ router.post("/consent/withdraw", requireAuth, async (req: AuthRequest, res): Pro
   });
 });
 
+interface CookiePrefs {
+  necessary: boolean;
+  analytics: boolean;
+  marketing: boolean;
+  functional: boolean;
+}
+
+function defaultCookiePrefs(): CookiePrefs {
+  return { necessary: true, analytics: false, marketing: false, functional: false };
+}
+
+function parseCookiePrefs(v: unknown): CookiePrefs | null {
+  if (typeof v !== "object" || v === null) return null;
+  const o = v as Record<string, unknown>;
+  return {
+    necessary: true, // necessary cookies cannot be disabled
+    analytics: o.analytics === true,
+    marketing: o.marketing === true,
+    functional: o.functional === true,
+  };
+}
+
+router.get("/consent/cookies", requireAuth, async (req: AuthRequest, res): Promise<void> => {
+  if (!req.user) { res.status(401).json({ error: "Not authenticated" }); return; }
+  const [consent] = await db
+    .select()
+    .from(consentLogsTable)
+    .where(eq(consentLogsTable.userId, req.user.userId));
+  const prefs = (consent?.cookiePreferences as CookiePrefs | null) ?? defaultCookiePrefs();
+  res.json({ ...prefs, updatedAt: consent?.updatedAt?.toISOString() ?? new Date().toISOString() });
+});
+
+router.post("/consent/cookies", requireAuth, async (req: AuthRequest, res): Promise<void> => {
+  if (!req.user) { res.status(401).json({ error: "Not authenticated" }); return; }
+  const prefs = parseCookiePrefs(req.body);
+  if (!prefs) { res.status(400).json({ error: "Invalid cookie preferences" }); return; }
+  const ipAddress = getIp(req);
+  const userAgent = req.headers["user-agent"] ?? null;
+
+  const existing = await db
+    .select()
+    .from(consentLogsTable)
+    .where(eq(consentLogsTable.userId, req.user.userId));
+
+  let consent;
+  if (existing.length > 0) {
+    [consent] = await db
+      .update(consentLogsTable)
+      .set({ cookiePreferences: prefs })
+      .where(eq(consentLogsTable.userId, req.user.userId))
+      .returning();
+  } else {
+    [consent] = await db
+      .insert(consentLogsTable)
+      .values({ userId: req.user.userId, cookiePreferences: prefs })
+      .returning();
+  }
+
+  await db.insert(consentHistoryTable).values({
+    userId: req.user.userId,
+    consentType: "analytics",
+    action: prefs.analytics ? "granted" : "withdrawn",
+    ipAddress,
+    userAgent: userAgent ?? undefined,
+  });
+
+  eventBus.emit("consent.updated", {
+    type: "consent.updated",
+    userId: req.user.userId,
+    consentType: "analytics",
+    action: prefs.analytics ? "granted" : "withdrawn",
+    ipAddress,
+  });
+
+  const saved = (consent?.cookiePreferences as CookiePrefs | null) ?? prefs;
+  res.json({ ...saved, updatedAt: consent?.updatedAt?.toISOString() ?? new Date().toISOString() });
+});
+
 router.post("/dpdp/download-request", requireAuth, async (req: AuthRequest, res): Promise<void> => {
   if (!req.user) { res.status(401).json({ error: "Not authenticated" }); return; }
 

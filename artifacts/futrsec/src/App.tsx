@@ -49,6 +49,7 @@ import CertificationsPage from "@/pages/certifications/index";
 import InterviewHistoryPage from "@/pages/interviews/history";
 import ProfilePage from "@/pages/profile/index";
 import PrivacyCenter from "@/pages/privacy/index";
+import AIExplainTutor from "@/pages/ai/tutor";
 import AICareerCoach from "@/pages/ai/career-coach";
 import ResumeAnalyzer from "@/pages/ai/resume-analyzer";
 import SkillGapAnalyzer from "@/pages/ai/skill-gap";
@@ -184,6 +185,7 @@ function Router() {
       <Route path="/certificates"><ProtectedRoute component={CertificatesPage} /></Route>
 
       {/* AI */}
+      <Route path="/ai/tutor"><ProtectedRoute component={AIExplainTutor} /></Route>
       <Route path="/ai/career-coach"><ProtectedRoute component={AICareerCoach} /></Route>
       <Route path="/ai/resume-analyzer"><ProtectedRoute component={ResumeAnalyzer} /></Route>
       <Route path="/ai/skill-gap"><ProtectedRoute component={SkillGapAnalyzer} /></Route>

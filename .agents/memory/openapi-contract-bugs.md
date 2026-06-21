@@ -16,3 +16,15 @@ Three contract mismatches were fixed:
 **Why:** The OpenAPI spec and frontend were written at different times without a shared review step.
 
 **How to apply:** After any OpenAPI spec change, run `pnpm --filter @workspace/api-spec run codegen` to regenerate Zod schemas and React Query hooks. Always check that route return shapes match generated TypeScript types before shipping.
+
+## AI + DPDP endpoints are NOT codegenned — ad-hoc apiFetch only
+
+The AI (`/ai/*`) and several DPDP/consent endpoints are called via ad-hoc `apiFetch`, not generated hooks, so TypeScript does NOT catch path/shape drift. Verified gotchas:
+
+- Data export button must hit `POST /api/dpdp/download-request` (NOT `/consent/request-download`). It dedups: 202 on first request, 429 while one is pending.
+- Consent withdraw `consentType` enum is camelCase: `thirdParty` (NOT `third_party`), matching `ConsentWithdrawInputConsentType`.
+- `GET /api/consent/history` returns a bare array, not `{ history: [...] }`.
+- `GET /api/consent/cookies` + `POST` shape: `{ necessary(always true), analytics, marketing, functional, updatedAt }`; POST writes a consent_history row.
+- Career `report`/`placement-readiness` return `context` carrying `trackSlug`; frontend reads `context.trackName`, so the route must add `trackName` into the context object.
+
+**How to apply:** When wiring any `/ai/*` or `/consent|/dpdp` call from the frontend, open the route handler and copy the exact path + response shape — do not trust intuition, there is no compiler check.

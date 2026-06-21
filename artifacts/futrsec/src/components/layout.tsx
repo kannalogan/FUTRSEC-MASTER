@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Sidebar } from "@/components/sidebar";
+import { CookieBanner } from "@/components/cookie-banner";
 import { Menu } from "lucide-react";
 
 export function Layout({ children }: { children: React.ReactNode }) {
@@ -42,6 +43,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
           {children}
         </div>
       </main>
+      <CookieBanner />
     </div>
   );
 }

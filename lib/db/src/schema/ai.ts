@@ -5,6 +5,7 @@ import {
   timestamp,
   integer,
   boolean,
+  jsonb,
 } from "drizzle-orm/pg-core";
 
 export const aiInterviewsTable = pgTable("ai_interviews", {
@@ -13,8 +14,13 @@ export const aiInterviewsTable = pgTable("ai_interviews", {
   trackId: integer("track_id"),
   jobId: integer("job_id"),
   status: text("status").notNull().default("pending"),
+  interviewType: text("interview_type").notNull().default("text"),
   difficulty: text("difficulty").notNull().default("intermediate"),
   totalQuestions: integer("total_questions").notNull().default(10),
+  questions: jsonb("questions"),
+  answers: jsonb("answers"),
+  evaluation: jsonb("evaluation"),
+  overallScore: integer("overall_score"),
   startedAt: timestamp("started_at", { withTimezone: true }),
   completedAt: timestamp("completed_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true })

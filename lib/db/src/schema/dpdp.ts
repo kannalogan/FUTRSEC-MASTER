@@ -5,6 +5,7 @@ import {
   timestamp,
   integer,
   boolean,
+  jsonb,
   pgEnum,
 } from "drizzle-orm/pg-core";
 import { z } from "zod/v4";
@@ -43,6 +44,7 @@ export const consentLogsTable = pgTable("consent_logs", {
   analytics: boolean("analytics").notNull().default(false),
   dataProcessing: boolean("data_processing").notNull().default(false),
   thirdParty: boolean("third_party").notNull().default(false),
+  cookiePreferences: jsonb("cookie_preferences"),
   updatedAt: timestamp("updated_at", { withTimezone: true })
     .notNull()
     .defaultNow()

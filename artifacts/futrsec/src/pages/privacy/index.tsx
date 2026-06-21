@@ -11,10 +11,19 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Shield, CheckCircle2, AlertTriangle, FileDown, Trash2, Edit3,
   Clock, Eye, Lock, Database, Globe, ToggleLeft, History,
-  AlertCircle, ChevronRight, Info
+  AlertCircle, ChevronRight, Info, Cookie, FileText, ScrollText
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { motion } from "framer-motion";
+
+type CookiePrefs = { necessary: boolean; analytics: boolean; marketing: boolean; functional: boolean; updatedAt?: string };
+
+const COOKIE_TYPES: Array<{ key: keyof CookiePrefs; label: string; description: string; locked?: boolean }> = [
+  { key: "necessary", label: "Strictly Necessary", description: "Required for authentication, security and core functionality. Always on.", locked: true },
+  { key: "functional", label: "Functional", description: "Remember your preferences such as theme and layout for a better experience." },
+  { key: "analytics", label: "Analytics", description: "Help us understand usage to improve learning outcomes (anonymized)." },
+  { key: "marketing", label: "Marketing", description: "Used to show relevant opportunities and measure campaign effectiveness." },
+];
 
 const DATA_CATEGORIES = [
   { name: "Profile Information", description: "Your name, email, phone, and professional details", purpose: "Account management and personalization", retention: "Until deletion request" },
@@ -51,11 +60,31 @@ export default function PrivacyCenter() {
 
   const { data: historyData } = useQuery({
     queryKey: ["consent/history"],
-    queryFn: () => apiFetch<any>("/api/consent/history"),
+    queryFn: () => apiFetch<any[]>("/api/consent/history"),
+  });
+  const historyEntries: any[] = Array.isArray(historyData) ? historyData : [];
+
+  const { data: cookieData } = useQuery({
+    queryKey: ["consent/cookies"],
+    queryFn: () => apiFetch<CookiePrefs>("/api/consent/cookies"),
   });
 
+  const cookieMutation = useMutation({
+    mutationFn: (prefs: Partial<CookiePrefs>) =>
+      apiFetch<CookiePrefs>("/api/consent/cookies", { method: "POST", body: JSON.stringify(prefs) }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["consent/cookies"] });
+      qc.invalidateQueries({ queryKey: ["consent/history"] });
+      try { localStorage.setItem("futrsec_cookie_consent", "1"); } catch { /* ignore */ }
+      toast({ title: "Cookie preferences saved", description: "Your choices have been recorded in your consent log." });
+    },
+    onError: (e: Error) => toast({ title: "Error", description: e.message, variant: "destructive" }),
+  });
+
+  const cookies = cookieData ?? { necessary: true, analytics: false, marketing: false, functional: false };
+
   const exportMutation = useMutation({
-    mutationFn: () => apiFetch("/api/consent/request-download", { method: "POST", body: JSON.stringify({ reason: "User requested data export" }) }),
+    mutationFn: () => apiFetch("/api/dpdp/download-request", { method: "POST", body: JSON.stringify({ reason: "User requested data export" }) }),
     onSuccess: () => {
       setExportRequested(true);
       toast({ title: "Export requested!", description: "You'll receive your data package within 72 hours as required by DPDP Act." });
@@ -127,11 +156,13 @@ export default function PrivacyCenter() {
       </div>
 
       <Tabs defaultValue="consent">
-        <TabsList className="h-8 mb-4">
+        <TabsList className="h-8 mb-4 flex-wrap">
           <TabsTrigger value="consent" className="text-xs h-7">Consent Settings</TabsTrigger>
+          <TabsTrigger value="cookies" className="text-xs h-7">Cookies</TabsTrigger>
           <TabsTrigger value="data" className="text-xs h-7">My Data</TabsTrigger>
           <TabsTrigger value="history" className="text-xs h-7">Audit Trail</TabsTrigger>
           <TabsTrigger value="requests" className="text-xs h-7">Requests</TabsTrigger>
+          <TabsTrigger value="legal" className="text-xs h-7">Policy &amp; Terms</TabsTrigger>
         </TabsList>
 
         {/* Consent Settings */}
@@ -169,9 +200,66 @@ export default function PrivacyCenter() {
                     label="Third-Party Sharing"
                     description="Share anonymized performance data with hiring partners to improve placement recommendations."
                     checked={consent?.thirdParty ?? false}
-                    onChange={(v) => !v && handleWithdrawConsent("third_party")}
+                    onChange={(v) => !v && handleWithdrawConsent("thirdParty")}
                   />
                 </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Cookie Preferences */}
+        <TabsContent value="cookies">
+          <Card className="bg-white border-border/60">
+            <CardHeader className="pb-3 pt-4 px-5">
+              <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                <Cookie className="h-4 w-4 text-primary" />Cookie Preferences
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="px-5 pb-5">
+              <p className="text-xs text-muted-foreground mb-3">
+                Control how cookies are used on FUTRSEC. Strictly necessary cookies are always active because the platform cannot function without them. Your choices are recorded in your consent log.
+              </p>
+              <div>
+                {COOKIE_TYPES.map((c) => (
+                  <ConsentToggle
+                    key={c.key}
+                    label={c.locked ? `${c.label} (Always on)` : c.label}
+                    description={c.description}
+                    checked={c.locked ? true : Boolean(cookies[c.key])}
+                    onChange={(v) => {
+                      if (c.locked) {
+                        toast({ title: "Required", description: "Strictly necessary cookies cannot be disabled." });
+                        return;
+                      }
+                      cookieMutation.mutate({ ...cookies, [c.key]: v });
+                    }}
+                  />
+                ))}
+              </div>
+              <div className="flex flex-wrap gap-2 mt-4">
+                <Button
+                  size="sm"
+                  className="h-7 text-xs gap-1.5"
+                  disabled={cookieMutation.isPending}
+                  onClick={() => cookieMutation.mutate({ necessary: true, analytics: true, marketing: true, functional: true })}
+                >
+                  <CheckCircle2 className="h-3.5 w-3.5" />Accept All
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="h-7 text-xs gap-1.5"
+                  disabled={cookieMutation.isPending}
+                  onClick={() => cookieMutation.mutate({ necessary: true, analytics: false, marketing: false, functional: false })}
+                >
+                  <Lock className="h-3.5 w-3.5" />Reject Non-Essential
+                </Button>
+              </div>
+              {cookieData?.updatedAt && (
+                <p className="text-[11px] text-muted-foreground mt-3 flex items-center gap-1">
+                  <Clock className="h-3 w-3" />Last updated {new Date(cookieData.updatedAt).toLocaleString("en-IN", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}
+                </p>
               )}
             </CardContent>
           </Card>
@@ -244,9 +332,9 @@ export default function PrivacyCenter() {
               </CardTitle>
             </CardHeader>
             <CardContent className="px-5 pb-5">
-              {historyData?.history?.length > 0 ? (
+              {historyEntries.length > 0 ? (
                 <div className="space-y-2">
-                  {historyData.history.map((entry: any) => (
+                  {historyEntries.map((entry: any) => (
                     <div key={entry.id} className="flex items-center gap-3 p-3 bg-muted/20 rounded-lg">
                       <div className={`h-2 w-2 rounded-full shrink-0 ${entry.action === "granted" ? "bg-green-500" : "bg-red-500"}`} />
                       <div className="flex-1">
@@ -314,6 +402,72 @@ export default function PrivacyCenter() {
                       <Trash2 className="h-3.5 w-3.5" />Request Account Deletion
                     </Button>
                   </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
+        {/* Policy & Terms */}
+        <TabsContent value="legal">
+          <div className="space-y-4">
+            <Card className="bg-white border-border/60">
+              <CardHeader className="pb-3 pt-4 px-5">
+                <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                  <FileText className="h-4 w-4 text-primary" />Privacy Policy
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="px-5 pb-5 space-y-3 text-xs text-muted-foreground leading-relaxed">
+                <p><span className="font-medium text-foreground">Effective under the DPDP Act 2023.</span> FUTRSEC ("we", "us") is the Data Fiduciary responsible for your personal data. This policy explains what we collect, why, and the rights you hold over it.</p>
+                <div>
+                  <p className="font-medium text-foreground mb-1">1. Data we collect</p>
+                  <p>Profile details, learning progress, assessment and lab activity, job applications, and consent records. Each category, its purpose, and retention period are listed in the "My Data" tab.</p>
+                </div>
+                <div>
+                  <p className="font-medium text-foreground mb-1">2. Purpose & legal basis</p>
+                  <p>We process data to deliver personalized learning, calibrate tracks, verify skills, and assist with placements. Processing relies on the consent you grant in the "Consent Settings" tab, except where required to operate your account.</p>
+                </div>
+                <div>
+                  <p className="font-medium text-foreground mb-1">3. Your rights</p>
+                  <p>You may access, correct, withdraw consent, or request erasure of your data at any time using the controls in this Privacy Center. Withdrawal does not affect processing carried out before withdrawal.</p>
+                </div>
+                <div>
+                  <p className="font-medium text-foreground mb-1">4. Data retention & security</p>
+                  <p>We retain data only as long as needed for the stated purpose or as legally required. Consent records are retained permanently as a legal obligation. Data is protected with industry-standard safeguards.</p>
+                </div>
+                <div>
+                  <p className="font-medium text-foreground mb-1">5. Grievance redressal</p>
+                  <p>To raise a concern about your data, contact our Data Protection Officer at <span className="text-foreground">dpo@futrsec.in</span>. We respond within the timelines mandated by the DPDP Act.</p>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-white border-border/60">
+              <CardHeader className="pb-3 pt-4 px-5">
+                <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                  <ScrollText className="h-4 w-4 text-primary" />Terms of Service
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="px-5 pb-5 space-y-3 text-xs text-muted-foreground leading-relaxed">
+                <div>
+                  <p className="font-medium text-foreground mb-1">1. Acceptable use</p>
+                  <p>FUTRSEC is provided for lawful cybersecurity learning and career development. You agree not to misuse labs, attempt to attack platform infrastructure, or share account access.</p>
+                </div>
+                <div>
+                  <p className="font-medium text-foreground mb-1">2. Learning content & AI features</p>
+                  <p>AI tutoring, coaching, interview, and assessment outputs are guidance aids and may contain inaccuracies. They do not guarantee employment outcomes. Use professional judgement before acting on them.</p>
+                </div>
+                <div>
+                  <p className="font-medium text-foreground mb-1">3. Placements</p>
+                  <p>Placement assistance connects you with hiring partners. We do not guarantee interviews or offers, and selection decisions rest with employers.</p>
+                </div>
+                <div>
+                  <p className="font-medium text-foreground mb-1">4. Account & termination</p>
+                  <p>You may delete your account at any time from the "Requests" tab. We may suspend accounts that violate these terms or applicable law.</p>
+                </div>
+                <div>
+                  <p className="font-medium text-foreground mb-1">5. Changes</p>
+                  <p>We may update these terms and the privacy policy. Material changes will be notified in-app, and continued use constitutes acceptance.</p>
                 </div>
               </CardContent>
             </Card>

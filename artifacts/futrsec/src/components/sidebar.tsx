@@ -88,6 +88,7 @@ const NAV_SECTIONS: NavSection[] = [
   {
     title: "AI & JOBS",
     items: [
+      { label: "AI Explain Tutor", href: "/ai/tutor", icon: GraduationCap },
       { label: "AI Job Agent", href: "/ai/job-agent", icon: Bot },
       { label: "AI Career Coach", href: "/ai/career-coach", icon: Brain },
       { label: "Resume Analyzer", href: "/ai/resume-analyzer", icon: ScanSearch },

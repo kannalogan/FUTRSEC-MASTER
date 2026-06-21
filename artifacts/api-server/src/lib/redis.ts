@@ -36,7 +36,19 @@ let _client: Redis | null = null;
 let _available = false;
 let _connectAttempted = false;
 
-export const redisConnectionOptions = buildConnectionOptions();
+// Shared by the standalone client AND BullMQ's internal connections (Queue/Worker).
+// `maxRetriesPerRequest: null` is required by BullMQ; `enableOfflineQueue: false` plus a
+// bounded `retryStrategy` make producers fail fast when Redis is down so `safeAddJob`
+// can catch the error immediately instead of buffering commands for ~30s.
+export const redisConnectionOptions: RedisOptions = {
+  ...buildConnectionOptions(),
+  maxRetriesPerRequest: null,
+  enableOfflineQueue: false,
+  retryStrategy: (times: number) => {
+    if (times > 3) return null;
+    return Math.min(times * 500, 3000);
+  },
+};
 
 export function getRedisClient(): Redis {
   if (!_client) {
