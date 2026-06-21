@@ -52,6 +52,11 @@ export const learningModulesTable = pgTable("learning_modules", {
   trackId: integer("track_id").notNull(),
   title: text("title").notNull(),
   description: text("description"),
+  category: text("category"),
+  difficulty: difficultyEnum("difficulty").notNull().default("beginner"),
+  thumbnailUrl: text("thumbnail_url"),
+  xpReward: integer("xp_reward").notNull().default(100),
+  estimatedMinutes: integer("estimated_minutes").notNull().default(60),
   order: integer("order").notNull(),
   lessonCount: integer("lesson_count").notNull().default(0),
   isPublished: boolean("is_published").notNull().default(false),
@@ -162,6 +167,116 @@ export const moduleEnrollmentsTable = pgTable("module_enrollments", {
   progressPercent: integer("progress_percent").notNull().default(0),
 });
 
+export const lessonResourcesTable = pgTable("lesson_resources", {
+  id: serial("id").primaryKey(),
+  lessonId: integer("lesson_id").notNull(),
+  title: text("title").notNull(),
+  url: text("url").notNull(),
+  type: text("type").notNull().default("link"),
+  order: integer("order").notNull().default(0),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
+
+export const lessonVideoProgressTable = pgTable("lesson_video_progress", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  lessonId: integer("lesson_id").notNull(),
+  positionSeconds: integer("position_seconds").notNull().default(0),
+  watchedPercent: integer("watched_percent").notNull().default(0),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .notNull()
+    .defaultNow()
+    .$onUpdate(() => new Date()),
+});
+
+export const userLessonNotesTable = pgTable("user_lesson_notes", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  lessonId: integer("lesson_id").notNull(),
+  content: text("content").notNull().default(""),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .notNull()
+    .defaultNow()
+    .$onUpdate(() => new Date()),
+});
+
+export const quizQuestionTypeEnum = pgEnum("quiz_question_type", [
+  "mcq",
+  "multi_select",
+  "true_false",
+  "scenario",
+]);
+
+export const lessonQuizQuestionsTable = pgTable("lesson_quiz_questions", {
+  id: serial("id").primaryKey(),
+  quizId: integer("quiz_id").notNull(),
+  question: text("question").notNull(),
+  type: quizQuestionTypeEnum("type").notNull().default("mcq"),
+  options: text("options").array().notNull().default([]),
+  correctAnswers: integer("correct_answers").array().notNull().default([]),
+  explanation: text("explanation"),
+  points: integer("points").notNull().default(10),
+  order: integer("order").notNull().default(0),
+});
+
+export const quizAttemptsTable = pgTable("quiz_attempts", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  quizId: integer("quiz_id").notNull(),
+  lessonId: integer("lesson_id").notNull(),
+  score: integer("score").notNull().default(0),
+  maxScore: integer("max_score").notNull().default(0),
+  passed: boolean("passed").notNull().default(false),
+  timeSpentSeconds: integer("time_spent_seconds").notNull().default(0),
+  completedAt: timestamp("completed_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
+
+export const discussionPostsTable = pgTable("discussion_posts", {
+  id: serial("id").primaryKey(),
+  lessonId: integer("lesson_id").notNull(),
+  userId: integer("user_id").notNull(),
+  body: text("body").notNull(),
+  isPinned: boolean("is_pinned").notNull().default(false),
+  isSolved: boolean("is_solved").notNull().default(false),
+  likeCount: integer("like_count").notNull().default(0),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .notNull()
+    .defaultNow()
+    .$onUpdate(() => new Date()),
+});
+
+export const discussionCommentsTable = pgTable("discussion_comments", {
+  id: serial("id").primaryKey(),
+  postId: integer("post_id").notNull(),
+  userId: integer("user_id").notNull(),
+  body: text("body").notNull(),
+  isAcceptedAnswer: boolean("is_accepted_answer").notNull().default(false),
+  likeCount: integer("like_count").notNull().default(0),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
+
+export const discussionLikesTable = pgTable("discussion_likes", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  postId: integer("post_id"),
+  commentId: integer("comment_id"),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
+
 export const insertTrackSchema = createInsertSchema(tracksTable).omit({
   id: true,
   createdAt: true,
@@ -174,3 +289,11 @@ export type LearningModule = typeof learningModulesTable.$inferSelect;
 export type Lesson = typeof lessonsTable.$inferSelect;
 export type LessonProgress = typeof lessonProgressTable.$inferSelect;
 export type ModuleEnrollment = typeof moduleEnrollmentsTable.$inferSelect;
+export type LessonResource = typeof lessonResourcesTable.$inferSelect;
+export type LessonVideoProgress = typeof lessonVideoProgressTable.$inferSelect;
+export type UserLessonNote = typeof userLessonNotesTable.$inferSelect;
+export type LessonQuizQuestion = typeof lessonQuizQuestionsTable.$inferSelect;
+export type QuizAttempt = typeof quizAttemptsTable.$inferSelect;
+export type DiscussionPost = typeof discussionPostsTable.$inferSelect;
+export type DiscussionComment = typeof discussionCommentsTable.$inferSelect;
+export type DiscussionLike = typeof discussionLikesTable.$inferSelect;

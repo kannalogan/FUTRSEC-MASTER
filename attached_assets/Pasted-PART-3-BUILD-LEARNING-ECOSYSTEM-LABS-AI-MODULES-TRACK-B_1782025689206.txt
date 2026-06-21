@@ -1,0 +1,728 @@
+PART 3 – BUILD LEARNING ECOSYSTEM, LABS, AI MODULES & TRACK-BASED EXPERIENCE
+
+Continue existing architecture.
+
+DO NOT break PART 1 and PART 2.
+
+Use:
+
+- Existing Drizzle ORM
+- Existing DB schema
+- Existing authentication
+- Existing RBAC
+- Existing DPDP architecture
+- Existing Audit Logs
+
+======================================================
+TRACK LOCK ARCHITECTURE
+======================================================
+
+Student selects ONLY ONE track during onboarding.
+
+Allowed values:
+
+SOC
+VAPT
+GRC
+
+Save:
+
+users.career_track
+
+Student CANNOT:
+
+- Change Track
+- See track switch
+- Access other track APIs
+- Access other track labs
+
+Admin ONLY can change track.
+
+======================================================
+LEARNING MODULE
+======================================================
+
+Single route:
+
+/learning
+
+Dynamic based on career_track.
+
+SOC:
+
+Categories:
+
+• SOC Foundations
+• SIEM Fundamentals
+• Splunk
+• QRadar
+• Wazuh
+• Threat Hunting
+• Malware Analysis
+• Incident Response
+• Digital Forensics
+• SOC Automation
+• MITRE ATT&CK
+• Log Analysis
+
+VAPT:
+
+Categories:
+
+• VAPT Foundations
+• Nmap
+• Burp Suite
+• Metasploit
+• OWASP Top 10
+• API Security
+• Web Pentesting
+• Mobile Pentesting
+• AD Pentesting
+• Cloud Pentesting
+• Privilege Escalation
+• Red Team Basics
+
+GRC:
+
+Categories:
+
+• GRC Foundations
+• ISO 27001
+• NIST
+• DPDP
+• GDPR
+• Risk Assessment
+• Vendor Risk
+• Compliance
+• Audit
+• Policies
+• Governance
+• Business Continuity
+
+======================================================
+LEARNING CARD DESIGN
+======================================================
+
+Every module contains:
+
+Thumbnail
+
+Title
+
+Short Description
+
+Difficulty
+
+Beginner
+
+Intermediate
+
+Advanced
+
+Estimated Time
+
+XP
+
+Progress %
+
+Status
+
+Not Started
+
+In Progress
+
+Completed
+
+Start Button
+
+Continue Button
+
+Bookmark Button
+
+Share Button
+
+======================================================
+LESSON PAGE
+======================================================
+
+/learning/:courseId
+
+Tabs:
+
+Overview
+
+Video
+
+Article
+
+Resources
+
+Quiz
+
+Discussion
+
+Notes
+
+AI Explain
+
+======================================================
+VIDEO
+======================================================
+
+Support:
+
+Youtube
+
+Vimeo
+
+Custom video
+
+Progress tracking
+
+Watch percentage
+
+Resume from last position
+
+Speed control
+
+Captions
+
+======================================================
+ARTICLE
+======================================================
+
+Rich markdown
+
+Images
+
+Code blocks
+
+Tables
+
+Bookmarks
+
+Notes
+
+Highlight text
+
+======================================================
+QUIZ
+======================================================
+
+MCQ
+
+Multiple Select
+
+True / False
+
+Scenario Questions
+
+Timer
+
+Instant Result
+
+Leaderboard
+
+Track XP
+
+Feed score to FTS if enabled
+
+======================================================
+DISCUSSION
+======================================================
+
+Like Reddit.
+
+Student can:
+
+Post question
+
+Comment
+
+Like
+
+Reply
+
+Bookmark
+
+Mention Mentor
+
+Report
+
+Mentor can:
+
+Pin answer
+
+Mark solved
+
+Broadcast explanation
+
+======================================================
+AI EXPLAIN
+======================================================
+
+AI chatbot.
+
+Context aware.
+
+Example:
+
+Student inside Splunk lesson.
+
+Ask:
+
+"What is index?"
+
+AI answers only Splunk context.
+
+Features:
+
+Explain simple
+
+Explain advanced
+
+Generate examples
+
+Generate quiz
+
+Translate
+
+Summarize
+
+Voice reply
+
+======================================================
+MY COURSES
+======================================================
+
+Route:
+
+/my-courses
+
+Cards:
+
+Ongoing
+
+Completed
+
+Recommended
+
+Saved
+
+Expired
+
+Each:
+
+Progress
+
+Last viewed
+
+XP
+
+Continue
+
+======================================================
+LABS
+======================================================
+
+Route:
+
+/labs
+
+Track specific.
+
+SOC:
+
+SIEM Labs
+
+Threat Hunting
+
+Incident Response
+
+Malware Analysis
+
+Forensics
+
+Detection Engineering
+
+VAPT:
+
+Burp Labs
+
+OWASP Labs
+
+Nmap Labs
+
+API Labs
+
+AD Labs
+
+Web Labs
+
+Cloud Labs
+
+GRC:
+
+ISO Audit Simulator
+
+Risk Assessment Lab
+
+DPDP Simulator
+
+Vendor Risk Lab
+
+Policy Builder
+
+Compliance Simulator
+
+======================================================
+LAB PAGE
+======================================================
+
+Route:
+
+/labs/:labId
+
+Layout:
+
+LEFT
+
+Instructions
+
+Objectives
+
+Hints
+
+References
+
+CENTER
+
+Terminal simulator
+
+or
+
+Sandbox simulator
+
+RIGHT
+
+Task checklist
+
+Progress
+
+Timer
+
+Mentor notes
+
+======================================================
+SOC LABS
+======================================================
+
+Simulate:
+
+Log viewer
+
+SIEM dashboard
+
+Alerts
+
+Event timeline
+
+MITRE mapping
+
+IOC analysis
+
+Search queries
+
+Student submits answer.
+
+Auto evaluate.
+
+======================================================
+VAPT LABS
+======================================================
+
+Simulate:
+
+Target website
+
+Burp request
+
+Terminal
+
+Nmap output
+
+Metasploit console
+
+Challenge objectives
+
+Flag submission
+
+Score
+
+======================================================
+GRC LABS
+======================================================
+
+Simulate:
+
+Organization
+
+Policies
+
+Risk register
+
+Audit findings
+
+DPDP controls
+
+Student:
+
+Create policy
+
+Accept risk
+
+Review controls
+
+Submit audit
+
+======================================================
+CTF CHALLENGES
+======================================================
+
+Route:
+
+/ctf
+
+Features:
+
+Easy
+
+Medium
+
+Hard
+
+Categories:
+
+Web
+
+Crypto
+
+OSINT
+
+Forensics
+
+Reverse
+
+Binary
+
+Cloud
+
+Leaderboard
+
+Writeups
+
+Badges
+
+======================================================
+SANDBOX
+======================================================
+
+Route:
+
+/sandbox
+
+Student can:
+
+Run commands
+
+Practice Linux
+
+Practice Python
+
+Practice Regex
+
+Practice Log Queries
+
+Save sessions
+
+Export notes
+
+======================================================
+AI MOCK INTERVIEW
+======================================================
+
+Route:
+
+/mock-interview
+
+AI asks questions.
+
+Student:
+
+Text answer
+
+Voice answer
+
+Video answer
+
+AI evaluates:
+
+Technical skill
+
+Confidence
+
+Communication
+
+English grammar
+
+Body language (future)
+
+Thinking process
+
+Speed
+
+Tone
+
+Result:
+
+Score
+
+Strengths
+
+Weaknesses
+
+Recommended lessons
+
+Mentor notes
+
+======================================================
+AI CAREER COACH
+======================================================
+
+Route:
+
+/ai-career-coach
+
+Student asks:
+
+What should I learn?
+
+Am I placement ready?
+
+What skills missing?
+
+What companies fit me?
+
+AI reads:
+
+Track
+
+FTS
+
+Labs
+
+Assignments
+
+Assessments
+
+Resume
+
+Mock interviews
+
+Then gives roadmap.
+
+======================================================
+AI SKILL GAP ANALYZER
+======================================================
+
+Show:
+
+Current skills
+
+Missing skills
+
+Industry demand
+
+Required certifications
+
+Learning roadmap
+
+Target companies
+
+Expected salary
+
+======================================================
+DPDP
+======================================================
+
+Student Settings:
+
+DPDP Consent Center
+
+Categories:
+
+Core Processing
+
+Analytics
+
+Marketing
+
+Third-party Placements
+
+Download data
+
+Delete account request
+
+Consent history
+
+Audit trail
+
+======================================================
+COMMON REQUIREMENTS
+======================================================
+
+Every page:
+
+Loading state
+
+Skeleton UI
+
+Error state
+
+Retry
+
+Empty state
+
+Search
+
+Filters
+
+Pagination
+
+Dark mode
+
+Mobile responsive
+
+Accessibility
+
+Animations
+
+Audit logs
+
+Role permissions
+
+======================================================
+
+NO PLACEHOLDERS
+
+NO 404
+
+EVERY BUTTON MUST WORK
+
+EVERY API MUST WORK
+
+PRODUCTION READY
+
+INTERNATIONAL QUALITY
+
+Build this completely while maintaining compatibility with PART 1 and PART 2.
