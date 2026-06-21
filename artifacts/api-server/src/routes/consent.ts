@@ -2,6 +2,7 @@ import { Router } from "express";
 import { eq } from "drizzle-orm";
 import { db } from "@workspace/db";
 import {
+  usersTable,
   consentLogsTable,
   consentHistoryTable,
   dataDownloadRequestsTable,
@@ -110,6 +111,21 @@ router.post("/consent", requireAuth, async (req: AuthRequest, res): Promise<void
     });
   }
 
+  const [userRow] = await db
+    .select({ role: usersTable.role, onboardingStep: usersTable.onboardingStep })
+    .from(usersTable)
+    .where(eq(usersTable.id, req.user.userId));
+
+  const needsApproval = userRow?.role === "tpo" || userRow?.role === "employer";
+  const nextStep = needsApproval ? "pending_approval" : "profile";
+
+  if (userRow?.onboardingStep === "consent") {
+    await db
+      .update(usersTable)
+      .set({ onboardingStep: nextStep as "pending_approval" | "profile" })
+      .where(eq(usersTable.id, req.user.userId));
+  }
+
   res.json({
     userId: consent.userId,
     marketing: consent.marketing,
@@ -117,6 +133,7 @@ router.post("/consent", requireAuth, async (req: AuthRequest, res): Promise<void
     dataProcessing: consent.dataProcessing,
     thirdParty: consent.thirdParty,
     updatedAt: consent.updatedAt.toISOString(),
+    nextStep,
   });
 });
 

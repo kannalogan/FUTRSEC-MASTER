@@ -1,0 +1,761 @@
+FUTRSEC
+
+MASTER OF MASTER OF MASTER PROMPT
+
+AUTHENTICATION + SIGNUP + ONBOARDING SYSTEM
+
+Continue from PART 1.
+
+Maintain:
+
+- PostgreSQL
+- Prisma
+- Redis
+- BullMQ
+- RBAC
+- DPDP
+- Event Bus
+- Audit Logs
+
+Do NOT break existing architecture.
+
+--------------------------------------------------
+
+GOAL
+
+Build a world-class authentication and onboarding system for FUTRSEC.
+
+Inspired by:
+
+- Coursera
+- LinkedIn
+- TryHackMe
+- Hack The Box
+- Workday
+- Notion
+
+Premium.
+
+Modern.
+
+White background.
+
+Dark text.
+
+Responsive.
+
+Production Ready.
+
+--------------------------------------------------
+
+WELCOME SCREEN
+
+Show:
+
+FUTRSEC Logo
+
+Welcome to FUTRSEC
+
+Authentication options:
+
+1.
+
+Sign in with Google
+
+2.
+
+Sign in with GitHub
+
+3.
+
+Sign in with Microsoft
+
+------------------------
+
+OR
+
+------------------------
+
+Sign in using Email
+
+Forgot Password
+
+Create Account
+
+Support Email:
+
+futrsec@bcbuzz.io
+
+--------------------------------------------------
+
+CREATE ACCOUNT
+
+Step 1
+
+Choose Role
+
+Only show:
+
+1.
+
+Student
+
+Description:
+
+Cybersecurity student or graduate
+
+Register for learning, assessments, mentorship and jobs.
+
+----------------------------------
+
+2.
+
+Training & Placement Officer
+
+Description:
+
+College or Institution TPO
+
+Manage placements and track outcomes.
+
+----------------------------------
+
+3.
+
+Hiring Company
+
+Description:
+
+Hire pre-assessed cybersecurity talent.
+
+Source verified candidates.
+
+Manage interviews and hiring pipeline.
+
+----------------------------------
+
+DO NOT SHOW:
+
+Mentor
+
+Admin
+
+Mentor account cannot be created publicly.
+
+Admin account cannot be created publicly.
+
+--------------------------------------------------
+
+MENTOR ACCOUNT RULE
+
+Mentor Signup = DISABLED
+
+Mentors are created only by Admin.
+
+Flow:
+
+Admin
+
+↓
+
+Create Mentor
+
+↓
+
+Assign Track
+
+SOC
+
+or
+
+VAPT
+
+or
+
+GRC
+
+↓
+
+Send Invite Email
+
+↓
+
+Mentor Sets Password
+
+↓
+
+Mentor Login
+
+↓
+
+Mentor Dashboard
+
+--------------------------------------------------
+
+STUDENT REGISTRATION
+
+Fields:
+
+First Name *
+
+Last Name *
+
+Email *
+
+Country Code *
+
+Phone *
+
+College / Institution *
+
+Searchable Dropdown
+
+Graduation Year *
+
+Password *
+
+Confirm Password *
+
+Google reCAPTCHA
+
+Checkbox:
+
+I agree to Terms of Use
+
+I agree to Privacy Policy
+
+----------------------------------
+
+Button
+
+Send OTP to verify email
+
+--------------------------------------------------
+
+OTP SCREEN
+
+6 Digit OTP
+
+Timer
+
+Resend OTP
+
+Change Email
+
+Verify OTP
+
+--------------------------------------------------
+
+After OTP
+
+Show:
+
+DPDP CONSENT SCREEN
+
+--------------------------------------------------
+
+DPDP CONSENT
+
+Title:
+
+Your Data, Your Control
+
+Required Consent
+
+Core Data Processing
+
+Always ON
+
+Cannot Disable
+
+----------------------------------
+
+Optional
+
+Analytics & Performance
+
+Marketing Communications
+
+Third Party Placements
+
+----------------------------------
+
+Show:
+
+What Data We Collect
+
+- Name
+
+- Email
+
+- College
+
+- Learning Progress
+
+- Assessments
+
+- Resume
+
+- AI Reports
+
+----------------------------------
+
+Who Can Access
+
+Mentor
+
+Limited
+
+TPO
+
+Aggregate Only
+
+Hiring Company
+
+Consent Based
+
+Admin
+
+Full
+
+----------------------------------
+
+User Rights
+
+Download Data
+
+Delete Data
+
+Correct Data
+
+Withdraw Consent
+
+Consent History
+
+----------------------------------
+
+Button
+
+Acknowledge & Continue
+
+--------------------------------------------------
+
+After Consent
+
+TRACK SELECTION
+
+Choose Career Track
+
+SOC
+
+Description:
+
+Security Operations Center
+
+Threat Detection
+
+SIEM
+
+Threat Hunting
+
+Incident Response
+
+----------------------------------
+
+VAPT
+
+Description:
+
+Vulnerability Assessment
+
+Penetration Testing
+
+OWASP
+
+Burp Suite
+
+AD Security
+
+----------------------------------
+
+GRC
+
+Description:
+
+Governance
+
+Risk
+
+Compliance
+
+ISO27001
+
+DPDP
+
+GDPR
+
+----------------------------------
+
+Student selects one track.
+
+Save to database.
+
+--------------------------------------------------
+
+Then
+
+PRE ASSESSMENT
+
+Track specific.
+
+SOC
+
+↓
+
+SOC Questions
+
+VAPT
+
+↓
+
+VAPT Questions
+
+GRC
+
+↓
+
+GRC Questions
+
+----------------------------------
+
+After completion:
+
+Generate
+
+Strengths
+
+Weaknesses
+
+Skill Gap
+
+Recommended Learning Path
+
+Career Track Score
+
+----------------------------------
+
+Save all results.
+
+--------------------------------------------------
+
+Then
+
+Student Dashboard
+
+--------------------------------------------------
+
+TPO REGISTRATION
+
+Public Signup Allowed.
+
+Required:
+
+First Name
+
+Last Name
+
+Institutional Email
+
+Password
+
+Phone
+
+College
+
+Designation
+
+reCAPTCHA
+
+----------------------------------
+
+Reject:
+
+gmail.com
+
+yahoo.com
+
+hotmail.com
+
+outlook.com
+
+Only:
+
+.edu
+
+.ac.in
+
+.college domains
+
+Institution domains
+
+----------------------------------
+
+Flow
+
+Register
+
+↓
+
+OTP Verify
+
+↓
+
+DPDP Consent
+
+↓
+
+Pending Approval
+
+↓
+
+Admin Reviews
+
+↓
+
+Approve
+
+↓
+
+TPO Dashboard
+
+--------------------------------------------------
+
+HIRING COMPANY REGISTRATION
+
+Public Signup Allowed.
+
+Required:
+
+First Name
+
+Last Name
+
+Official Email
+
+Password
+
+Phone
+
+Company Name
+
+Designation
+
+Company Website
+
+LinkedIn
+
+Industry
+
+Company Size
+
+reCAPTCHA
+
+----------------------------------
+
+Flow
+
+Register
+
+↓
+
+OTP Verify
+
+↓
+
+DPDP Consent
+
+↓
+
+Pending Verification
+
+↓
+
+Admin Reviews
+
+↓
+
+Approve
+
+↓
+
+Hiring Dashboard
+
+--------------------------------------------------
+
+LOGIN
+
+Support:
+
+Google
+
+GitHub
+
+Microsoft
+
+Email + Password
+
+OTP Login
+
+Remember Me
+
+Forgot Password
+
+----------------------------------
+
+Forgot Password
+
+Email
+
+↓
+
+OTP
+
+↓
+
+New Password
+
+↓
+
+Success
+
+--------------------------------------------------
+
+DATABASE TABLES
+
+users
+
+student_profiles
+
+mentor_profiles
+
+tpo_profiles
+
+employer_profiles
+
+consent_logs
+
+consent_history
+
+otp_sessions
+
+auth_sessions
+
+track_selection
+
+pre_assessment_results
+
+audit_logs
+
+--------------------------------------------------
+
+EVENTS
+
+Every action must generate:
+
+Audit Log
+
+Analytics Event
+
+Notification Event
+
+----------------------------------
+
+Examples
+
+User Registered
+
+OTP Sent
+
+OTP Verified
+
+Consent Accepted
+
+Track Selected
+
+Assessment Submitted
+
+Student Approved
+
+TPO Approved
+
+Employer Approved
+
+Login Success
+
+Logout
+
+----------------------------------
+
+Store:
+
+IP Address
+
+Device
+
+Browser
+
+Timestamp
+
+Location
+
+--------------------------------------------------
+
+SECURITY
+
+JWT
+
+Refresh Token
+
+HTTP Only Cookies
+
+CSRF Protection
+
+Rate Limiting
+
+Brute Force Protection
+
+OTP Expiry
+
+Password Hashing
+
+Role Based Access
+
+--------------------------------------------------
+
+MOBILE RESPONSIVE
+
+320px
+
+375px
+
+768px
+
+1024px
+
+1440px
+
+--------------------------------------------------
+
+NO PLACEHOLDERS.
+
+NO COMING SOON.
+
+EVERY SCREEN MUST WORK.
+
+EVERY BUTTON MUST WORK.
+
+EVERY FORM MUST SAVE TO DATABASE.
+
+EVERY FLOW MUST COMPLETE SUCCESSFULLY.
+
+Build an INTERNATIONAL GRADE authentication and onboarding experience for FUTRSEC.

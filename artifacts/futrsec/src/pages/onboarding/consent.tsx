@@ -20,8 +20,10 @@ export default function Consent() {
     captureConsent.mutate(
       { data: { dataProcessing: true, marketing, analytics, thirdParty } },
       {
-        onSuccess: () => {
-          setLocation("/onboarding/profile");
+        onSuccess: (data) => {
+          const nextStep = (data as unknown as Record<string, unknown>).nextStep as string | undefined ?? "profile";
+          if (nextStep === "pending_approval") setLocation("/onboarding/pending");
+          else setLocation("/onboarding/profile");
         }
       }
     );

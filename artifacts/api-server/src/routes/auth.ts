@@ -6,6 +6,8 @@ import { db } from "@workspace/db";
 import {
   usersTable,
   studentProfilesTable,
+  tpoProfilesTable,
+  employersTable,
   refreshTokensTable,
   tracksTable,
 } from "@workspace/db";
@@ -25,6 +27,18 @@ import { sendEmail, buildOtpEmail } from "../lib/email";
 const router = Router();
 
 const OTP_STORE = new Map<string, { otp: string; expiresAt: number; attempts: number }>();
+const RESET_OTP_STORE = new Map<string, { otp: string; expiresAt: number }>();
+const BLOCKED_DOMAINS = new Set(["gmail.com", "yahoo.com", "hotmail.com", "outlook.com", "rediffmail.com", "live.com"]);
+
+function generateOtp(): string {
+  return Math.floor(100000 + Math.random() * 900000).toString();
+}
+
+function getClientIp(req: AuthRequest): string {
+  const fwd = req.headers["x-forwarded-for"];
+  if (typeof fwd === "string") return fwd.split(",")[0].trim();
+  return req.socket?.remoteAddress ?? "unknown";
+}
 
 // ── Helper: serialize user for JSON responses ──────────────────────────────
 function serializeUser(user: typeof usersTable.$inferSelect) {
@@ -365,6 +379,349 @@ router.post("/auth/select-track", requireAuth, async (req: AuthRequest, res): Pr
   });
 
   res.json(serializeUser(user));
+});
+
+// ── Student Registration ────────────────────────────────────────────────────
+router.post("/auth/register/student", async (req: AuthRequest, res): Promise<void> => {
+  const { firstName, lastName, email, phone, college, graduationYear, password } = req.body ?? {};
+
+  if (!firstName || !lastName || !email || !password) {
+    res.status(400).json({ error: "firstName, lastName, email and password are required" });
+    return;
+  }
+  if (typeof password !== "string" || password.length < 8) {
+    res.status(400).json({ error: "Password must be at least 8 characters" });
+    return;
+  }
+
+  const existing = await db.select({ id: usersTable.id }).from(usersTable).where(eq(usersTable.email, email));
+  if (existing.length > 0) {
+    res.status(409).json({ error: "An account with this email already exists" });
+    return;
+  }
+
+  const hash = await bcrypt.hash(password, 10);
+  const [user] = await db.insert(usersTable).values({
+    email,
+    phone: phone ?? null,
+    fullName: `${firstName} ${lastName}`,
+    passwordHash: hash,
+    role: "student",
+    onboardingStep: "consent",
+  }).returning();
+
+  await db.insert(studentProfilesTable).values({
+    userId: user.id,
+    college: college ?? null,
+    graduationYear: graduationYear ? Number(graduationYear) : null,
+  }).onConflictDoNothing();
+
+  const otp = generateOtp();
+  OTP_STORE.set(`email:${email}`, { otp, expiresAt: Date.now() + 5 * 60 * 1000, attempts: 0 });
+
+  const isDev = process.env["NODE_ENV"] === "development";
+  if (!isDev) {
+    const { html, text } = buildOtpEmail(otp);
+    sendEmail({ to: email, subject: "Verify your FUTRSEC account", html, text }).catch((err: unknown) => {
+      req.log.error({ err: (err as Error).message }, "Failed to send registration OTP");
+    });
+  } else {
+    req.log.info({ email, otp }, "Registration OTP [DEV]");
+  }
+
+  eventBus.emit("user.created", { type: "user.created", userId: user.id, role: "student" });
+
+  res.status(201).json({
+    message: "Account created. OTP sent to your email.",
+    email,
+    expiresIn: 300,
+    ...(isDev ? { otp } : {}),
+  });
+});
+
+// ── TPO Registration ────────────────────────────────────────────────────────
+router.post("/auth/register/tpo", async (req: AuthRequest, res): Promise<void> => {
+  const { firstName, lastName, email, phone, institution, designation, password } = req.body ?? {};
+
+  if (!firstName || !lastName || !email || !phone || !institution || !designation || !password) {
+    res.status(400).json({ error: "All fields are required" });
+    return;
+  }
+  if (typeof password !== "string" || password.length < 8) {
+    res.status(400).json({ error: "Password must be at least 8 characters" });
+    return;
+  }
+
+  const domain = String(email).split("@")[1]?.toLowerCase() ?? "";
+  if (BLOCKED_DOMAINS.has(domain)) {
+    res.status(400).json({ error: "Please use an institutional email address (.edu, .ac.in, or your institution domain)" });
+    return;
+  }
+
+  const existing = await db.select({ id: usersTable.id }).from(usersTable).where(eq(usersTable.email, email));
+  if (existing.length > 0) {
+    res.status(409).json({ error: "An account with this email already exists" });
+    return;
+  }
+
+  const hash = await bcrypt.hash(password, 10);
+  const [user] = await db.insert(usersTable).values({
+    email,
+    phone: phone ?? null,
+    fullName: `${firstName} ${lastName}`,
+    passwordHash: hash,
+    role: "tpo",
+    onboardingStep: "consent",
+  }).returning();
+
+  await db.insert(tpoProfilesTable).values({
+    userId: user.id,
+    institution,
+    designation: designation ?? null,
+  }).onConflictDoNothing();
+
+  const otp = generateOtp();
+  OTP_STORE.set(`email:${email}`, { otp, expiresAt: Date.now() + 5 * 60 * 1000, attempts: 0 });
+
+  const isDev = process.env["NODE_ENV"] === "development";
+  if (!isDev) {
+    const { html, text } = buildOtpEmail(otp);
+    sendEmail({ to: email, subject: "Verify your FUTRSEC TPO account", html, text }).catch((err: unknown) => {
+      req.log.error({ err: (err as Error).message }, "Failed to send TPO OTP");
+    });
+  } else {
+    req.log.info({ email, otp }, "TPO Registration OTP [DEV]");
+  }
+
+  eventBus.emit("user.created", { type: "user.created", userId: user.id, role: "tpo" });
+
+  res.status(201).json({
+    message: "TPO account created. OTP sent to your institutional email.",
+    email,
+    expiresIn: 300,
+    ...(isDev ? { otp } : {}),
+  });
+});
+
+// ── Employer Registration ───────────────────────────────────────────────────
+router.post("/auth/register/employer", async (req: AuthRequest, res): Promise<void> => {
+  const { firstName, lastName, email, phone, companyName, designation, website, linkedinUrl, industry, companySize, password } = req.body ?? {};
+
+  if (!firstName || !lastName || !email || !phone || !companyName || !designation || !password) {
+    res.status(400).json({ error: "firstName, lastName, email, phone, companyName, designation and password are required" });
+    return;
+  }
+  if (typeof password !== "string" || password.length < 8) {
+    res.status(400).json({ error: "Password must be at least 8 characters" });
+    return;
+  }
+
+  const existing = await db.select({ id: usersTable.id }).from(usersTable).where(eq(usersTable.email, email));
+  if (existing.length > 0) {
+    res.status(409).json({ error: "An account with this email already exists" });
+    return;
+  }
+
+  const hash = await bcrypt.hash(password, 10);
+  const [user] = await db.insert(usersTable).values({
+    email,
+    phone: phone ?? null,
+    fullName: `${firstName} ${lastName}`,
+    passwordHash: hash,
+    role: "employer",
+    onboardingStep: "consent",
+  }).returning();
+
+  await db.insert(employersTable).values({
+    userId: user.id,
+    companyName,
+    designation: designation ?? null,
+    website: website ?? null,
+    linkedinUrl: linkedinUrl ?? null,
+    industry: industry ?? null,
+    companySize: companySize ?? null,
+  }).onConflictDoNothing();
+
+  const otp = generateOtp();
+  OTP_STORE.set(`email:${email}`, { otp, expiresAt: Date.now() + 5 * 60 * 1000, attempts: 0 });
+
+  const isDev = process.env["NODE_ENV"] === "development";
+  if (!isDev) {
+    const { html, text } = buildOtpEmail(otp);
+    sendEmail({ to: email, subject: "Verify your FUTRSEC employer account", html, text }).catch((err: unknown) => {
+      req.log.error({ err: (err as Error).message }, "Failed to send employer OTP");
+    });
+  } else {
+    req.log.info({ email, otp }, "Employer Registration OTP [DEV]");
+  }
+
+  eventBus.emit("user.created", { type: "user.created", userId: user.id, role: "employer" });
+
+  res.status(201).json({
+    message: "Employer account created. OTP sent to your email.",
+    email,
+    expiresIn: 300,
+    ...(isDev ? { otp } : {}),
+  });
+});
+
+// ── Password Login ──────────────────────────────────────────────────────────
+router.post("/auth/login/password", async (req: AuthRequest, res): Promise<void> => {
+  const { email, password } = req.body ?? {};
+
+  if (!email || !password) {
+    res.status(400).json({ error: "Email and password are required" });
+    return;
+  }
+
+  const [user] = await db.select().from(usersTable).where(eq(usersTable.email, email));
+  if (!user) {
+    res.status(401).json({ error: "Invalid email or password" });
+    return;
+  }
+  if (!user.passwordHash) {
+    res.status(401).json({ error: "This account uses OTP login. Please use the OTP option." });
+    return;
+  }
+  if (!user.isActive) {
+    res.status(403).json({ error: "Your account has been deactivated. Contact support." });
+    return;
+  }
+
+  const valid = await bcrypt.compare(password, user.passwordHash);
+  if (!valid) {
+    res.status(401).json({ error: "Invalid email or password" });
+    return;
+  }
+
+  const accessToken = signAccessToken({ userId: user.id, role: user.role });
+  const refreshToken = signRefreshToken({ userId: user.id });
+  const tokenHash = await bcrypt.hash(refreshToken, 10);
+  const expiresAt = new Date(Date.now() + REFRESH_TOKEN_TTL_DAYS * 24 * 60 * 60 * 1000);
+  await db.insert(refreshTokensTable).values({ userId: user.id, tokenHash, expiresAt });
+  await db.update(usersTable).set({ lastLoginAt: new Date() }).where(eq(usersTable.id, user.id));
+
+  req.log.info({ userId: user.id }, "Password login success");
+
+  res.json({ accessToken, refreshToken, user: serializeUser(user) });
+});
+
+// ── Forgot Password ─────────────────────────────────────────────────────────
+router.post("/auth/forgot-password", async (req: AuthRequest, res): Promise<void> => {
+  const { email } = req.body ?? {};
+  if (!email) { res.status(400).json({ error: "Email is required" }); return; }
+
+  const [user] = await db.select({ id: usersTable.id, email: usersTable.email }).from(usersTable).where(eq(usersTable.email, email));
+  if (!user) {
+    res.json({ message: "If that email is registered, a reset code has been sent." });
+    return;
+  }
+
+  const otp = generateOtp();
+  RESET_OTP_STORE.set(`reset:${email}`, { otp, expiresAt: Date.now() + 10 * 60 * 1000 });
+
+  const isDev = process.env["NODE_ENV"] === "development";
+  if (!isDev) {
+    const html = `<p>Your FUTRSEC password reset code is: <strong>${otp}</strong>. Valid for 10 minutes.</p>`;
+    sendEmail({ to: email, subject: "Reset your FUTRSEC password", html }).catch((err: unknown) => {
+      req.log.error({ err: (err as Error).message }, "Failed to send reset OTP");
+    });
+  } else {
+    req.log.info({ email, otp }, "Password reset OTP [DEV]");
+  }
+
+  res.json({
+    message: "If that email is registered, a reset code has been sent.",
+    ...(isDev ? { otp } : {}),
+  });
+});
+
+// ── Verify Reset OTP ────────────────────────────────────────────────────────
+router.post("/auth/verify-reset-otp", async (req: AuthRequest, res): Promise<void> => {
+  const { email, otp } = req.body ?? {};
+  if (!email || !otp) { res.status(400).json({ error: "Email and OTP are required" }); return; }
+
+  const entry = RESET_OTP_STORE.get(`reset:${email}`);
+  if (!entry) { res.status(400).json({ error: "No reset code found. Please request a new one." }); return; }
+  if (entry.expiresAt < Date.now()) {
+    RESET_OTP_STORE.delete(`reset:${email}`);
+    res.status(400).json({ error: "Reset code has expired. Please request a new one." });
+    return;
+  }
+  if (entry.otp !== String(otp)) {
+    res.status(400).json({ error: "Invalid reset code" });
+    return;
+  }
+
+  res.json({ message: "OTP verified. You may now set a new password." });
+});
+
+// ── Reset Password ──────────────────────────────────────────────────────────
+router.post("/auth/reset-password", async (req: AuthRequest, res): Promise<void> => {
+  const { email, otp, newPassword } = req.body ?? {};
+  if (!email || !otp || !newPassword) {
+    res.status(400).json({ error: "email, otp and newPassword are required" });
+    return;
+  }
+  if (typeof newPassword !== "string" || newPassword.length < 8) {
+    res.status(400).json({ error: "Password must be at least 8 characters" });
+    return;
+  }
+
+  const entry = RESET_OTP_STORE.get(`reset:${email}`);
+  if (!entry || entry.expiresAt < Date.now() || entry.otp !== String(otp)) {
+    res.status(400).json({ error: "Invalid or expired reset code" });
+    return;
+  }
+
+  const hash = await bcrypt.hash(newPassword, 10);
+  await db.update(usersTable).set({ passwordHash: hash }).where(eq(usersTable.email, email));
+  RESET_OTP_STORE.delete(`reset:${email}`);
+
+  res.json({ message: "Password updated successfully" });
+});
+
+// ── OAuth Redirect ──────────────────────────────────────────────────────────
+router.get("/auth/oauth/:provider", (req: AuthRequest, res): void => {
+  const provider = String(req.params["provider"] ?? "");
+  const origins = req.headers["x-forwarded-host"] ?? req.headers["host"] ?? "localhost";
+  const protocol = req.headers["x-forwarded-proto"] ?? "https";
+  const base = `${protocol}://${origins}`;
+  const basePath = (process.env["BASE_PATH"] ?? "").replace(/\/$/, "");
+
+  const configs: Record<string, { clientId?: string; authUrl: string; scope: string }> = {
+    google: {
+      clientId: process.env["GOOGLE_CLIENT_ID"],
+      authUrl: "https://accounts.google.com/o/oauth2/v2/auth",
+      scope: "openid email profile",
+    },
+    github: {
+      clientId: process.env["GITHUB_CLIENT_ID"],
+      authUrl: "https://github.com/login/oauth/authorize",
+      scope: "read:user user:email",
+    },
+    microsoft: {
+      clientId: process.env["MICROSOFT_CLIENT_ID"],
+      authUrl: "https://login.microsoftonline.com/common/oauth2/v2.0/authorize",
+      scope: "openid email profile",
+    },
+  };
+
+  const cfg = configs[provider];
+  if (!cfg || !cfg.clientId) {
+    res.redirect(`${base}${basePath}/login?error=oauth_not_configured&provider=${provider}`);
+    return;
+  }
+
+  const callbackUrl = `${base}${basePath}/api/auth/oauth/${provider}/callback`;
+  const params = new URLSearchParams({
+    client_id: cfg.clientId,
+    redirect_uri: callbackUrl,
+    response_type: "code",
+    scope: cfg.scope,
+  });
+
+  res.redirect(`${cfg.authUrl}?${params.toString()}`);
 });
 
 export default router;

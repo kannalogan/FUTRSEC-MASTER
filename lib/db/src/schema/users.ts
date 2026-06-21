@@ -23,6 +23,7 @@ export const onboardingStepEnum = pgEnum("onboarding_step", [
   "profile",
   "track_selection",
   "pre_assessment",
+  "pending_approval",
   "complete",
 ]);
 
@@ -31,6 +32,7 @@ export const usersTable = pgTable("users", {
   email: text("email").unique(),
   phone: text("phone").unique(),
   fullName: text("full_name"),
+  passwordHash: text("password_hash"),
   role: roleEnum("role").notNull().default("student"),
   onboardingStep: onboardingStepEnum("onboarding_step")
     .notNull()
@@ -110,6 +112,8 @@ export const employersTable = pgTable("employers", {
   companySize: text("company_size"),
   industry: text("industry"),
   website: text("website"),
+  linkedinUrl: text("linkedin_url"),
+  designation: text("designation"),
   logoUrl: text("logo_url"),
   isVerified: boolean("is_verified").notNull().default(false),
   createdAt: timestamp("created_at", { withTimezone: true })

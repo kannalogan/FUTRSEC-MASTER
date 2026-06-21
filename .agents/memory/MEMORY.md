@@ -2,3 +2,6 @@
 - [OpenAPI contract bugs](openapi-contract-bugs.md) — recurring mismatch patterns between spec and frontend/route expectations
 - [Redis graceful degradation](redis-degradation.md) — pattern for BullMQ + Redis to degrade without crashing the server
 - [Drizzle relations](drizzle-relations.md) — all relations live in lib/db/src/schema/relations.ts, exported from index.ts
+- [Auth event bus types](auth-event-types.md) — eventBus.emit "user.created" requires {type, userId, role}; "user.login" does not exist; check AppEvent union in events.ts before emitting
+- [Auth OTP store keys](auth-otp-keys.md) — OTP_STORE key = `${type}:${contact}` (e.g. "email:foo@bar.com"); RESET_OTP_STORE = `reset:${email}`; verify-otp endpoint uses `contact` field not `identifier`
+- [TypeScript codegen cast](ts-cast-unknown.md) — downcasting codegen response types requires double-cast via unknown: `(data as unknown as Record<string, unknown>)`, direct cast errors with TS2352

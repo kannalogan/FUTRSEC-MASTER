@@ -8,11 +8,18 @@ import NotFound from "@/pages/not-found";
 
 import Home from "@/pages/home";
 import Login from "@/pages/login";
+import RegisterIndex from "@/pages/register/index";
+import RegisterStudent from "@/pages/register/student";
+import RegisterTPO from "@/pages/register/tpo";
+import RegisterEmployer from "@/pages/register/employer";
+import VerifyOTP from "@/pages/auth/verify";
+import ForgotPassword from "@/pages/auth/forgot-password";
 import Consent from "@/pages/onboarding/consent";
 import Profile from "@/pages/onboarding/profile";
 import Tracks from "@/pages/onboarding/tracks";
 import Assessment from "@/pages/onboarding/assessment";
 import Complete from "@/pages/onboarding/complete";
+import PendingApproval from "@/pages/onboarding/pending";
 
 import DashboardHome from "@/pages/dashboard/index";
 import LearningPage from "@/pages/learning/index";
@@ -62,6 +69,12 @@ function Router() {
       {/* Public */}
       <Route path="/" component={Home} />
       <Route path="/login" component={Login} />
+      <Route path="/register" component={RegisterIndex} />
+      <Route path="/register/student" component={RegisterStudent} />
+      <Route path="/register/tpo" component={RegisterTPO} />
+      <Route path="/register/employer" component={RegisterEmployer} />
+      <Route path="/auth/verify" component={VerifyOTP} />
+      <Route path="/auth/forgot-password" component={ForgotPassword} />
 
       {/* Onboarding */}
       <Route path="/onboarding/consent"><OnboardingRoute component={Consent} /></Route>
@@ -69,6 +82,7 @@ function Router() {
       <Route path="/onboarding/tracks"><OnboardingRoute component={Tracks} /></Route>
       <Route path="/onboarding/assessment"><OnboardingRoute component={Assessment} /></Route>
       <Route path="/onboarding/complete"><OnboardingRoute component={Complete} /></Route>
+      <Route path="/onboarding/pending"><OnboardingRoute component={PendingApproval} /></Route>
 
       {/* Dashboard */}
       <Route path="/dashboard"><ProtectedRoute component={DashboardHome} /></Route>
