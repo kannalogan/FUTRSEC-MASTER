@@ -23,8 +23,16 @@ import {
 } from "@workspace/db";
 import { requireAuth, type AuthRequest } from "../middlewares/auth";
 import { checkTrackQueryAccess, checkResourceTrackAccess, type CareerTrack } from "../lib/track-access";
+import OpenAI from "openai";
 
 const router = Router();
+
+let _openai: OpenAI | null = null;
+function getOpenAI(): OpenAI | null {
+  if (!process.env.OPENAI_API_KEY) return null;
+  if (!_openai) _openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+  return _openai;
+}
 
 /** Loads a lesson + its module and runs the track guard. Returns the lesson+module on success, or sends an error response and returns null. */
 async function loadGuardedLesson(req: AuthRequest, res: import("express").Response, lessonIdRaw: string | string[]) {
@@ -622,6 +630,57 @@ router.get("/learning/my-courses", requireAuth, async (req: AuthRequest, res): P
     .orderBy(desc(lessonBookmarksTable.createdAt));
 
   res.json({ ongoing, completed, recommended, saved: bookmarks });
+});
+
+// ── AI Explain (context-aware tutor) ───────────────────────────────────────
+router.post("/learning/lessons/:lessonId/ai-explain", requireAuth, async (req: AuthRequest, res): Promise<void> => {
+  if (!req.user) { res.status(401).json({ error: "Not authenticated" }); return; }
+  const loaded = await loadGuardedLesson(req, res, req.params.lessonId);
+  if (!loaded) return;
+  const { lesson, module: moduleRow, lessonId } = loaded;
+
+  const question = String(req.body.question ?? "").trim();
+  if (!question) { res.status(400).json({ error: "A question is required" }); return; }
+  if (question.length > 1000) { res.status(400).json({ error: "Question is too long (max 1000 characters)" }); return; }
+
+  const client = getOpenAI();
+  if (!client) {
+    res.status(503).json({ error: "AI tutor is not configured yet. An OpenAI API key needs to be added to enable AI Explain." });
+    return;
+  }
+
+  // Build lesson context from its article/notes so answers stay grounded.
+  const [article] = await db.select().from(lessonNotesTable).where(eq(lessonNotesTable.lessonId, lessonId)).limit(1);
+  const track = await db.query.tracksTable.findFirst({ where: eq(tracksTable.id, moduleRow.trackId) });
+  const context = [
+    track ? `Career track: ${track.name}` : "",
+    `Module: ${moduleRow.title}`,
+    `Lesson: ${lesson.title} (${lesson.type})`,
+    article?.content ? `Lesson material:\n${String(article.content).slice(0, 4000)}` : "",
+  ].filter(Boolean).join("\n");
+
+  const system = `You are an expert cybersecurity tutor for FUTRSEC, an Indian cybersecurity learning platform. ` +
+    `Answer the student's question about the lesson below. Be concise, accurate, and practical. ` +
+    `Use markdown formatting (headings, bold, code blocks for commands/payloads). ` +
+    `Ground your answer in the lesson material when relevant, and relate examples to real-world security work. ` +
+    `If the question is unrelated to cybersecurity or this lesson, gently steer back to the topic.\n\n=== LESSON CONTEXT ===\n${context}`;
+
+  try {
+    const completion = await client.chat.completions.create({
+      model: "gpt-4o-mini",
+      max_completion_tokens: 1200,
+      messages: [
+        { role: "system", content: system },
+        { role: "user", content: question },
+      ],
+    });
+    const answer = completion.choices[0]?.message?.content?.trim() || "I couldn't generate an answer. Please try rephrasing your question.";
+    req.log.info({ lessonId, userId: req.user.userId }, "ai-explain answered");
+    res.json({ answer });
+  } catch (err) {
+    req.log.error({ err, lessonId }, "ai-explain failed");
+    res.status(502).json({ error: "The AI tutor is temporarily unavailable. Please try again in a moment." });
+  }
 });
 
 export default router;

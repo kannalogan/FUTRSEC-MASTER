@@ -24,6 +24,7 @@ import PendingApproval from "@/pages/onboarding/pending";
 import DashboardHome from "@/pages/dashboard/index";
 import LearningPage from "@/pages/learning/index";
 import MyCoursesPage from "@/pages/learning/my-courses";
+import LessonPlayerPage from "@/pages/learning/lesson";
 import CalendarPage from "@/pages/calendar/index";
 import RoadmapPage from "@/pages/roadmap/index";
 import BookmarksPage from "@/pages/bookmarks/index";
@@ -140,6 +141,7 @@ function Router() {
       <Route path="/learning"><ProtectedRoute component={LearningPage} /></Route>
       <Route path="/learning/courses"><ProtectedRoute component={MyCoursesPage} /></Route>
       <Route path="/my-courses"><ProtectedRoute component={MyCoursesPage} /></Route>
+      <Route path="/learning/:moduleId/:lessonId"><ProtectedRoute component={LessonPlayerPage} /></Route>
       <Route path="/calendar"><ProtectedRoute component={CalendarPage} /></Route>
       <Route path="/roadmap"><ProtectedRoute component={RoadmapPage} /></Route>
       <Route path="/bookmarks"><ProtectedRoute component={BookmarksPage} /></Route>
