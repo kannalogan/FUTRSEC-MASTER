@@ -52,7 +52,7 @@ function CircularProgress({ value, size = 84, stroke = 7, color = "#3B82F6", lab
           <span className="text-lg font-bold font-heading text-foreground">{label}</span>
         </div>
       </div>
-      {sub && <span className="text-[11px] text-muted-foreground mt-1.5">{sub}</span>}
+      {sub && <span className="text-sm text-muted-foreground mt-1.5">{sub}</span>}
     </div>
   );
 }
@@ -65,8 +65,8 @@ function KpiCard({ label, value, icon: Icon, color, suffix = "" }: {
       <CardContent className="p-5">
         <div className="flex items-start justify-between">
           <div>
-            <p className="text-[13px] font-medium text-muted-foreground mb-1.5">{label}</p>
-            <p className="text-3xl font-bold font-heading text-foreground">
+            <p className="text-sm font-medium text-muted-foreground mb-1.5">{label}</p>
+            <p className="text-kpi text-foreground">
               {value}<span className="text-base font-normal text-muted-foreground">{suffix}</span>
             </p>
           </div>
@@ -106,7 +106,7 @@ function CheckpointTimeline({ timeline }: { timeline: any[] }) {
             <p className={`text-sm font-medium ${cp.status === "locked" ? "text-muted-foreground/60" : "text-foreground"}`}>
               {cp.title}
             </p>
-            <p className="text-xs text-muted-foreground">{cp.description ?? `FTS ≥ ${cp.requiredScore}`}</p>
+            <p className="text-sm text-muted-foreground">{cp.description ?? `FTS ≥ ${cp.requiredScore}`}</p>
           </div>
         </div>
       ))}
@@ -116,7 +116,7 @@ function CheckpointTimeline({ timeline }: { timeline: any[] }) {
         </div>
         <div className="pt-1.5">
           <p className="text-sm font-medium text-muted-foreground/70">AI Job Agent Unlock</p>
-          <p className="text-xs text-muted-foreground">Complete CP5 to activate</p>
+          <p className="text-sm text-muted-foreground">Complete CP5 to activate</p>
         </div>
       </div>
     </div>
@@ -199,7 +199,7 @@ export default function DashboardHome() {
             </div>
             <div>
               <p className="text-muted-foreground text-sm mb-1">{greeting}</p>
-              <h1 className="text-page-title text-foreground">{firstName}</h1>
+              <h1 className="text-hero-title text-foreground">{firstName}</h1>
               {trackLabel && (
                 <div className="inline-flex items-center gap-2 mt-3 px-3 py-1.5 rounded-full bg-muted/60 ring-1 ring-border">
                   <span className="h-2 w-2 rounded-full" style={{ backgroundColor: trackColor, boxShadow: `0 0 8px ${trackColor}` }} />
@@ -236,7 +236,7 @@ export default function DashboardHome() {
           <div className="relative mt-6 flex items-center gap-3 rounded-2xl bg-muted/50 ring-1 ring-border px-4 py-3">
             <Flame className="h-5 w-5 text-orange-400 shrink-0" />
             <span className="text-sm font-semibold text-foreground">Trial — Day {trial.day} / {trial.totalDays}</span>
-            <span className="text-xs text-muted-foreground">{trial.daysRemaining} days remaining</span>
+            <span className="text-sm text-muted-foreground">{trial.daysRemaining} days remaining</span>
             <div className="ml-auto h-2 w-40 max-w-[40vw] rounded-full bg-muted overflow-hidden">
               <div className="h-full rounded-full bg-gradient-to-r from-orange-400 to-primary" style={{ width: `${(trial.day / trial.totalDays) * 100}%` }} />
             </div>
@@ -326,9 +326,9 @@ export default function DashboardHome() {
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium text-foreground">Lab attempt</p>
-                        <p className="text-xs text-muted-foreground">{new Date(lab.startedAt).toLocaleDateString()}</p>
+                        <p className="text-sm text-muted-foreground">{new Date(lab.startedAt).toLocaleDateString()}</p>
                       </div>
-                      <Badge variant={lab.status === "completed" ? "default" : "secondary"} className="text-[10px]">
+                      <Badge variant={lab.status === "completed" ? "default" : "secondary"} className="text-xs">
                         {lab.status}
                       </Badge>
                     </div>
@@ -340,9 +340,9 @@ export default function DashboardHome() {
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium text-foreground">Job application</p>
-                        <p className="text-xs text-muted-foreground">{new Date(app.appliedAt).toLocaleDateString()}</p>
+                        <p className="text-sm text-muted-foreground">{new Date(app.appliedAt).toLocaleDateString()}</p>
                       </div>
-                      <Badge variant="secondary" className="text-[10px]">{app.status}</Badge>
+                      <Badge variant="secondary" className="text-xs">{app.status}</Badge>
                     </div>
                   ))}
                 </div>
@@ -350,7 +350,7 @@ export default function DashboardHome() {
                 <div className="text-center py-6 text-sm text-muted-foreground">
                   <Clock className="h-8 w-8 mx-auto mb-2 opacity-30" />
                   <p>No activity yet</p>
-                  <p className="text-xs mt-1">Start a lab or apply to a job to see your activity here</p>
+                  <p className="text-sm mt-1">Start a lab or apply to a job to see your activity here</p>
                 </div>
               )}
             </CardContent>

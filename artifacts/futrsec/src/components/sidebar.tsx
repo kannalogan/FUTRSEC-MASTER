@@ -318,19 +318,19 @@ function NavLink({ item }: { item: NavItem }) {
   return (
     <Link
       href={item.href}
-      className={`relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-base transition-all duration-150 group ${
+      className={`relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sidebar-menu transition-all duration-150 group ${
         isActive
-          ? "bg-primary/15 text-foreground font-semibold"
+          ? "bg-primary/15 text-foreground"
           : "text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent"
       }`}
     >
       {isActive && (
         <span className="absolute left-0 top-1/2 -translate-y-1/2 h-5 w-1 rounded-full bg-primary shadow-[0_0_12px_2px_rgba(59,130,246,0.7)]" />
       )}
-      <item.icon className={`h-[18px] w-[18px] shrink-0 ${isActive ? "text-primary" : "text-sidebar-foreground/40 group-hover:text-sidebar-foreground/80"}`} />
+      <item.icon className={`h-[22px] w-[22px] shrink-0 ${isActive ? "text-primary" : "text-sidebar-foreground/40 group-hover:text-sidebar-foreground/80"}`} />
       <span className="truncate">{item.label}</span>
       {item.badge && (
-        <span className="ml-auto text-[11px] font-semibold bg-primary text-white px-2 py-0.5 rounded-full">{item.badge}</span>
+        <span className="ml-auto text-xs font-semibold bg-primary text-white px-2 py-0.5 rounded-full">{item.badge}</span>
       )}
     </Link>
   );
@@ -407,7 +407,7 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
             <div key={section.title} className="mb-2">
               <button
                 onClick={() => toggleSection(section.title)}
-                className="w-full flex items-center justify-between px-3 py-2 text-eyebrow text-sidebar-foreground/40 hover:text-sidebar-foreground/70 transition-colors"
+                className="w-full flex items-center justify-between px-3 py-2 text-sidebar-section text-sidebar-foreground/40 hover:text-sidebar-foreground/70 transition-colors"
               >
                 {section.title}
                 {isCollapsed ? <ChevronRight className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
@@ -430,20 +430,20 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
         {/* Explore other tracks — students only, locked/view-only */}
         {isStudent && trackSlug && lockedTracks.length > 0 && (
           <div className="mb-2 mt-3">
-            <div className="px-3 py-2 text-eyebrow text-sidebar-foreground/40">Explore</div>
+            <div className="px-3 py-2 text-sidebar-section text-sidebar-foreground/40">Explore</div>
             <div className="space-y-1">
               {lockedTracks.map((t) => (
                 <div
                   key={t}
                   title="Locked — your career track is fixed. Contact an admin to change tracks."
-                  className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-base text-sidebar-foreground/35 cursor-not-allowed select-none"
+                  className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sidebar-menu text-sidebar-foreground/35 cursor-not-allowed select-none"
                 >
                   <span
                     className="h-2.5 w-2.5 rounded-full shrink-0"
                     style={{ backgroundColor: TRACK_COLORS[t] ?? "#3B82F6" }}
                   />
                   <span className="truncate">{TRACK_LABELS[t] ?? t}</span>
-                  <Lock className="h-4 w-4 ml-auto shrink-0 text-sidebar-foreground/35" />
+                  <Lock className="h-[18px] w-[18px] ml-auto shrink-0 text-sidebar-foreground/35" />
                 </div>
               ))}
             </div>
@@ -464,7 +464,7 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
             <p className="text-sm font-semibold text-sidebar-foreground truncate">
               {user?.fullName ?? user?.email ?? "Student"}
             </p>
-            <p className="text-[11px] text-sidebar-foreground/50 truncate capitalize">{role ?? "student"}</p>
+            <p className="text-sm text-sidebar-foreground/50 truncate capitalize">{role ?? "student"}</p>
           </div>
           <button
             onClick={handleLogout}
