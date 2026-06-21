@@ -6,3 +6,5 @@
 - [Auth event bus types](auth-event-types.md) — eventBus.emit "user.created" requires {type, userId, role}; "user.login" does not exist; check AppEvent union in events.ts before emitting
 - [Auth OTP store keys](auth-otp-keys.md) — OTP_STORE key = `${type}:${contact}` (e.g. "email:foo@bar.com"); RESET_OTP_STORE = `reset:${email}`; verify-otp endpoint uses `contact` field not `identifier`
 - [TypeScript codegen cast](ts-cast-unknown.md) — downcasting codegen response types requires double-cast via unknown: `(data as unknown as Record<string, unknown>)`, direct cast errors with TS2352
+- [Route ordering collisions](route-ordering.md) — Express /:param routes swallow sibling static paths; use non-colliding top-level API paths (/internships not /jobs/internships)
+- [Write-route validation](write-route-validation.md) — mutating routes must validate id/existence/track-eligibility/duplicates before insert (broken-access-control guard)

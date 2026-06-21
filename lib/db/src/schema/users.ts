@@ -58,6 +58,8 @@ export const studentProfilesTable = pgTable("student_profiles", {
   city: text("city"),
   linkedinUrl: text("linkedin_url"),
   githubUrl: text("github_url"),
+  portfolioUrl: text("portfolio_url"),
+  twitterUrl: text("twitter_url"),
   resumeUrl: text("resume_url"),
   currentRole: text("current_role"),
   bio: text("bio"),

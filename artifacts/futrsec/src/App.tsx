@@ -23,14 +23,49 @@ import PendingApproval from "@/pages/onboarding/pending";
 
 import DashboardHome from "@/pages/dashboard/index";
 import LearningPage from "@/pages/learning/index";
+import MyCoursesPage from "@/pages/learning/my-courses";
+import CalendarPage from "@/pages/calendar/index";
+import RoadmapPage from "@/pages/roadmap/index";
+import BookmarksPage from "@/pages/bookmarks/index";
+import CommunityPage from "@/pages/community/index";
+import CareerTrackPage from "@/pages/career/index";
+import CareerRoadmapPage from "@/pages/career-roadmap/index";
+import CheckpointsPage from "@/pages/checkpoints/index";
+import AssignmentsPage from "@/pages/assignments/index";
+import TasksPage from "@/pages/tasks/index";
+import ProjectsPage from "@/pages/projects/index";
 import LabsPage from "@/pages/labs/index";
+import CTFPage from "@/pages/labs/ctf";
+import SandboxPage from "@/pages/labs/sandbox";
+import VMsPage from "@/pages/labs/vms";
+import LabReportsPage from "@/pages/labs/reports";
 import JobsPage from "@/pages/jobs/index";
+import ApplicationsPage from "@/pages/jobs/applications";
+import InternshipsPage from "@/pages/jobs/internships";
+import OffersPage from "@/pages/jobs/offers";
+import CertificationsPage from "@/pages/certifications/index";
+import InterviewHistoryPage from "@/pages/interviews/history";
 import ProfilePage from "@/pages/profile/index";
 import PrivacyCenter from "@/pages/privacy/index";
 import AICareerCoach from "@/pages/ai/career-coach";
 import ResumeAnalyzer from "@/pages/ai/resume-analyzer";
 import SkillGapAnalyzer from "@/pages/ai/skill-gap";
 import AIMockInterview from "@/pages/ai/mock-interview";
+import AIJobAgent from "@/pages/ai/job-agent";
+import AIEnglishCoach from "@/pages/ai/english-coach";
+import PlacementPredictor from "@/pages/ai/placement-predictor";
+import ResumePage from "@/pages/profile/resume";
+import SocialLinksPage from "@/pages/profile/social";
+import AchievementsPage from "@/pages/achievements/index";
+import LeaderboardPage from "@/pages/leaderboard/index";
+import SkillTreePage from "@/pages/skill-tree/index";
+import CertificatesPage from "@/pages/certificates/index";
+import SubscriptionPage from "@/pages/subscription/index";
+import PaymentsPage from "@/pages/payments/index";
+import NotificationsPage from "@/pages/notifications/index";
+import SettingsPage from "@/pages/settings/index";
+import HelpPage from "@/pages/help/index";
+import SupportPage from "@/pages/support/index";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -89,26 +124,63 @@ function Router() {
 
       {/* Learning */}
       <Route path="/learning"><ProtectedRoute component={LearningPage} /></Route>
-      <Route path="/learning/courses"><ProtectedRoute component={LearningPage} /></Route>
+      <Route path="/learning/courses"><ProtectedRoute component={MyCoursesPage} /></Route>
+      <Route path="/my-courses"><ProtectedRoute component={MyCoursesPage} /></Route>
+      <Route path="/calendar"><ProtectedRoute component={CalendarPage} /></Route>
+      <Route path="/roadmap"><ProtectedRoute component={RoadmapPage} /></Route>
+      <Route path="/bookmarks"><ProtectedRoute component={BookmarksPage} /></Route>
+      <Route path="/community"><ProtectedRoute component={CommunityPage} /></Route>
+
+      {/* Career & Tasks */}
+      <Route path="/career"><ProtectedRoute component={CareerTrackPage} /></Route>
+      <Route path="/career-roadmap"><ProtectedRoute component={CareerRoadmapPage} /></Route>
+      <Route path="/checkpoints"><ProtectedRoute component={CheckpointsPage} /></Route>
+      <Route path="/assignments"><ProtectedRoute component={AssignmentsPage} /></Route>
+      <Route path="/tasks"><ProtectedRoute component={TasksPage} /></Route>
+      <Route path="/projects"><ProtectedRoute component={ProjectsPage} /></Route>
 
       {/* Labs */}
       <Route path="/labs"><ProtectedRoute component={LabsPage} /></Route>
+      <Route path="/labs/ctf"><ProtectedRoute component={CTFPage} /></Route>
+      <Route path="/labs/sandbox"><ProtectedRoute component={SandboxPage} /></Route>
+      <Route path="/labs/vms"><ProtectedRoute component={VMsPage} /></Route>
+      <Route path="/labs/reports"><ProtectedRoute component={LabReportsPage} /></Route>
 
       {/* Jobs */}
       <Route path="/jobs"><ProtectedRoute component={JobsPage} /></Route>
-      <Route path="/jobs/applications"><ProtectedRoute component={JobsPage} /></Route>
-      <Route path="/jobs/internships"><ProtectedRoute component={JobsPage} /></Route>
+      <Route path="/jobs/applications"><ProtectedRoute component={ApplicationsPage} /></Route>
+      <Route path="/jobs/internships"><ProtectedRoute component={InternshipsPage} /></Route>
+      <Route path="/jobs/offers"><ProtectedRoute component={OffersPage} /></Route>
+      <Route path="/certifications"><ProtectedRoute component={CertificationsPage} /></Route>
+      <Route path="/interviews/history"><ProtectedRoute component={InterviewHistoryPage} /></Route>
 
       {/* Profile */}
       <Route path="/profile"><ProtectedRoute component={ProfilePage} /></Route>
-      <Route path="/profile/resume"><ProtectedRoute component={ProfilePage} /></Route>
-      <Route path="/profile/social"><ProtectedRoute component={ProfilePage} /></Route>
+      <Route path="/profile/resume"><ProtectedRoute component={ResumePage} /></Route>
+      <Route path="/profile/social"><ProtectedRoute component={SocialLinksPage} /></Route>
+
+      {/* Gamification */}
+      <Route path="/achievements"><ProtectedRoute component={AchievementsPage} /></Route>
+      <Route path="/leaderboard"><ProtectedRoute component={LeaderboardPage} /></Route>
+      <Route path="/skill-tree"><ProtectedRoute component={SkillTreePage} /></Route>
+      <Route path="/certificates"><ProtectedRoute component={CertificatesPage} /></Route>
 
       {/* AI */}
       <Route path="/ai/career-coach"><ProtectedRoute component={AICareerCoach} /></Route>
       <Route path="/ai/resume-analyzer"><ProtectedRoute component={ResumeAnalyzer} /></Route>
       <Route path="/ai/skill-gap"><ProtectedRoute component={SkillGapAnalyzer} /></Route>
       <Route path="/ai/mock-interview"><ProtectedRoute component={AIMockInterview} /></Route>
+      <Route path="/ai/job-agent"><ProtectedRoute component={AIJobAgent} /></Route>
+      <Route path="/ai/english-coach"><ProtectedRoute component={AIEnglishCoach} /></Route>
+      <Route path="/ai/placement-predictor"><ProtectedRoute component={PlacementPredictor} /></Route>
+
+      {/* Account */}
+      <Route path="/subscription"><ProtectedRoute component={SubscriptionPage} /></Route>
+      <Route path="/payments"><ProtectedRoute component={PaymentsPage} /></Route>
+      <Route path="/notifications"><ProtectedRoute component={NotificationsPage} /></Route>
+      <Route path="/settings"><ProtectedRoute component={SettingsPage} /></Route>
+      <Route path="/help"><ProtectedRoute component={HelpPage} /></Route>
+      <Route path="/support"><ProtectedRoute component={SupportPage} /></Route>
 
       {/* Privacy / DPDP */}
       <Route path="/privacy"><ProtectedRoute component={PrivacyCenter} /></Route>

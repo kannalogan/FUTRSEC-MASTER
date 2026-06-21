@@ -10,6 +10,7 @@ import learningRouter from "./learning";
 import labsRouter from "./labs";
 import jobsRouter from "./jobs";
 import profileRouter from "./profile";
+import platformExtendedRouter from "./platform-extended";
 
 const router: IRouter = Router();
 
@@ -24,5 +25,6 @@ router.use(learningRouter);
 router.use(labsRouter);
 router.use(jobsRouter);
 router.use(profileRouter);
+router.use(platformExtendedRouter);
 
 export default router;

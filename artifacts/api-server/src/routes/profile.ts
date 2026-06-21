@@ -79,13 +79,13 @@ router.put("/profile/me", requireAuth, async (req: AuthRequest, res): Promise<vo
   if (!req.user) { res.status(401).json({ error: "Not authenticated" }); return; }
   const userId = req.user.userId;
 
-  const { fullName, college, graduationYear, city, currentRole, bio, linkedinUrl, githubUrl, resumeUrl } = req.body;
+  const { fullName, college, graduationYear, city, currentRole, bio, linkedinUrl, githubUrl, portfolioUrl, twitterUrl, resumeUrl } = req.body;
 
   if (fullName !== undefined) {
     await db.update(usersTable).set({ fullName }).where(eq(usersTable.id, userId));
   }
 
-  const profileFields = { college, graduationYear, city, currentRole, bio, linkedinUrl, githubUrl, resumeUrl };
+  const profileFields = { college, graduationYear, city, currentRole, bio, linkedinUrl, githubUrl, portfolioUrl, twitterUrl, resumeUrl };
   const profileUpdate = Object.fromEntries(Object.entries(profileFields).filter(([, v]) => v !== undefined));
 
   if (Object.keys(profileUpdate).length > 0) {

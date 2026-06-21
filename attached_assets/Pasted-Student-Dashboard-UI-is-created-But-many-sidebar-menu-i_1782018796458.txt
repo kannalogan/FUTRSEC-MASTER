@@ -1,0 +1,333 @@
+Student Dashboard UI is created.
+
+But many sidebar menu items return:
+
+404 Page Not Found.
+
+This is NOT acceptable.
+
+FUTRSEC is an international platform.
+
+There should be NO 404 pages.
+
+-----------------------------------
+
+Implement ALL routes.
+
+Create pages.
+
+Create APIs.
+
+Connect database.
+
+Create layouts.
+
+Create loading states.
+
+Create empty states.
+
+Create skeletons.
+
+Every page must open.
+
+-----------------------------------
+
+MAIN
+
+/dashboard
+
+/learning
+
+/my-courses
+
+/calendar
+
+/roadmap
+
+/bookmarks
+
+/community
+
+-----------------------------------
+
+CAREER
+
+/career-track
+
+/pre-assessment
+
+/checkpoints
+
+/assignments
+
+/tasks
+
+/projects
+
+/career-roadmap
+
+-----------------------------------
+
+LABS
+
+/my-labs
+
+/soc-lab
+
+/vapt-lab
+
+/grc-lab
+
+/ctf-challenges
+
+/sandbox
+
+/virtual-machines
+
+/lab-reports
+
+-----------------------------------
+
+WORK
+
+/internships
+
+/certifications
+
+/placements
+
+/jobs
+
+/applications
+
+/mock-interviews
+
+/interview-history
+
+/offer-tracker
+
+-----------------------------------
+
+PROFILE
+
+/profile
+
+/resume
+
+/achievements
+
+/leaderboard
+
+/badges
+
+/skill-tree
+
+/social-links
+
+-----------------------------------
+
+AI & JOBS
+
+/ai-job-agent
+
+/ai-career-coach
+
+/ai-resume-analyzer
+
+/ai-skill-gap-analyzer
+
+/ai-interview-coach
+
+/ai-mock-interview
+
+/ai-english-coach
+
+/ai-placement-predictor
+
+-----------------------------------
+
+ACCOUNT
+
+/subscription
+
+/payments
+
+/notifications
+
+/dpdp-consent-center
+
+/privacy
+
+/settings
+
+/help-center
+
+/support
+
+-----------------------------------
+
+TRACK BASED CONTENT
+
+SOC student
+
+Only show:
+
+SOC Learning
+
+SOC Labs
+
+SOC Jobs
+
+SOC Mock Interviews
+
+SOC AI Career Coach
+
+-----------------------------------
+
+Hide:
+
+VAPT
+
+GRC
+
+-----------------------------------
+
+Show:
+
+Explore VAPT 🔒
+
+Explore GRC 🔒
+
+-----------------------------------
+
+LABS
+
+SOC Labs must WORK.
+
+Create:
+
+SIEM Lab
+
+Splunk Lab
+
+QRadar Lab
+
+Wazuh Lab
+
+Threat Hunting Lab
+
+Incident Response Lab
+
+Malware Analysis Lab
+
+Detection Engineering Lab
+
+-----------------------------------
+
+VAPT Labs
+
+Burp Suite
+
+Nmap
+
+Metasploit
+
+OWASP
+
+API Security
+
+AD Pentesting
+
+Mobile Pentest
+
+Cloud Pentest
+
+-----------------------------------
+
+GRC Labs
+
+ISO27001
+
+NIST
+
+DPDP
+
+GDPR
+
+Risk Assessment
+
+Audit
+
+-----------------------------------
+
+Every Lab Flow:
+
+Instructions
+
+↓
+
+Start Lab
+
+↓
+
+Launch Environment
+
+↓
+
+Perform Tasks
+
+↓
+
+Submit
+
+↓
+
+Get Score
+
+↓
+
+Generate Report
+
+↓
+
+Update Progress
+
+-----------------------------------
+
+Implement:
+
+Loading
+
+Skeleton
+
+Empty State
+
+Pagination
+
+Search
+
+Filters
+
+Bookmarks
+
+Recent Activity
+
+Notifications
+
+-----------------------------------
+
+NO 404 pages.
+
+NO Coming Soon.
+
+NO Placeholder pages.
+
+Every route must work.
+
+Every button must work.
+
+Every page must connect to database.
+
+Use Prisma + PostgreSQL + Redis + BullMQ.
+
+Create production-ready international student platform.
