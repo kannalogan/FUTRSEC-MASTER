@@ -649,7 +649,11 @@ components:
           enum: [student, mentor, tpo, employer, admin]
         onboardingStep:
           type: string
-          enum: [consent, profile, track_selection, pre_assessment, complete]
+          enum: [consent, profile, track_selection, pre_assessment, pending_approval, complete]
+        approvalStatus:
+          description: Approval gate for tpo/employer accounts; null for roles without an approval flow.
+          type: ["string", "null"]
+          enum: [approved, pending, rejected, null]
         selectedTrackId:
           type: ["integer", "null"]
         careerTrack:

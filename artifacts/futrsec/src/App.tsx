@@ -21,6 +21,7 @@ import Tracks from "@/pages/onboarding/tracks";
 import Assessment from "@/pages/onboarding/assessment";
 import Complete from "@/pages/onboarding/complete";
 import PendingApproval from "@/pages/onboarding/pending";
+import ApplicationRejected from "@/pages/onboarding/rejected";
 
 import DashboardHome from "@/pages/dashboard/index";
 import LearningPage from "@/pages/learning/index";
@@ -131,7 +132,7 @@ import CampusStudentPage from "@/pages/campus/student";
 import CampusAdminPage from "@/pages/campus/admin";
 import CampusTpoPage from "@/pages/campus/tpo";
 
-import { landingPathForRole } from "@/lib/auth-routing";
+import { landingPathForRole, approvalGatePath } from "@/lib/auth-routing";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -160,6 +161,10 @@ function RoleRoute({ component: Component, allow }: { component: React.Component
   if (!token) return <Redirect to="/login" />;
   if (!user) return <Redirect to="/login" />;
   if (user.role !== allow) return <Redirect to={landingPathForRole(user.role)} />;
+  // tpo/employer dashboards stay locked until an admin approves the account.
+  if ((user.role === "tpo" || user.role === "employer") && user.approvalStatus !== "approved") {
+    return <Redirect to={approvalGatePath(user.role, user.approvalStatus)} />;
+  }
   return <Layout><Component /></Layout>;
 }
 
@@ -211,6 +216,7 @@ function Router() {
       <Route path="/onboarding/assessment"><OnboardingRoute component={Assessment} /></Route>
       <Route path="/onboarding/complete"><OnboardingRoute component={Complete} /></Route>
       <Route path="/onboarding/pending"><OnboardingRoute component={PendingApproval} /></Route>
+      <Route path="/onboarding/rejected"><OnboardingRoute component={ApplicationRejected} /></Route>
 
       {/* Dashboard */}
       <Route path="/dashboard"><StudentRoute component={DashboardHome} /></Route>

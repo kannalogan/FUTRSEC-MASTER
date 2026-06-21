@@ -14,5 +14,6 @@ export const UserProfileOnboardingStep = {
   profile: 'profile',
   track_selection: 'track_selection',
   pre_assessment: 'pre_assessment',
+  pending_approval: 'pending_approval',
   complete: 'complete',
 } as const;

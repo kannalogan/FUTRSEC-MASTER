@@ -239,6 +239,15 @@ async function reviewProfile(
       .where(eq(employersTable.userId, userId));
   }
 
+  // Keep the user's onboarding state consistent with the approval decision so
+  // any onboardingStep-based logic treats an approved tpo/employer as done.
+  if (decision === "approved") {
+    await db
+      .update(usersTable)
+      .set({ onboardingStep: "complete" })
+      .where(eq(usersTable.id, userId));
+  }
+
   await createAuditLog({
     userId: req.user!.userId,
     action: `admin.${role}.${decision}`,

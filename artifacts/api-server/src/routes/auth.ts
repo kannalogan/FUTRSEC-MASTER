@@ -41,7 +41,24 @@ function getClientIp(req: AuthRequest): string {
 }
 
 // ── Helper: serialize user for JSON responses ──────────────────────────────
-function serializeUser(user: typeof usersTable.$inferSelect) {
+// `approvalStatus` is the live, authoritative gate for tpo/employer accounts.
+// It is read fresh from the profile table on every call (including /auth/me),
+// so an admin approval is reflected immediately on the next request/refresh.
+async function serializeUser(user: typeof usersTable.$inferSelect) {
+  let approvalStatus: string | null = null;
+  if (user.role === "tpo") {
+    const [p] = await db
+      .select({ approvalStatus: tpoProfilesTable.approvalStatus })
+      .from(tpoProfilesTable)
+      .where(eq(tpoProfilesTable.userId, user.id));
+    approvalStatus = p?.approvalStatus ?? "pending";
+  } else if (user.role === "employer") {
+    const [p] = await db
+      .select({ approvalStatus: employersTable.approvalStatus })
+      .from(employersTable)
+      .where(eq(employersTable.userId, user.id));
+    approvalStatus = p?.approvalStatus ?? "pending";
+  }
   return {
     id: user.id,
     email: user.email ?? null,
@@ -49,6 +66,7 @@ function serializeUser(user: typeof usersTable.$inferSelect) {
     fullName: user.fullName ?? null,
     role: user.role,
     onboardingStep: user.onboardingStep,
+    approvalStatus,
     selectedTrackId: user.selectedTrackId ?? null,
     careerTrack: user.careerTrack ?? null,
     avatarUrl: user.avatarUrl ?? null,
@@ -189,7 +207,7 @@ router.post("/auth/verify-otp", async (req: AuthRequest, res): Promise<void> => 
   res.json({
     accessToken,
     refreshToken,
-    user: serializeUser(user),
+    user: await serializeUser(user),
   });
 });
 
@@ -261,7 +279,7 @@ router.post("/auth/refresh", async (req: AuthRequest, res): Promise<void> => {
   res.json({
     accessToken: newAccessToken,
     refreshToken: newRefreshToken,
-    user: serializeUser(user),
+    user: await serializeUser(user),
   });
 });
 
@@ -296,7 +314,7 @@ router.get("/auth/me", requireAuth, async (req: AuthRequest, res): Promise<void>
     return;
   }
 
-  res.json(serializeUser(user));
+  res.json(await serializeUser(user));
 });
 
 router.post("/auth/complete-profile", requireAuth, async (req: AuthRequest, res): Promise<void> => {
@@ -332,7 +350,7 @@ router.post("/auth/complete-profile", requireAuth, async (req: AuthRequest, res)
     })
     .where(eq(studentProfilesTable.userId, req.user.userId));
 
-  res.json(serializeUser(user));
+  res.json(await serializeUser(user));
 });
 
 router.post("/auth/select-track", requireAuth, async (req: AuthRequest, res): Promise<void> => {
@@ -404,7 +422,7 @@ router.post("/auth/select-track", requireAuth, async (req: AuthRequest, res): Pr
     trackId: track.id,
   });
 
-  res.json(serializeUser(user));
+  res.json(await serializeUser(user));
 });
 
 // ── Student Registration ────────────────────────────────────────────────────
@@ -629,7 +647,7 @@ router.post("/auth/login/password", async (req: AuthRequest, res): Promise<void>
 
   req.log.info({ userId: user.id }, "Password login success");
 
-  res.json({ accessToken, refreshToken, user: serializeUser(user) });
+  res.json({ accessToken, refreshToken, user: await serializeUser(user) });
 });
 
 // ── Forgot Password ─────────────────────────────────────────────────────────

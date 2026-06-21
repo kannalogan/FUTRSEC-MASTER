@@ -52,6 +52,7 @@ export * from './trackDifficulty';
 export * from './trackDomain';
 export * from './trackSelectionInput';
 export * from './userProfile';
+export * from './userProfileApprovalStatus';
 export * from './userProfileCareerTrack';
 export * from './userProfileOnboardingStep';
 export * from './userProfileRole';

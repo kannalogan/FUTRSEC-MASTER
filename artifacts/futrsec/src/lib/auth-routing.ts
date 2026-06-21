@@ -20,16 +20,32 @@ export function landingPathForRole(role: string | null | undefined): string {
   }
 }
 
+// Resolve the gate destination for an approval-required role (tpo/employer):
+// approved -> role dashboard, rejected -> rejected screen, otherwise -> review.
+export function approvalGatePath(
+  role: string | null | undefined,
+  approvalStatus: string | null | undefined,
+): string {
+  if (approvalStatus === "approved") return landingPathForRole(role);
+  if (approvalStatus === "rejected") return "/onboarding/rejected";
+  return "/onboarding/pending";
+}
+
 // Where to send a user immediately after a successful login. Students may still
-// be mid-onboarding; all other roles go straight to their role landing page.
+// be mid-onboarding; tpo/employer pass through an approval gate; everyone else
+// goes straight to their role landing page.
 export function postLoginPath(user: {
   role?: string | null;
   onboardingStep?: string | null;
+  approvalStatus?: string | null;
 }): string {
   const step = user.onboardingStep ?? undefined;
 
-  // Approval gate applies to roles created pending admin approval (e.g. tpo/employer).
-  if (step === "pending_approval") return "/onboarding/pending";
+  // Approval gate (tpo/employer). `approvalStatus` is the live source of truth,
+  // so an admin approval unlocks the dashboard on the next login/refresh.
+  if (user.role === "tpo" || user.role === "employer") {
+    return approvalGatePath(user.role, user.approvalStatus);
+  }
 
   if (user.role === "student") {
     switch (step) {

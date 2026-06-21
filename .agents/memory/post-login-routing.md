@@ -20,3 +20,23 @@ for new signups (regression). `pending_approval` (runtime-only value, not in the
 **Guards:** `RoleRoute({component, allow})` in App.tsx enforces exact role match and redirects
 wrong-role users to `landingPathForRole(user.role)` (not a Forbidden page), which also makes a
 hard refresh preserve the correct role's page.
+
+## Approval gate (tpo / employer)
+
+**Source of truth = live `approvalStatus`, NOT `onboardingStep`.** tpo/employer approval is read
+fresh from `tpo_profiles`/`employers` by an async `serializeUser` in `auth.ts` on every auth
+response (login, verify-otp, refresh, /auth/me, complete-profile, select-track). JWT carries only
+userId+role, so the user object is re-fetched each request → a refresh after admin approval
+immediately unlocks the dashboard.
+
+**Why:** the original bug was two sources of truth — consent set `onboarding_step="pending_approval"`
+(which drove the frontend pending page) but admin approval only flipped profile `approval_status`,
+never reconciling the user row, so users were stuck on "Application Under Review" forever.
+
+**How to apply:** route tpo/employer through `approvalGatePath(role, approvalStatus)`:
+approved→`landingPathForRole`, rejected→`/onboarding/rejected`, else→`/onboarding/pending`.
+`postLoginPath` and `RoleRoute` both use it; pending/rejected pages redirect out when status
+changes. Never gate tpo/employer on `onboardingStep` again — legacy approved users still have
+`onboarding_step="pending_approval"` in the DB and are unblocked only via `approvalStatus`.
+Admin approval also sets `onboarding_step="complete"` for new approvals, but correctness must not
+depend on that field.

@@ -1,12 +1,18 @@
-import { useLocation } from "wouter";
+import { useLocation, Redirect } from "wouter";
 import { Shield, Clock, CheckCircle2, Circle, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import { useAuth } from "@/hooks/use-auth";
+import { landingPathForRole } from "@/lib/auth-routing";
 
 export default function PendingApproval() {
   const [, setLocation] = useLocation();
   const { user, logout } = useAuth();
+
+  // Once an admin acts, a refresh re-fetches the live status and routes the
+  // user off this review screen — to their dashboard or the rejected screen.
+  if (user?.approvalStatus === "approved") return <Redirect to={landingPathForRole(user.role)} />;
+  if (user?.approvalStatus === "rejected") return <Redirect to="/onboarding/rejected" />;
 
   const isEmployer = user?.role === "employer";
   const roleLabel = isEmployer ? "Employer" : "Training & Placement Officer";

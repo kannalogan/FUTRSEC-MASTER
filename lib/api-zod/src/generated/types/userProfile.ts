@@ -5,6 +5,7 @@
  * FUTRSEC - Cybersecurity Learning + Mentorship + AI + Placement Ecosystem API
  * OpenAPI spec version: 0.1.0
  */
+import type { UserProfileApprovalStatus } from './userProfileApprovalStatus';
 import type { UserProfileCareerTrack } from './userProfileCareerTrack';
 import type { UserProfileOnboardingStep } from './userProfileOnboardingStep';
 import type { UserProfileRole } from './userProfileRole';
@@ -19,6 +20,11 @@ export interface UserProfile {
   fullName?: string | null;
   role: UserProfileRole;
   onboardingStep: UserProfileOnboardingStep;
+  /**
+     * Approval gate for tpo/employer accounts; null for roles without an approval flow.
+     * @nullable
+     */
+  approvalStatus?: UserProfileApprovalStatus;
   /** @nullable */
   selectedTrackId?: number | null;
   /** @nullable */
