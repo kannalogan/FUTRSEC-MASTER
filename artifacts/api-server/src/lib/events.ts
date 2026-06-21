@@ -1,9 +1,16 @@
 import { EventEmitter } from "events";
+import { eq } from "drizzle-orm";
+import { db } from "@workspace/db";
+import { usersTable } from "@workspace/db";
 import { logger } from "./logger";
 import { createAuditLog } from "./audit";
 import { addEmailJob, addNotificationJob } from "./queues";
 import { EMAIL_TEMPLATES } from "../workers/email.worker";
 import { NOTIFICATION_TYPES } from "../workers/notification.worker";
+import {
+  createNotification,
+  NOTIFICATION_TYPES as N_TYPES,
+} from "./notifications";
 
 export type AppEvent =
   | { type: "assessment.submitted"; userId: number; assessmentId: number; attemptId: number; score: number }
@@ -16,7 +23,16 @@ export type AppEvent =
   | { type: "lab.completed"; userId: number; labId: number; score: number }
   | { type: "assignment.submitted"; userId: number; assignmentId: number }
   | { type: "subscription.created"; userId: number; plan: string }
-  | { type: "subscription.expired"; userId: number; plan: string };
+  | { type: "subscription.expired"; userId: number; plan: string }
+  | { type: "job.matched"; userId: number; jobId: number; matchScore: number }
+  | { type: "application.advanced"; userId: number; applicationId: number; status: string }
+  | { type: "placement.created"; userId: number; placementId: number; companyName?: string }
+  | { type: "campusdrive.registered"; userId: number; driveId: number; driveName?: string }
+  | { type: "subscription.trial_started"; userId: number; plan: string }
+  | { type: "subscription.changed"; userId: number; plan: string }
+  | { type: "payment.recorded"; userId: number; paymentId: number; amount: number }
+  | { type: "payment.failed"; userId: number; paymentId: number; reason?: string }
+  | { type: "trial.expiring"; userId: number; daysLeft: number };
 
 class AppEventBus extends EventEmitter {
   emit(event: string, payload: AppEvent): boolean {
@@ -65,6 +81,30 @@ export function setupEventHandlers(): void {
         variables: { role },
         userId,
       });
+    });
+
+    // Notify admins of a new signup (in-app only). Listener-only — does not
+    // touch the emitter.
+    safeAsync("user.created:admin_notify", async () => {
+      const admins = await db
+        .select({ id: usersTable.id })
+        .from(usersTable)
+        .where(eq(usersTable.role, "admin"));
+      await Promise.all(
+        admins.map((admin) =>
+          createNotification({
+            userId: admin.id,
+            role: "admin",
+            title: "New signup",
+            message: `A new ${role} just registered on FUTRSEC.`,
+            type: N_TYPES.SIGNUP,
+            entityType: "user",
+            entityId: userId,
+            link: "/admin/students",
+            channels: ["in_app"],
+          })
+        )
+      );
     });
   });
 
@@ -225,6 +265,168 @@ export function setupEventHandlers(): void {
         action: "subscription.expired",
         entityType: "subscription",
         metadata: { plan },
+      });
+    });
+  });
+
+  // ── job.matched ───────────────────────────────────────────────────────────
+  eventBus.on("job.matched", (payload) => {
+    if (payload.type !== "job.matched") return;
+    const { userId, jobId, matchScore } = payload;
+    safeAsync("job.matched:notify", async () => {
+      await createNotification({
+        userId,
+        title: "New job match",
+        message: `A new job matches your profile (${matchScore}% match).`,
+        type: "job_match",
+        entityType: "job",
+        entityId: jobId,
+        link: "/job-agent",
+        channels: ["in_app"],
+      });
+    });
+  });
+
+  // ── application.advanced ──────────────────────────────────────────────────
+  eventBus.on("application.advanced", (payload) => {
+    if (payload.type !== "application.advanced") return;
+    const { userId, applicationId, status } = payload;
+    safeAsync("application.advanced:notify", async () => {
+      await createNotification({
+        userId,
+        title: "Application update",
+        message: `Your application status is now "${status}".`,
+        type: "application_update",
+        entityType: "application",
+        entityId: applicationId,
+        link: "/placement",
+        channels: ["in_app", "email"],
+      });
+    });
+  });
+
+  // ── placement.created ─────────────────────────────────────────────────────
+  eventBus.on("placement.created", (payload) => {
+    if (payload.type !== "placement.created") return;
+    const { userId, placementId, companyName } = payload;
+    safeAsync("placement.created:notify", async () => {
+      await createNotification({
+        userId,
+        title: "Congratulations — you're placed!",
+        message: companyName
+          ? `You have been placed at ${companyName}.`
+          : "Your placement has been confirmed.",
+        type: "placement",
+        entityType: "placement",
+        entityId: placementId,
+        link: "/placement",
+        channels: ["in_app", "email"],
+      });
+    });
+  });
+
+  // ── campusdrive.registered ────────────────────────────────────────────────
+  eventBus.on("campusdrive.registered", (payload) => {
+    if (payload.type !== "campusdrive.registered") return;
+    const { userId, driveId, driveName } = payload;
+    safeAsync("campusdrive.registered:notify", async () => {
+      await createNotification({
+        userId,
+        title: "Campus drive registration confirmed",
+        message: driveName
+          ? `You're registered for "${driveName}".`
+          : "Your campus drive registration is confirmed.",
+        type: "campus_drive",
+        entityType: "campus_drive",
+        entityId: driveId,
+        link: "/campus",
+        channels: ["in_app"],
+      });
+    });
+  });
+
+  // ── subscription.trial_started ────────────────────────────────────────────
+  eventBus.on("subscription.trial_started", (payload) => {
+    if (payload.type !== "subscription.trial_started") return;
+    const { userId, plan } = payload;
+    safeAsync("subscription.trial_started:notify", async () => {
+      await createNotification({
+        userId,
+        title: "Free trial activated",
+        message: `Your ${plan} free trial is now active. Enjoy full access!`,
+        type: "subscription",
+        link: "/subscription",
+        channels: ["in_app", "email"],
+      });
+    });
+  });
+
+  // ── subscription.changed ──────────────────────────────────────────────────
+  eventBus.on("subscription.changed", (payload) => {
+    if (payload.type !== "subscription.changed") return;
+    const { userId, plan } = payload;
+    safeAsync("subscription.changed:notify", async () => {
+      await createNotification({
+        userId,
+        title: "Subscription updated",
+        message: `Your subscription is now on the ${plan} plan.`,
+        type: "subscription",
+        link: "/subscription",
+        channels: ["in_app", "email"],
+      });
+    });
+  });
+
+  // ── payment.recorded ──────────────────────────────────────────────────────
+  eventBus.on("payment.recorded", (payload) => {
+    if (payload.type !== "payment.recorded") return;
+    const { userId, paymentId, amount } = payload;
+    safeAsync("payment.recorded:notify", async () => {
+      await createNotification({
+        userId,
+        title: "Payment received",
+        message: `We received your payment of ₹${(amount / 100).toFixed(2)}.`,
+        type: "payment",
+        entityType: "payment",
+        entityId: paymentId,
+        link: "/subscription",
+        channels: ["in_app", "email"],
+      });
+    });
+  });
+
+  // ── payment.failed ────────────────────────────────────────────────────────
+  eventBus.on("payment.failed", (payload) => {
+    if (payload.type !== "payment.failed") return;
+    const { userId, paymentId, reason } = payload;
+    safeAsync("payment.failed:notify", async () => {
+      await createNotification({
+        userId,
+        title: "Payment failed",
+        message: reason
+          ? `Your payment could not be processed: ${reason}`
+          : "Your payment could not be processed. Please try again.",
+        type: "payment",
+        entityType: "payment",
+        entityId: paymentId,
+        link: "/subscription",
+        channels: ["in_app", "email"],
+      });
+    });
+  });
+
+  // ── trial.expiring ────────────────────────────────────────────────────────
+  eventBus.on("trial.expiring", (payload) => {
+    if (payload.type !== "trial.expiring") return;
+    const { userId, daysLeft } = payload;
+    safeAsync("trial.expiring:notify", async () => {
+      await createNotification({
+        userId,
+        title: "Your trial is expiring soon",
+        message: `Your free trial ends in ${daysLeft} day${daysLeft === 1 ? "" : "s"}. Upgrade to keep full access.`,
+        type: "subscription",
+        link: "/subscription",
+        channels: ["in_app", "email"],
       });
     });
   });

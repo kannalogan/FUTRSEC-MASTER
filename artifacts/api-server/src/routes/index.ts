@@ -19,6 +19,12 @@ import tpoRouter from "./tpo";
 import employerRouter from "./employer";
 import aiRouter from "./ai";
 import aiInterviewRouter from "./ai-interview";
+import notificationsRouter from "./notifications";
+import jobAgentRouter from "./job-agent";
+import placementRouter from "./placement";
+import campusRouter from "./campus";
+import subscriptionRouter from "./subscription";
+import analyticsRouter from "./analytics";
 
 const router: IRouter = Router();
 
@@ -33,6 +39,12 @@ router.use(learningRouter);
 router.use(labsRouter);
 router.use(jobsRouter);
 router.use(profileRouter);
+router.use(notificationsRouter);
+router.use(jobAgentRouter);
+router.use(placementRouter);
+router.use(campusRouter);
+router.use(subscriptionRouter);
+router.use(analyticsRouter);
 router.use(platformExtendedRouter);
 router.use(aiRouter);
 router.use(aiInterviewRouter);

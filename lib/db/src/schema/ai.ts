@@ -114,6 +114,11 @@ export const subscriptionsTable = pgTable("subscriptions", {
   endDate: timestamp("end_date", { withTimezone: true }),
   paymentGateway: text("payment_gateway"),
   externalSubId: text("external_sub_id"),
+  trialEndsAt: timestamp("trial_ends_at", { withTimezone: true }),
+  autoRenew: boolean("auto_renew").notNull().default(false),
+  couponCode: text("coupon_code"),
+  referralCode: text("referral_code"),
+  canceledAt: timestamp("canceled_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .defaultNow(),
@@ -149,6 +154,10 @@ export const invoicesTable = pgTable("invoices", {
   tax: integer("tax").notNull().default(0),
   totalAmount: integer("total_amount").notNull(),
   s3Key: text("s3_key"),
+  gstNumber: text("gst_number"),
+  gstRate: integer("gst_rate"),
+  placeOfSupply: text("place_of_supply"),
+  billingName: text("billing_name"),
   issuedAt: timestamp("issued_at", { withTimezone: true })
     .notNull()
     .defaultNow(),

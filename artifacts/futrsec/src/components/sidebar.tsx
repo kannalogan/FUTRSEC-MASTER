@@ -2,6 +2,7 @@ import { Link, useLocation } from "wouter";
 import { useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { useLogout } from "@workspace/api-client-react";
+import { useUnreadNotificationCount } from "@/lib/notifications-api";
 import {
   LayoutDashboard, BookOpen, GraduationCap, Calendar, Map, Bookmark, Users,
   Target, ClipboardList, CheckSquare, ListTodo, FolderKanban, Briefcase, Navigation,
@@ -100,6 +101,15 @@ const NAV_SECTIONS: NavSection[] = [
     ],
   },
   {
+    title: "PLACEMENT",
+    items: [
+      { label: "Job Agent", href: "/job-agent", icon: Bot },
+      { label: "Placement", href: "/placement", icon: Award },
+      { label: "Campus Drives", href: "/campus/student", icon: Building },
+      { label: "Analytics", href: "/analytics", icon: BarChart3 },
+    ],
+  },
+  {
     title: "ACCOUNT",
     items: [
       { label: "Subscription", href: "/subscription", icon: CreditCard },
@@ -141,6 +151,7 @@ const TPO_NAV: NavSection[] = [
       { label: "Placements", href: "/tpo/placements", icon: Briefcase },
       { label: "Student Directory", href: "/tpo/directory", icon: Users },
       { label: "Reports", href: "/tpo/reports", icon: FileText },
+      { label: "Campus Drives", href: "/campus/tpo", icon: Building },
       { label: "Events", href: "/tpo/events", icon: Calendar },
       { label: "Settings", href: "/tpo/settings", icon: Settings },
     ],
@@ -206,6 +217,7 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
   const { user, logout: localLogout } = useAuth();
   const logoutMutation = useLogout();
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
+  const { data: unreadCount } = useUnreadNotificationCount();
 
   const handleLogout = () => {
     logoutMutation.mutate(undefined, { onSettled: () => localLogout() });
@@ -275,9 +287,13 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
               </button>
               {!isCollapsed && (
                 <div className="space-y-0.5">
-                  {section.items.map((item) => (
-                    <NavLink key={item.href + item.label} item={item} />
-                  ))}
+                  {section.items.map((item) => {
+                    const withBadge =
+                      item.href === "/notifications" && unreadCount && unreadCount > 0
+                        ? { ...item, badge: unreadCount > 99 ? "99+" : String(unreadCount) }
+                        : item;
+                    return <NavLink key={item.href + item.label} item={withBadge} />;
+                  })}
                 </div>
               )}
             </div>
@@ -302,6 +318,9 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
               <NavLink item={{ label: "Subscriptions", href: "/admin/subscriptions", icon: CreditCard }} />
               <NavLink item={{ label: "Payments", href: "/admin/payments", icon: Receipt }} />
               <NavLink item={{ label: "AI Usage", href: "/admin/ai-usage", icon: Bot }} />
+              <NavLink item={{ label: "Campus Drives", href: "/campus/admin", icon: Building }} />
+              <NavLink item={{ label: "Coupons", href: "/admin/coupons", icon: Gift }} />
+              <NavLink item={{ label: "Analytics", href: "/admin/analytics", icon: BarChart3 }} />
               <NavLink item={{ label: "Consent Logs", href: "/admin/consent-logs", icon: Shield }} />
               <NavLink item={{ label: "Audit Logs", href: "/admin/audit-logs", icon: History }} />
             </div>

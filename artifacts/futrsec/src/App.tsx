@@ -109,6 +109,16 @@ import AdminPaymentsPage from "@/pages/admin/payments";
 import AdminAiUsagePage from "@/pages/admin/ai-usage";
 import AdminConsentLogsPage from "@/pages/admin/consent-logs";
 import AdminAuditLogsPage from "@/pages/admin/audit-logs";
+import AdminCouponsPage from "@/pages/admin/coupons";
+import AdminAnalyticsPage from "@/pages/admin/analytics";
+
+import JobAgentPage from "@/pages/job-agent/index";
+import JobAgentAutoApplyPage from "@/pages/job-agent/auto-apply";
+import PlacementPage from "@/pages/placement/index";
+import AnalyticsPage from "@/pages/analytics/index";
+import CampusStudentPage from "@/pages/campus/student";
+import CampusAdminPage from "@/pages/campus/admin";
+import CampusTpoPage from "@/pages/campus/tpo";
 
 import Forbidden from "@/pages/forbidden";
 
@@ -270,6 +280,13 @@ function Router() {
       <Route path="/ai/english-coach"><ProtectedRoute component={AIEnglishCoach} /></Route>
       <Route path="/ai/placement-predictor"><ProtectedRoute component={PlacementPredictor} /></Route>
 
+      {/* Placement (Part 5) */}
+      <Route path="/job-agent"><ProtectedRoute component={JobAgentPage} /></Route>
+      <Route path="/job-agent/auto-apply"><ProtectedRoute component={JobAgentAutoApplyPage} /></Route>
+      <Route path="/placement"><ProtectedRoute component={PlacementPage} /></Route>
+      <Route path="/analytics"><ProtectedRoute component={AnalyticsPage} /></Route>
+      <Route path="/campus/student"><ProtectedRoute component={CampusStudentPage} /></Route>
+
       {/* Account */}
       <Route path="/subscription"><ProtectedRoute component={SubscriptionPage} /></Route>
       <Route path="/payments"><ProtectedRoute component={PaymentsPage} /></Route>
@@ -295,6 +312,9 @@ function Router() {
       <Route path="/admin/ai-usage"><AdminRoute component={AdminAiUsagePage} /></Route>
       <Route path="/admin/consent-logs"><AdminRoute component={AdminConsentLogsPage} /></Route>
       <Route path="/admin/audit-logs"><AdminRoute component={AdminAuditLogsPage} /></Route>
+      <Route path="/admin/coupons"><AdminRoute component={AdminCouponsPage} /></Route>
+      <Route path="/admin/analytics"><AdminRoute component={AdminAnalyticsPage} /></Route>
+      <Route path="/campus/admin"><AdminRoute component={CampusAdminPage} /></Route>
 
       {/* TPO */}
       <Route path="/tpo"><TpoRoute component={TpoOverviewPage} /></Route>
@@ -304,6 +324,7 @@ function Router() {
       <Route path="/tpo/reports"><TpoRoute component={TpoReportsPage} /></Route>
       <Route path="/tpo/events"><TpoRoute component={TpoEventsPage} /></Route>
       <Route path="/tpo/settings"><TpoRoute component={TpoSettingsPage} /></Route>
+      <Route path="/campus/tpo"><TpoRoute component={CampusTpoPage} /></Route>
 
       {/* Employer */}
       <Route path="/employer"><EmployerRoute component={EmployerOverviewPage} /></Route>
