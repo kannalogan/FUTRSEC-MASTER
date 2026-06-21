@@ -1,0 +1,554 @@
+PART 5 — FUTRSEC Placement Ecosystem + AI Job Agent + Subscription + Notification Engine
+
+IMPORTANT:
+
+DO NOT MODIFY
+
+PART 1 Authentication
+PART 2 Student Dashboard
+PART 3 AI Modules
+PART 4 Mentor Dashboard
+PART 4B TPO + Hiring + Admin
+
+Build PART 5 as additive modules only.
+
+======================================================
+MODULE 1 — AI JOB AGENT
+======================================================
+
+STRICT TRACK ISOLATION
+
+SOC students:
+
+Can ONLY see SOC jobs
+
+VAPT students:
+
+Can ONLY see VAPT jobs
+
+GRC students:
+
+Can ONLY see GRC jobs
+
+Dashboard:
+
+Recommended Jobs
+
+AI Match %
+
+New Jobs
+
+Saved Jobs
+
+Applied Jobs
+
+Interview Scheduled
+
+Offers Received
+
+Placement Readiness
+
+------------------------------------------------------
+
+AI JOB MATCHING
+
+AI considers:
+
+Track
+
+Skills
+
+Resume
+
+FTS Score
+
+FDS Score
+
+Assignments
+
+Labs
+
+Projects
+
+Certificates
+
+Mock Interview Score
+
+Experience
+
+------------------------------------------------------
+
+JOB ACTIONS
+
+Save Job
+
+Apply Job
+
+Withdraw Application
+
+Track Status
+
+Interview Schedule
+
+Download JD
+
+Share Job
+
+------------------------------------------------------
+
+PREMIUM FEATURE
+
+AI Auto Apply
+
+Student selects:
+
+Minimum Salary
+
+Preferred Location
+
+Remote / Hybrid / Onsite
+
+Company Size
+
+AI automatically applies.
+
+Admin can enable/disable.
+
+======================================================
+MODULE 2 — PLACEMENT PIPELINE
+======================================================
+
+Application Status:
+
+Applied
+
+Screening
+
+Shortlisted
+
+Assessment
+
+Interview Scheduled
+
+Interviewing
+
+Selected
+
+Offer Released
+
+Offer Accepted
+
+Offer Rejected
+
+Rejected
+
+Hired
+
+------------------------------------------------------
+
+INTERVIEW MANAGEMENT
+
+HR creates:
+
+Interview
+
+Type:
+
+Technical
+
+HR
+
+Behavioral
+
+Live Coding
+
+Case Study
+
+Student receives:
+
+Email
+
+WhatsApp
+
+In-app Notification
+
+Calendar Invite
+
+------------------------------------------------------
+
+OFFER MANAGEMENT
+
+Generate Offer Letter
+
+Upload PDF
+
+Download Offer
+
+Accept
+
+Reject
+
+Status Timeline
+
+======================================================
+MODULE 3 — CAMPUS DRIVE MANAGEMENT
+======================================================
+
+Admin creates:
+
+Drive Name
+
+Company
+
+Track
+
+Eligible Colleges
+
+Eligible Year
+
+Eligibility Criteria
+
+Package
+
+Mode
+
+Remote
+
+Hybrid
+
+Onsite
+
+Deadline
+
+------------------------------------------------------
+
+Student
+
+Register
+
+Assessment
+
+Interview
+
+Offer
+
+Placement
+
+------------------------------------------------------
+
+TPO
+
+View:
+
+Registered Students
+
+Selected Students
+
+Rejected Students
+
+Placement Reports
+
+======================================================
+MODULE 4 — SUBSCRIPTION SYSTEM
+======================================================
+
+Plans:
+
+FREE TRIAL
+
+15 Days
+
+Limited AI
+
+Limited Labs
+
+Limited Assessments
+
+No Auto Apply
+
+------------------------------------------------------
+
+PREMIUM
+
+Unlimited AI
+
+Unlimited Labs
+
+Unlimited Assessments
+
+Resume Analyzer
+
+AI Career Coach
+
+AI Job Agent
+
+Auto Apply
+
+Mock Interview
+
+Priority Mentorship
+
+------------------------------------------------------
+
+ENTERPRISE
+
+Colleges
+
+Universities
+
+Bulk Students
+
+Dedicated Mentor
+
+Custom Reports
+
+White Label
+
+------------------------------------------------------
+
+PAYMENT GATEWAYS
+
+Razorpay
+
+Stripe
+
+UPI
+
+Credit Card
+
+Debit Card
+
+Net Banking
+
+------------------------------------------------------
+
+PAYMENT FEATURES
+
+Invoices
+
+GST Invoice
+
+Coupons
+
+Discount
+
+Referral Code
+
+Refund Request
+
+Renewal Reminder
+
+Auto Renewal
+
+Payment History
+
+======================================================
+MODULE 5 — NOTIFICATION ENGINE
+======================================================
+
+Channels:
+
+Email
+
+WhatsApp
+
+SMS
+
+Push Notifications
+
+In-App Notifications
+
+------------------------------------------------------
+
+Events:
+
+New Course
+
+New Lab
+
+New Assignment
+
+Assessment Reminder
+
+Mentor Session
+
+Mock Interview
+
+New Job
+
+Application Status Changed
+
+Interview Scheduled
+
+Offer Released
+
+Trial Expiry
+
+Subscription Expiry
+
+Payment Success
+
+Payment Failed
+
+Campus Drive
+
+Announcements
+
+======================================================
+MODULE 6 — ANALYTICS
+======================================================
+
+ADMIN
+
+Total Placements
+
+Placement Rate
+
+Average Package
+
+Highest Package
+
+Track-wise Placement
+
+College-wise Placement
+
+Top Colleges
+
+Top Mentors
+
+AI Usage
+
+Revenue
+
+Monthly Revenue
+
+Subscriptions
+
+Trial Conversions
+
+Daily Active Users
+
+Monthly Active Users
+
+------------------------------------------------------
+
+TPO
+
+Placement Rate
+
+Student Performance
+
+Track Distribution
+
+Selected Students
+
+Interview Statistics
+
+------------------------------------------------------
+
+HIRING COMPANY
+
+Applications
+
+Shortlisted
+
+Offers
+
+Hired
+
+Track Distribution
+
+Average Scores
+
+======================================================
+DATABASE TABLES
+======================================================
+
+jobs
+
+job_matches
+
+saved_jobs
+
+applications
+
+application_status_history
+
+interviews
+
+interview_feedback
+
+offers
+
+placements
+
+campus_drives
+
+campus_drive_registrations
+
+subscriptions
+
+payments
+
+payment_transactions
+
+invoices
+
+coupons
+
+notifications
+
+email_logs
+
+whatsapp_logs
+
+push_notifications
+
+======================================================
+SECURITY
+======================================================
+
+Strict RBAC
+
+Track Isolation
+
+DPDP Compliance
+
+Audit Logs
+
+Rate Limiting
+
+Anti-spam
+
+Payment Webhook Verification
+
+Offer Letter Access Control
+
+======================================================
+UI/UX
+
+Modern
+
+Premium
+
+Dark + Light Theme
+
+Responsive
+
+Smooth animations
+
+Enterprise quality
+
+Production ready
+
+Scalable to 1 Million Users
+
+Use existing Drizzle ORM.
+
+Use existing database.
+
+No placeholders.
+
+No breaking changes to PART 1 to PART 4B.
+
+Build PART 5 completely.
