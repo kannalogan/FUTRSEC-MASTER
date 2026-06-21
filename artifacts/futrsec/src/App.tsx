@@ -131,7 +131,7 @@ import CampusStudentPage from "@/pages/campus/student";
 import CampusAdminPage from "@/pages/campus/admin";
 import CampusTpoPage from "@/pages/campus/tpo";
 
-import Forbidden from "@/pages/forbidden";
+import { landingPathForRole } from "@/lib/auth-routing";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -142,72 +142,50 @@ const queryClient = new QueryClient({
   },
 });
 
-function ProtectedRoute({ component: Component }: { component: React.ComponentType<any> }) {
-  const { token, isLoading } = useAuth();
-  if (isLoading) return (
+function LoadingSpinner() {
+  return (
     <div className="min-h-screen flex items-center justify-center bg-background">
       <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full" />
     </div>
   );
+}
+
+// Role-aware guard. Only the matching role may view the page. An authenticated
+// user with a different role is redirected to THEIR OWN landing page (never the
+// student dashboard), so cross-role access is rejected and a page refresh always
+// preserves the correct role's page.
+function RoleRoute({ component: Component, allow }: { component: React.ComponentType<any>; allow: string }) {
+  const { token, user, isLoading } = useAuth();
+  if (isLoading) return <LoadingSpinner />;
   if (!token) return <Redirect to="/login" />;
+  if (!user) return <Redirect to="/login" />;
+  if (user.role !== allow) return <Redirect to={landingPathForRole(user.role)} />;
   return <Layout><Component /></Layout>;
 }
 
-function AdminRoute({ component: Component }: { component: React.ComponentType<any> }) {
-  const { token, user, isLoading } = useAuth();
-  if (isLoading) return (
-    <div className="min-h-screen flex items-center justify-center bg-background">
-      <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full" />
-    </div>
-  );
-  if (!token) return <Redirect to="/login" />;
-  if (user?.role !== "admin") return <Layout><Forbidden /></Layout>;
-  return <Layout><Component /></Layout>;
+function StudentRoute({ component }: { component: React.ComponentType<any> }) {
+  return <RoleRoute allow="student" component={component} />;
 }
 
-function MentorRoute({ component: Component }: { component: React.ComponentType<any> }) {
-  const { token, user, isLoading } = useAuth();
-  if (isLoading) return (
-    <div className="min-h-screen flex items-center justify-center bg-background">
-      <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full" />
-    </div>
-  );
-  if (!token) return <Redirect to="/login" />;
-  if (user?.role !== "mentor") return <Layout><Forbidden /></Layout>;
-  return <Layout><Component /></Layout>;
+function AdminRoute({ component }: { component: React.ComponentType<any> }) {
+  return <RoleRoute allow="admin" component={component} />;
 }
 
-function TpoRoute({ component: Component }: { component: React.ComponentType<any> }) {
-  const { token, user, isLoading } = useAuth();
-  if (isLoading) return (
-    <div className="min-h-screen flex items-center justify-center bg-background">
-      <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full" />
-    </div>
-  );
-  if (!token) return <Redirect to="/login" />;
-  if (user?.role !== "tpo") return <Layout><Forbidden /></Layout>;
-  return <Layout><Component /></Layout>;
+function MentorRoute({ component }: { component: React.ComponentType<any> }) {
+  return <RoleRoute allow="mentor" component={component} />;
 }
 
-function EmployerRoute({ component: Component }: { component: React.ComponentType<any> }) {
-  const { token, user, isLoading } = useAuth();
-  if (isLoading) return (
-    <div className="min-h-screen flex items-center justify-center bg-background">
-      <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full" />
-    </div>
-  );
-  if (!token) return <Redirect to="/login" />;
-  if (user?.role !== "employer") return <Layout><Forbidden /></Layout>;
-  return <Layout><Component /></Layout>;
+function TpoRoute({ component }: { component: React.ComponentType<any> }) {
+  return <RoleRoute allow="tpo" component={component} />;
+}
+
+function EmployerRoute({ component }: { component: React.ComponentType<any> }) {
+  return <RoleRoute allow="employer" component={component} />;
 }
 
 function OnboardingRoute({ component: Component }: { component: React.ComponentType<any> }) {
   const { token, isLoading } = useAuth();
-  if (isLoading) return (
-    <div className="min-h-screen flex items-center justify-center bg-background">
-      <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full" />
-    </div>
-  );
+  if (isLoading) return <LoadingSpinner />;
   if (!token) return <Redirect to="/login" />;
   return <Component />;
 }
@@ -235,80 +213,80 @@ function Router() {
       <Route path="/onboarding/pending"><OnboardingRoute component={PendingApproval} /></Route>
 
       {/* Dashboard */}
-      <Route path="/dashboard"><ProtectedRoute component={DashboardHome} /></Route>
+      <Route path="/dashboard"><StudentRoute component={DashboardHome} /></Route>
 
       {/* Learning */}
-      <Route path="/learning"><ProtectedRoute component={LearningPage} /></Route>
-      <Route path="/learning/courses"><ProtectedRoute component={MyCoursesPage} /></Route>
-      <Route path="/my-courses"><ProtectedRoute component={MyCoursesPage} /></Route>
-      <Route path="/learning/:moduleId/:lessonId"><ProtectedRoute component={LessonPlayerPage} /></Route>
-      <Route path="/calendar"><ProtectedRoute component={CalendarPage} /></Route>
-      <Route path="/roadmap"><ProtectedRoute component={RoadmapPage} /></Route>
-      <Route path="/bookmarks"><ProtectedRoute component={BookmarksPage} /></Route>
-      <Route path="/community"><ProtectedRoute component={CommunityPage} /></Route>
+      <Route path="/learning"><StudentRoute component={LearningPage} /></Route>
+      <Route path="/learning/courses"><StudentRoute component={MyCoursesPage} /></Route>
+      <Route path="/my-courses"><StudentRoute component={MyCoursesPage} /></Route>
+      <Route path="/learning/:moduleId/:lessonId"><StudentRoute component={LessonPlayerPage} /></Route>
+      <Route path="/calendar"><StudentRoute component={CalendarPage} /></Route>
+      <Route path="/roadmap"><StudentRoute component={RoadmapPage} /></Route>
+      <Route path="/bookmarks"><StudentRoute component={BookmarksPage} /></Route>
+      <Route path="/community"><StudentRoute component={CommunityPage} /></Route>
 
       {/* Career & Tasks */}
-      <Route path="/career"><ProtectedRoute component={CareerTrackPage} /></Route>
-      <Route path="/career-roadmap"><ProtectedRoute component={CareerRoadmapPage} /></Route>
-      <Route path="/checkpoints"><ProtectedRoute component={CheckpointsPage} /></Route>
-      <Route path="/assignments"><ProtectedRoute component={AssignmentsPage} /></Route>
-      <Route path="/tasks"><ProtectedRoute component={TasksPage} /></Route>
-      <Route path="/projects"><ProtectedRoute component={ProjectsPage} /></Route>
+      <Route path="/career"><StudentRoute component={CareerTrackPage} /></Route>
+      <Route path="/career-roadmap"><StudentRoute component={CareerRoadmapPage} /></Route>
+      <Route path="/checkpoints"><StudentRoute component={CheckpointsPage} /></Route>
+      <Route path="/assignments"><StudentRoute component={AssignmentsPage} /></Route>
+      <Route path="/tasks"><StudentRoute component={TasksPage} /></Route>
+      <Route path="/projects"><StudentRoute component={ProjectsPage} /></Route>
 
       {/* Labs */}
-      <Route path="/labs"><ProtectedRoute component={LabsPage} /></Route>
-      <Route path="/labs/ctf"><ProtectedRoute component={CTFPage} /></Route>
-      <Route path="/labs/sandbox"><ProtectedRoute component={SandboxPage} /></Route>
-      <Route path="/labs/vms"><ProtectedRoute component={VMsPage} /></Route>
-      <Route path="/labs/reports"><ProtectedRoute component={LabReportsPage} /></Route>
-      <Route path="/labs/:labId"><ProtectedRoute component={LabWorkspacePage} /></Route>
+      <Route path="/labs"><StudentRoute component={LabsPage} /></Route>
+      <Route path="/labs/ctf"><StudentRoute component={CTFPage} /></Route>
+      <Route path="/labs/sandbox"><StudentRoute component={SandboxPage} /></Route>
+      <Route path="/labs/vms"><StudentRoute component={VMsPage} /></Route>
+      <Route path="/labs/reports"><StudentRoute component={LabReportsPage} /></Route>
+      <Route path="/labs/:labId"><StudentRoute component={LabWorkspacePage} /></Route>
 
       {/* Jobs */}
-      <Route path="/jobs"><ProtectedRoute component={JobsPage} /></Route>
-      <Route path="/jobs/applications"><ProtectedRoute component={ApplicationsPage} /></Route>
-      <Route path="/jobs/internships"><ProtectedRoute component={InternshipsPage} /></Route>
-      <Route path="/jobs/offers"><ProtectedRoute component={OffersPage} /></Route>
-      <Route path="/certifications"><ProtectedRoute component={CertificationsPage} /></Route>
-      <Route path="/interviews/history"><ProtectedRoute component={InterviewHistoryPage} /></Route>
+      <Route path="/jobs"><StudentRoute component={JobsPage} /></Route>
+      <Route path="/jobs/applications"><StudentRoute component={ApplicationsPage} /></Route>
+      <Route path="/jobs/internships"><StudentRoute component={InternshipsPage} /></Route>
+      <Route path="/jobs/offers"><StudentRoute component={OffersPage} /></Route>
+      <Route path="/certifications"><StudentRoute component={CertificationsPage} /></Route>
+      <Route path="/interviews/history"><StudentRoute component={InterviewHistoryPage} /></Route>
 
       {/* Profile */}
-      <Route path="/profile"><ProtectedRoute component={ProfilePage} /></Route>
-      <Route path="/profile/resume"><ProtectedRoute component={ResumePage} /></Route>
-      <Route path="/profile/social"><ProtectedRoute component={SocialLinksPage} /></Route>
+      <Route path="/profile"><StudentRoute component={ProfilePage} /></Route>
+      <Route path="/profile/resume"><StudentRoute component={ResumePage} /></Route>
+      <Route path="/profile/social"><StudentRoute component={SocialLinksPage} /></Route>
 
       {/* Gamification */}
-      <Route path="/achievements"><ProtectedRoute component={AchievementsPage} /></Route>
-      <Route path="/leaderboard"><ProtectedRoute component={LeaderboardPage} /></Route>
-      <Route path="/skill-tree"><ProtectedRoute component={SkillTreePage} /></Route>
-      <Route path="/certificates"><ProtectedRoute component={CertificatesPage} /></Route>
+      <Route path="/achievements"><StudentRoute component={AchievementsPage} /></Route>
+      <Route path="/leaderboard"><StudentRoute component={LeaderboardPage} /></Route>
+      <Route path="/skill-tree"><StudentRoute component={SkillTreePage} /></Route>
+      <Route path="/certificates"><StudentRoute component={CertificatesPage} /></Route>
 
       {/* AI */}
-      <Route path="/ai/tutor"><ProtectedRoute component={AIExplainTutor} /></Route>
-      <Route path="/ai/career-coach"><ProtectedRoute component={AICareerCoach} /></Route>
-      <Route path="/ai/resume-analyzer"><ProtectedRoute component={ResumeAnalyzer} /></Route>
-      <Route path="/ai/skill-gap"><ProtectedRoute component={SkillGapAnalyzer} /></Route>
-      <Route path="/ai/mock-interview"><ProtectedRoute component={AIMockInterview} /></Route>
-      <Route path="/ai/job-agent"><ProtectedRoute component={AIJobAgent} /></Route>
-      <Route path="/ai/english-coach"><ProtectedRoute component={AIEnglishCoach} /></Route>
-      <Route path="/ai/placement-predictor"><ProtectedRoute component={PlacementPredictor} /></Route>
+      <Route path="/ai/tutor"><StudentRoute component={AIExplainTutor} /></Route>
+      <Route path="/ai/career-coach"><StudentRoute component={AICareerCoach} /></Route>
+      <Route path="/ai/resume-analyzer"><StudentRoute component={ResumeAnalyzer} /></Route>
+      <Route path="/ai/skill-gap"><StudentRoute component={SkillGapAnalyzer} /></Route>
+      <Route path="/ai/mock-interview"><StudentRoute component={AIMockInterview} /></Route>
+      <Route path="/ai/job-agent"><StudentRoute component={AIJobAgent} /></Route>
+      <Route path="/ai/english-coach"><StudentRoute component={AIEnglishCoach} /></Route>
+      <Route path="/ai/placement-predictor"><StudentRoute component={PlacementPredictor} /></Route>
 
       {/* Placement (Part 5) */}
-      <Route path="/job-agent"><ProtectedRoute component={JobAgentPage} /></Route>
-      <Route path="/job-agent/auto-apply"><ProtectedRoute component={JobAgentAutoApplyPage} /></Route>
-      <Route path="/placement"><ProtectedRoute component={PlacementPage} /></Route>
-      <Route path="/analytics"><ProtectedRoute component={AnalyticsPage} /></Route>
-      <Route path="/campus/student"><ProtectedRoute component={CampusStudentPage} /></Route>
+      <Route path="/job-agent"><StudentRoute component={JobAgentPage} /></Route>
+      <Route path="/job-agent/auto-apply"><StudentRoute component={JobAgentAutoApplyPage} /></Route>
+      <Route path="/placement"><StudentRoute component={PlacementPage} /></Route>
+      <Route path="/analytics"><StudentRoute component={AnalyticsPage} /></Route>
+      <Route path="/campus/student"><StudentRoute component={CampusStudentPage} /></Route>
 
       {/* Account */}
-      <Route path="/subscription"><ProtectedRoute component={SubscriptionPage} /></Route>
-      <Route path="/payments"><ProtectedRoute component={PaymentsPage} /></Route>
-      <Route path="/notifications"><ProtectedRoute component={NotificationsPage} /></Route>
-      <Route path="/settings"><ProtectedRoute component={SettingsPage} /></Route>
-      <Route path="/help"><ProtectedRoute component={HelpPage} /></Route>
-      <Route path="/support"><ProtectedRoute component={SupportPage} /></Route>
+      <Route path="/subscription"><StudentRoute component={SubscriptionPage} /></Route>
+      <Route path="/payments"><StudentRoute component={PaymentsPage} /></Route>
+      <Route path="/notifications"><StudentRoute component={NotificationsPage} /></Route>
+      <Route path="/settings"><StudentRoute component={SettingsPage} /></Route>
+      <Route path="/help"><StudentRoute component={HelpPage} /></Route>
+      <Route path="/support"><StudentRoute component={SupportPage} /></Route>
 
       {/* Privacy / DPDP */}
-      <Route path="/privacy"><ProtectedRoute component={PrivacyCenter} /></Route>
+      <Route path="/privacy"><StudentRoute component={PrivacyCenter} /></Route>
 
       {/* Admin */}
       <Route path="/admin"><AdminRoute component={AdminOverviewPage} /></Route>
@@ -339,6 +317,7 @@ function Router() {
 
       {/* TPO */}
       <Route path="/tpo"><TpoRoute component={TpoOverviewPage} /></Route>
+      <Route path="/tpo/dashboard"><TpoRoute component={TpoOverviewPage} /></Route>
       <Route path="/tpo/analytics"><TpoRoute component={TpoAnalyticsPage} /></Route>
       <Route path="/tpo/placements"><TpoRoute component={TpoPlacementsPage} /></Route>
       <Route path="/tpo/directory"><TpoRoute component={TpoDirectoryPage} /></Route>
@@ -349,6 +328,7 @@ function Router() {
 
       {/* Employer */}
       <Route path="/employer"><EmployerRoute component={EmployerOverviewPage} /></Route>
+      <Route path="/employer/dashboard"><EmployerRoute component={EmployerOverviewPage} /></Route>
       <Route path="/employer/jobs"><EmployerRoute component={EmployerJobsPage} /></Route>
       <Route path="/employer/candidates"><EmployerRoute component={EmployerCandidatesPage} /></Route>
       <Route path="/employer/interviews"><EmployerRoute component={EmployerInterviewsPage} /></Route>
@@ -358,6 +338,7 @@ function Router() {
 
       {/* Mentor */}
       <Route path="/mentor"><MentorRoute component={MentorOverview} /></Route>
+      <Route path="/mentor/overview"><MentorRoute component={MentorOverview} /></Route>
       <Route path="/mentor/students"><MentorRoute component={MentorStudentsPage} /></Route>
       <Route path="/mentor/batches"><MentorRoute component={MentorBatchesPage} /></Route>
       <Route path="/mentor/analytics"><MentorRoute component={MentorAnalyticsPage} /></Route>

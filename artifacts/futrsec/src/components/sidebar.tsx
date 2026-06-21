@@ -128,7 +128,7 @@ const MENTOR_NAV: NavSection[] = [
   {
     title: "MENTOR",
     items: [
-      { label: "Overview", href: "/mentor", icon: Gauge },
+      { label: "Overview", href: "/mentor/overview", icon: Gauge },
       { label: "Assigned Students", href: "/mentor/students", icon: Users },
       { label: "Assigned Batches", href: "/mentor/batches", icon: Layers },
       { label: "Cohort Analytics", href: "/mentor/analytics", icon: BarChart3 },
@@ -146,7 +146,7 @@ const TPO_NAV: NavSection[] = [
   {
     title: "TPO",
     items: [
-      { label: "Overview", href: "/tpo", icon: Gauge },
+      { label: "Overview", href: "/tpo/dashboard", icon: Gauge },
       { label: "Student Analytics", href: "/tpo/analytics", icon: BarChart3 },
       { label: "Placements", href: "/tpo/placements", icon: Briefcase },
       { label: "Student Directory", href: "/tpo/directory", icon: Users },
@@ -162,7 +162,7 @@ const EMPLOYER_NAV: NavSection[] = [
   {
     title: "EMPLOYER",
     items: [
-      { label: "Overview", href: "/employer", icon: Gauge },
+      { label: "Overview", href: "/employer/dashboard", icon: Gauge },
       { label: "Job Postings", href: "/employer/jobs", icon: Briefcase },
       { label: "Candidates", href: "/employer/candidates", icon: Users },
       { label: "Interviews", href: "/employer/interviews", icon: MessageSquare },
@@ -260,7 +260,7 @@ export function primaryNavForRole(role: string | null | undefined): NavItem[] {
       ];
     case "mentor":
       return [
-        { label: "Overview", href: "/mentor", icon: Gauge },
+        { label: "Overview", href: "/mentor/overview", icon: Gauge },
         { label: "Students", href: "/mentor/students", icon: Users },
         { label: "Batches", href: "/mentor/batches", icon: Layers },
         { label: "At-Risk", href: "/mentor/at-risk", icon: AlertTriangle },
@@ -268,7 +268,7 @@ export function primaryNavForRole(role: string | null | undefined): NavItem[] {
       ];
     case "tpo":
       return [
-        { label: "Overview", href: "/tpo", icon: Gauge },
+        { label: "Overview", href: "/tpo/dashboard", icon: Gauge },
         { label: "Placements", href: "/tpo/placements", icon: Briefcase },
         { label: "Students", href: "/tpo/directory", icon: Users },
         { label: "Drives", href: "/campus/tpo", icon: Building },
@@ -276,7 +276,7 @@ export function primaryNavForRole(role: string | null | undefined): NavItem[] {
       ];
     case "employer":
       return [
-        { label: "Overview", href: "/employer", icon: Gauge },
+        { label: "Overview", href: "/employer/dashboard", icon: Gauge },
         { label: "Jobs", href: "/employer/jobs", icon: Briefcase },
         { label: "Candidates", href: "/employer/candidates", icon: Users },
         { label: "Offers", href: "/employer/offers", icon: Gift },

@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import { useVerifyOtp } from "@workspace/api-client-react";
 import { useAuth } from "@/hooks/use-auth";
 import { apiFetch } from "@/lib/api";
+import { postLoginPath } from "@/lib/auth-routing";
 
 const OTP_EXPIRY_SECS = 300;
 
@@ -73,13 +74,7 @@ export default function VerifyOTP() {
       {
         onSuccess: (data) => {
           setToken(data.accessToken);
-          const step = (data.user as { onboardingStep?: string }).onboardingStep;
-          if (!step || step === "consent") setLocation("/onboarding/consent");
-          else if (step === "profile") setLocation("/onboarding/profile");
-          else if (step === "track_selection") setLocation("/onboarding/tracks");
-          else if (step === "pre_assessment") setLocation("/onboarding/assessment");
-          else if (step === "pending_approval") setLocation("/onboarding/pending");
-          else setLocation("/dashboard");
+          setLocation(postLoginPath(data.user));
         },
         onError: (e) => setError((e as Error).message),
       }

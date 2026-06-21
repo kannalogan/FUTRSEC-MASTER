@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { useAuth } from "@/hooks/use-auth";
 import { useSendOtp } from "@workspace/api-client-react";
 import { apiFetch } from "@/lib/api";
+import { postLoginPath } from "@/lib/auth-routing";
 import { motion, AnimatePresence } from "framer-motion";
 
 type Mode = "welcome" | "email";
@@ -89,12 +90,12 @@ export default function Login() {
     setPassError("");
     setPassLoading(true);
     try {
-      const data = await apiFetch<{ accessToken: string; user: { onboardingStep: string } }>(
+      const data = await apiFetch<{ accessToken: string; user: { role: string; onboardingStep: string } }>(
         "/api/auth/login/password",
         { method: "POST", body: JSON.stringify({ email, password }) }
       );
       setToken(data.accessToken);
-      routeByStep(data.user.onboardingStep);
+      setLocation(postLoginPath(data.user));
     } catch (e) {
       setPassError((e as Error).message);
     } finally {
@@ -117,15 +118,6 @@ export default function Login() {
         },
       }
     );
-  };
-
-  const routeByStep = (step: string) => {
-    if (step === "consent") setLocation("/onboarding/consent");
-    else if (step === "profile") setLocation("/onboarding/profile");
-    else if (step === "track_selection") setLocation("/onboarding/tracks");
-    else if (step === "pre_assessment") setLocation("/onboarding/assessment");
-    else if (step === "pending_approval") setLocation("/onboarding/pending");
-    else setLocation("/dashboard");
   };
 
   return (
