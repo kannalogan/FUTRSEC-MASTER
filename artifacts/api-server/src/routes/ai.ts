@@ -33,6 +33,8 @@ import {
   mockCareerReport,
   mockCareerChat,
   mockEnglishEvaluation,
+  mockResumeAnalysis,
+  trackResumeKeywords,
   computePlacementReadiness,
   type CareerContext,
   type ExplainResult,
@@ -40,7 +42,9 @@ import {
   type QuizQuestion,
   type CareerReport,
   type EnglishEvaluation,
+  type ResumeAnalysis,
 } from "../lib/ai/mock-content";
+import { fetchResumeText } from "../lib/ai/resume";
 
 const router = Router();
 
@@ -313,6 +317,114 @@ router.get("/ai/career/placement-readiness", requireAuth, async (req: AuthReques
   if (!req.user) { res.status(401).json({ error: "Not authenticated" }); return; }
   const ctx = await loadCareerContext(req.user.userId);
   res.json({ ...computePlacementReadiness(ctx), context: { ...ctx, trackName: trackName(ctx.trackSlug) } });
+});
+
+/* ============================ Resume Analyzer ============================ */
+
+router.post("/ai/resume-analyze", requireAuth, async (req: AuthRequest, res): Promise<void> => {
+  if (!req.user) { res.status(401).json({ error: "Not authenticated" }); return; }
+  const resumeUrl = str(req.body?.resumeUrl).trim();
+  const pastedText = str(req.body?.resumeText).trim();
+  if (!resumeUrl && !pastedText) {
+    res.status(400).json({ error: "Provide a resumeUrl or resumeText to analyze." });
+    return;
+  }
+
+  const track = await getUserCareerTrack(req.user.userId);
+  const name = trackName(track);
+  const keywords = trackResumeKeywords(track);
+
+  // Resolve the resume text: prefer pasted text, else fetch & extract from the URL.
+  let resumeText = pastedText;
+  let extractSource = pastedText ? "text" : "none";
+  if (!resumeText && resumeUrl) {
+    try {
+      const extracted = await fetchResumeText(resumeUrl);
+      resumeText = extracted.text;
+      extractSource = extracted.source;
+    } catch (err) {
+      res.status(422).json({ error: (err as Error).message || "Could not read that resume URL." });
+      return;
+    }
+  }
+
+  const hasUsableText = resumeText.replace(/\s+/g, "").length >= 80;
+
+  // No readable text → deterministic, track-grounded baseline (honest about why).
+  if (!hasUsableText) {
+    const fallback = mockResumeAnalysis(track, "");
+    await createAuditLog({
+      userId: req.user.userId,
+      action: "ai.resume.analyze",
+      entityType: "ai_resume",
+      ipAddress: getIp(req),
+      metadata: { provider: "mock", source: extractSource, contentAnalyzed: false },
+    });
+    res.json({ ...fallback, provider: "mock" });
+    return;
+  }
+
+  const truncated = resumeText.slice(0, 8000);
+  const { data, provider } = await generateJSON<ResumeAnalysis>({
+    system: `You are an ATS (Applicant Tracking System) and technical recruiter for ${name} roles in India. Analyze resumes objectively and score them the way a real ATS plus a hiring manager would. Be specific and actionable.`,
+    user: `Analyze the following resume for a ${name} candidate. Compare it against these track-critical ATS keywords: ${keywords.join(", ")}.
+
+Return JSON with EXACTLY these keys:
+- atsScore (integer 0-100): overall ATS compatibility & keyword match.
+- formatting (string): one of "Excellent", "Good", "Fair", "Needs Work".
+- keywordsFound (string[]): track keywords actually present in the resume.
+- keywordsMissing (string[]): important track keywords that are absent.
+- strengths (string[]): 3-5 concrete strengths.
+- improvements (string[]): 3-5 concrete, actionable improvements.
+- jobMatch (integer 0-100): fit for ${name} roles.
+- overallRating (string): a letter grade like "A", "B+", "C".
+
+Resume text:
+"""
+${truncated}
+"""`,
+    maxTokens: 1400,
+    validate: (v): v is ResumeAnalysis => {
+      if (typeof v !== "object" || v === null) return false;
+      const o = v as Record<string, unknown>;
+      return (
+        typeof o.atsScore === "number" &&
+        Array.isArray(o.keywordsFound) &&
+        Array.isArray(o.keywordsMissing) &&
+        Array.isArray(o.strengths) &&
+        Array.isArray(o.improvements)
+      );
+    },
+    mock: () => mockResumeAnalysis(track, resumeText),
+  });
+
+  // Clamp numeric fields and coerce arrays/strings defensively so the frontend
+  // never crashes on a partial model response that slipped past validation.
+  const clamp = (n: number) => Math.max(0, Math.min(100, Math.round(n)));
+  const strArr = (x: unknown): string[] =>
+    Array.isArray(x) ? x.filter((s): s is string => typeof s === "string") : [];
+  const result: ResumeAnalysis = {
+    ...data,
+    atsScore: clamp(Number(data.atsScore) || 0),
+    jobMatch: clamp(Number(data.jobMatch) || 0),
+    formatting: typeof data.formatting === "string" ? data.formatting : "Good",
+    overallRating: typeof data.overallRating === "string" ? data.overallRating : "B",
+    keywordsFound: strArr(data.keywordsFound),
+    keywordsMissing: strArr(data.keywordsMissing),
+    strengths: strArr(data.strengths),
+    improvements: strArr(data.improvements),
+    contentAnalyzed: true,
+  };
+
+  await createAuditLog({
+    userId: req.user.userId,
+    action: "ai.resume.analyze",
+    entityType: "ai_resume",
+    ipAddress: getIp(req),
+    metadata: { provider, source: extractSource, atsScore: result.atsScore },
+  });
+
+  res.json({ ...result, provider });
 });
 
 /* ================================ Voice ================================ */

@@ -558,3 +558,131 @@ export function mockEnglishEvaluation(text: string, fromVoice: boolean): English
       : "Pronunciation scoring requires a voice (spoken) submission. Use the microphone to include it.",
   };
 }
+
+/* ------------------------- Resume Analyzer ------------------------- */
+
+/** ATS keywords Indian recruiters / parsers scan for, per track. */
+const TRACK_RESUME_KEYWORDS: Record<Track, string[]> = {
+  soc: [
+    "SIEM", "Splunk", "QRadar", "ELK", "Incident Response", "MITRE ATT&CK",
+    "Threat Hunting", "EDR", "Wireshark", "Phishing Analysis", "SOAR", "Log Analysis",
+  ],
+  vapt: [
+    "OWASP Top 10", "Burp Suite", "Metasploit", "Nmap", "Penetration Testing",
+    "SQL Injection", "XSS", "Privilege Escalation", "Active Directory", "CVSS",
+    "API Security", "Kali Linux",
+  ],
+  grc: [
+    "ISO 27001", "NIST CSF", "SOC 2", "Risk Assessment", "DPDP", "GDPR",
+    "Internal Audit", "Security Policy", "BCP/DR", "Vendor Risk", "CISA", "Compliance",
+  ],
+};
+
+export function trackResumeKeywords(track?: string | null): string[] {
+  return TRACK_RESUME_KEYWORDS[tk(track)];
+}
+
+export interface ResumeAnalysis {
+  atsScore: number;
+  formatting: string;
+  keywordsFound: string[];
+  keywordsMissing: string[];
+  strengths: string[];
+  improvements: string[];
+  jobMatch: number;
+  overallRating: string;
+  /** When true, scoring is based on track context only (resume text could not be read). */
+  contentAnalyzed?: boolean;
+  note?: string;
+}
+
+function ratingFromScore(score: number): string {
+  if (score >= 90) return "A+";
+  if (score >= 85) return "A";
+  if (score >= 78) return "A-";
+  if (score >= 72) return "B+";
+  if (score >= 65) return "B";
+  if (score >= 55) return "B-";
+  if (score >= 45) return "C+";
+  return "C";
+}
+
+/**
+ * Deterministic resume analysis. When `resumeText` is supplied it scores the
+ * actual content against the track's ATS keywords; otherwise it returns a
+ * track-grounded baseline and flags that the document text could not be read.
+ */
+export function mockResumeAnalysis(track: string | null | undefined, resumeText?: string): ResumeAnalysis {
+  const name = trackName(track);
+  const keywords = trackResumeKeywords(track);
+  const text = (resumeText ?? "").toLowerCase();
+  const hasText = text.replace(/\s+/g, "").length >= 80;
+
+  if (!hasText) {
+    return {
+      atsScore: 60,
+      formatting: "Unknown",
+      keywordsFound: [],
+      keywordsMissing: keywords,
+      strengths: [
+        "Resume submitted for review.",
+        `Targeting ${name} roles — a focused, single-track resume scores better with ATS.`,
+      ],
+      improvements: [
+        `Add ${name} keywords ATS scanners expect: ${keywords.slice(0, 5).join(", ")}.`,
+        "Quantify achievements (incidents handled, vulnerabilities found, audits completed).",
+        "Include a certifications section relevant to your track.",
+        "Add a 2-3 line professional summary tailored to the role.",
+      ],
+      jobMatch: 55,
+      overallRating: ratingFromScore(60),
+      contentAnalyzed: false,
+      note: "We couldn't read the document text, so this analysis is based on your track. Paste your resume text or share a public, text-based link for a content-level ATS score.",
+    };
+  }
+
+  const found = keywords.filter((k) => text.includes(k.toLowerCase()));
+  const missing = keywords.filter((k) => !text.includes(k.toLowerCase()));
+  const wordCount = text.split(/\s+/).filter(Boolean).length;
+  const hasNumbers = /\d/.test(text);
+  const hasCerts = /(security\+|ceh|oscp|cisa|cism|comptia|iso\s?27001|sc-200|pentest\+|ejpt)/i.test(resumeText ?? "");
+  const hasSummary = /(summary|objective|profile)/i.test(resumeText ?? "");
+  const hasEmail = /[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}/i.test(resumeText ?? "");
+
+  const keywordScore = Math.round((found.length / keywords.length) * 45);
+  let score = 30 + keywordScore;
+  if (hasNumbers) score += 8;
+  if (hasCerts) score += 8;
+  if (hasSummary) score += 5;
+  if (hasEmail) score += 4;
+  if (wordCount >= 250 && wordCount <= 900) score += 5;
+  score = Math.max(20, Math.min(98, score));
+
+  const jobMatch = Math.max(20, Math.min(98, Math.round((found.length / keywords.length) * 100)));
+
+  const strengths: string[] = [];
+  if (found.length) strengths.push(`Strong keyword coverage: ${found.slice(0, 5).join(", ")}.`);
+  if (hasNumbers) strengths.push("Includes quantified achievements — recruiters value measurable impact.");
+  if (hasCerts) strengths.push("Certifications detected, a key hiring signal for Indian roles.");
+  if (hasEmail) strengths.push("Contact information is present and parseable.");
+  if (strengths.length === 0) strengths.push("Resume text was readable by the ATS parser.");
+
+  const improvements: string[] = [];
+  if (missing.length) improvements.push(`Add missing ${name} keywords: ${missing.slice(0, 5).join(", ")}.`);
+  if (!hasNumbers) improvements.push("Quantify your impact (e.g. 'triaged 50+ alerts/day', 'found 12 critical bugs').");
+  if (!hasCerts) improvements.push(`Add a certifications section — even an in-progress ${name} cert helps.`);
+  if (!hasSummary) improvements.push("Add a 2-3 line professional summary tailored to the target role.");
+  if (improvements.length === 0) improvements.push("Tailor each application to the specific job description's keywords.");
+
+  return {
+    atsScore: score,
+    formatting: score >= 75 ? "Good" : score >= 55 ? "Fair" : "Needs Work",
+    keywordsFound: found,
+    keywordsMissing: missing,
+    strengths,
+    improvements,
+    jobMatch,
+    overallRating: ratingFromScore(score),
+    contentAnalyzed: true,
+  };
+}

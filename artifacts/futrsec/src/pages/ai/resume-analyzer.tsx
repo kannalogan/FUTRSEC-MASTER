@@ -13,56 +13,61 @@ import {
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
-const MOCK_RESULT = {
-  atsScore: 72,
-  formatting: "Good",
-  keywordsFound: ["Python", "SIEM", "Incident Response", "Splunk", "MITRE ATT&CK"],
-  keywordsMissing: ["Threat Hunting", "QRadar", "YARA", "Wireshark", "EDR"],
-  strengths: [
-    "Clear contact information and professional formatting",
-    "Quantified achievements with measurable impact",
-    "Relevant technical skills section",
-    "Education section properly structured",
-  ],
-  improvements: [
-    "Add more cybersecurity-specific keywords for ATS optimization",
-    "Include certifications section (CEH, CompTIA Security+)",
-    "Quantify security incidents handled or vulnerabilities found",
-    "Add a professional summary tailored to SOC roles",
-  ],
-  jobMatch: 68,
-  overallRating: "B+",
-};
+interface ResumeResult {
+  atsScore: number;
+  formatting: string;
+  keywordsFound: string[];
+  keywordsMissing: string[];
+  strengths: string[];
+  improvements: string[];
+  jobMatch: number;
+  overallRating: string;
+  provider?: string;
+  contentAnalyzed?: boolean;
+  note?: string;
+}
 
 export default function ResumeAnalyzer() {
   const [resumeUrl, setResumeUrl] = useState("");
-  const [result, setResult] = useState<typeof MOCK_RESULT | null>(null);
+  const [resumeText, setResumeText] = useState("");
+  const [mode, setMode] = useState<"url" | "text">("url");
+  const [result, setResult] = useState<ResumeResult | null>(null);
   const { toast } = useToast();
 
   const analyzeMutation = useMutation({
-    mutationFn: async (url: string) => {
-      const data = await apiFetch<any>("/api/ai/resume-analyze", {
+    mutationFn: (payload: { resumeUrl?: string; resumeText?: string }) =>
+      apiFetch<ResumeResult>("/api/ai/resume-analyze", {
         method: "POST",
-        body: JSON.stringify({ resumeUrl: url }),
-      }).catch(() => MOCK_RESULT);
-      return data;
+        body: JSON.stringify(payload),
+      }),
+    onSuccess: (data) => {
+      setResult(data);
+      toast({
+        title: "Analysis complete!",
+        description: data.contentAnalyzed === false
+          ? "We couldn't read the document text — showing a track-based review."
+          : "Your resume has been analyzed.",
+      });
     },
-    onSuccess: (data: any) => {
-      setResult(data.atsScore !== undefined ? data : MOCK_RESULT);
-      toast({ title: "Analysis complete!", description: "Your resume has been analyzed." });
-    },
-    onError: () => {
-      setResult(MOCK_RESULT);
-      toast({ title: "Analysis complete", description: "Resume analyzed with sample data." });
+    onError: (err: Error) => {
+      toast({ title: "Couldn't analyze resume", description: err.message, variant: "destructive" });
     },
   });
 
   const handleAnalyze = () => {
-    if (!resumeUrl.trim()) {
-      toast({ title: "Enter resume URL", description: "Paste a Google Drive or PDF URL", variant: "destructive" });
-      return;
+    if (mode === "url") {
+      if (!resumeUrl.trim()) {
+        toast({ title: "Enter resume URL", description: "Paste a Google Drive or PDF URL", variant: "destructive" });
+        return;
+      }
+      analyzeMutation.mutate({ resumeUrl: resumeUrl.trim() });
+    } else {
+      if (resumeText.trim().length < 80) {
+        toast({ title: "Paste more text", description: "Paste your full resume text (at least a few lines).", variant: "destructive" });
+        return;
+      }
+      analyzeMutation.mutate({ resumeText: resumeText.trim() });
     }
-    analyzeMutation.mutate(resumeUrl);
   };
 
   const atsColor = result?.atsScore
@@ -84,25 +89,64 @@ export default function ResumeAnalyzer() {
       {/* Upload */}
       <Card className="bg-white border-border/60">
         <CardContent className="p-5">
-          <p className="text-sm font-medium text-foreground mb-3">Paste your resume URL (Google Drive, Notion, PDF link)</p>
-          <div className="flex gap-2">
-            <Input
-              value={resumeUrl}
-              onChange={(e) => setResumeUrl(e.target.value)}
-              placeholder="https://drive.google.com/file/d/..."
-              className="flex-1 text-sm"
-            />
-            <Button onClick={handleAnalyze} disabled={analyzeMutation.isPending} className="gap-1.5 shrink-0">
-              {analyzeMutation.isPending ? (
-                <><RefreshCw className="h-4 w-4 animate-spin" />Analyzing...</>
-              ) : (
-                <><Zap className="h-4 w-4" />Analyze</>
-              )}
-            </Button>
+          <div className="flex gap-1 mb-3 p-0.5 bg-muted rounded-lg w-fit">
+            <button
+              onClick={() => setMode("url")}
+              className={`px-3 py-1.5 text-xs font-medium rounded-md transition ${mode === "url" ? "bg-white shadow-sm text-foreground" : "text-muted-foreground"}`}
+            >
+              From URL
+            </button>
+            <button
+              onClick={() => setMode("text")}
+              className={`px-3 py-1.5 text-xs font-medium rounded-md transition ${mode === "text" ? "bg-white shadow-sm text-foreground" : "text-muted-foreground"}`}
+            >
+              Paste text
+            </button>
           </div>
-          <p className="text-xs text-muted-foreground mt-2">
-            Supports Google Drive, Dropbox, OneDrive, and direct PDF links. Make sure the file is publicly accessible.
-          </p>
+
+          {mode === "url" ? (
+            <>
+              <p className="text-sm font-medium text-foreground mb-3">Paste your resume URL (Google Drive, Dropbox, PDF link)</p>
+              <div className="flex gap-2">
+                <Input
+                  value={resumeUrl}
+                  onChange={(e) => setResumeUrl(e.target.value)}
+                  placeholder="https://drive.google.com/file/d/..."
+                  className="flex-1 text-sm"
+                />
+                <Button onClick={handleAnalyze} disabled={analyzeMutation.isPending} className="gap-1.5 shrink-0">
+                  {analyzeMutation.isPending ? (
+                    <><RefreshCw className="h-4 w-4 animate-spin" />Analyzing...</>
+                  ) : (
+                    <><Zap className="h-4 w-4" />Analyze</>
+                  )}
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground mt-2">
+                Supports Google Drive, Dropbox, and direct PDF/text links. Make sure the file is publicly accessible. For scanned/image PDFs, use “Paste text” for the most accurate ATS score.
+              </p>
+            </>
+          ) : (
+            <>
+              <p className="text-sm font-medium text-foreground mb-3">Paste your full resume text</p>
+              <textarea
+                value={resumeText}
+                onChange={(e) => setResumeText(e.target.value)}
+                placeholder="Paste the complete text of your resume here…"
+                rows={8}
+                className="w-full text-sm rounded-md border border-input bg-background px-3 py-2 resize-y focus:outline-none focus:ring-2 focus:ring-ring"
+              />
+              <div className="flex justify-end mt-3">
+                <Button onClick={handleAnalyze} disabled={analyzeMutation.isPending} className="gap-1.5">
+                  {analyzeMutation.isPending ? (
+                    <><RefreshCw className="h-4 w-4 animate-spin" />Analyzing...</>
+                  ) : (
+                    <><Zap className="h-4 w-4" />Analyze</>
+                  )}
+                </Button>
+              </div>
+            </>
+          )}
         </CardContent>
       </Card>
 
@@ -110,6 +154,12 @@ export default function ResumeAnalyzer() {
       <AnimatePresence>
         {result && (
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
+            {result.note && (
+              <div className="flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3">
+                <AlertTriangle className="h-4 w-4 text-amber-600 mt-0.5 shrink-0" />
+                <p className="text-xs text-amber-800">{result.note}</p>
+              </div>
+            )}
             {/* Score card */}
             <Card className="bg-white border-border/60">
               <CardContent className="p-5">
