@@ -1,130 +1,204 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { apiFetch } from "@/lib/api";
+import { useMemo, useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Cpu, Play, Square, Terminal, Clock } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
+import { PageHeader } from "@/components/page-shell";
 import { useToast } from "@/hooks/use-toast";
-import { PageHeader, GridSkeleton, EmptyState } from "@/components/page-shell";
+import { Terminal, Regex, ScrollText, Code2, CheckCircle2, Lightbulb, ChevronRight, Trophy } from "lucide-react";
+import { ALL_DRILLS, type Category, type Drill } from "./sandbox/drills";
+import { LinuxLab } from "./sandbox/linux-lab";
+import { RegexLab } from "./sandbox/regex-lab";
+import { LogsLab } from "./sandbox/logs-lab";
+import { PythonLab } from "./sandbox/python-lab";
 
-const STATUS_META: Record<string, { label: string; color: string }> = {
-  starting: { label: "Starting", color: "#F97316" },
-  running: { label: "Running", color: "#10B981" },
-  terminated: { label: "Terminated", color: "#94a3b8" },
-  expired: { label: "Expired", color: "#EF4444" },
+const STORAGE_KEY = "futrsec_sandbox_solved";
+
+const CATEGORIES: { id: Category; label: string; icon: typeof Terminal; color: string; blurb: string }[] = [
+  { id: "linux", label: "Linux CLI", icon: Terminal, color: "#10B981", blurb: "Navigate a real shell, hunt through logs, master grep & find." },
+  { id: "regex", label: "Regex", icon: Regex, color: "#6366F1", blurb: "Extract IOCs — IPs, hashes, CVEs — with live-highlighted patterns." },
+  { id: "logs", label: "Log Analysis", icon: ScrollText, color: "#F97316", blurb: "Filter web access logs and answer the investigation question." },
+  { id: "python", label: "Python", icon: Code2, color: "#EAB308", blurb: "Run real Python in your browser to crunch security data." },
+];
+
+const DIFF_COLORS: Record<string, string> = {
+  beginner: "#10B981",
+  intermediate: "#F97316",
+  advanced: "#EF4444",
 };
 
-interface Session {
-  id: number;
-  labId: number | null;
-  sessionToken: string;
-  status: string;
-  ipAddress: string | null;
-  port: number | null;
-  expiresAt: string;
-  createdAt: string;
+function loadSolved(): Set<string> {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    return new Set(raw ? (JSON.parse(raw) as string[]) : []);
+  } catch {
+    return new Set();
+  }
 }
 
 export default function SandboxPage() {
-  const qc = useQueryClient();
   const { toast } = useToast();
-  const { data, isLoading } = useQuery({
-    queryKey: ["/api/sandbox"],
-    queryFn: () => apiFetch<Session[]>("/api/sandbox"),
-  });
+  const [solved, setSolved] = useState<Set<string>>(() => loadSolved());
+  const [activeCat, setActiveCat] = useState<Category>("linux");
+  const [activeDrillId, setActiveDrillId] = useState<string>(
+    () => ALL_DRILLS.find((d) => d.category === "linux")!.id,
+  );
+  const [showHint, setShowHint] = useState(false);
 
-  const launch = useMutation({
-    mutationFn: () => apiFetch("/api/sandbox", { method: "POST", body: JSON.stringify({}) }),
-    onSuccess: () => {
-      toast({ title: "Sandbox launched", description: "Your isolated environment is starting." });
-      qc.invalidateQueries({ queryKey: ["/api/sandbox"] });
-    },
-    onError: () => toast({ title: "Error", description: "Could not launch sandbox.", variant: "destructive" }),
-  });
+  const drillsInCat = useMemo(() => ALL_DRILLS.filter((d) => d.category === activeCat), [activeCat]);
+  const activeDrill = useMemo<Drill>(
+    () => ALL_DRILLS.find((d) => d.id === activeDrillId) ?? drillsInCat[0],
+    [activeDrillId, drillsInCat],
+  );
 
-  const terminate = useMutation({
-    mutationFn: (id: number) => apiFetch(`/api/sandbox/${id}/terminate`, { method: "POST" }),
-    onSuccess: () => {
-      toast({ title: "Terminated", description: "Sandbox session ended." });
-      qc.invalidateQueries({ queryKey: ["/api/sandbox"] });
-    },
-  });
+  useEffect(() => {
+    setShowHint(false);
+  }, [activeDrillId]);
+
+  const persist = (next: Set<string>) => {
+    setSolved(next);
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify([...next]));
+    } catch {
+      /* storage unavailable — progress stays in-memory for this session */
+    }
+  };
+
+  const markSolved = (drill: Drill) => {
+    if (solved.has(drill.id)) return;
+    const next = new Set(solved);
+    next.add(drill.id);
+    persist(next);
+    toast({ title: "Drill solved! 🎉", description: drill.title });
+  };
+
+  const selectCat = (cat: Category) => {
+    setActiveCat(cat);
+    const first = ALL_DRILLS.find((d) => d.category === cat);
+    if (first) setActiveDrillId(first.id);
+  };
+
+  const totalSolved = solved.size;
+  const totalDrills = ALL_DRILLS.length;
+  const pct = Math.round((totalSolved / totalDrills) * 100);
 
   return (
-    <div className="max-w-4xl mx-auto px-6 py-8">
+    <div className="max-w-6xl mx-auto px-6 py-8">
       <PageHeader
-        icon={Cpu}
-        title="Sandbox"
-        subtitle="Spin up isolated environments to practice safely"
+        icon={Terminal}
+        title="Practice Sandbox"
+        subtitle="Hands-on, in-browser drills — no setup, nothing to install. Solve them to level up."
         actions={
-          <Button size="sm" onClick={() => launch.mutate()} disabled={launch.isPending}>
-            <Play className="h-3.5 w-3.5 mr-1.5" />
-            {launch.isPending ? "Launching…" : "New Sandbox"}
-          </Button>
+          <div className="flex items-center gap-2">
+            <Trophy className="h-4 w-4 text-amber-500" />
+            <span className="text-sm font-medium text-foreground">
+              {totalSolved}/{totalDrills} solved
+            </span>
+          </div>
         }
       />
 
-      {isLoading ? (
-        <GridSkeleton cols={1} rows={3} />
-      ) : !data || data.length === 0 ? (
-        <EmptyState
-          icon={Terminal}
-          title="No sandbox sessions"
-          description="Launch a sandbox to get an isolated, disposable environment for hands-on practice."
-          action={
-            <Button size="sm" onClick={() => launch.mutate()} disabled={launch.isPending}>
-              <Play className="h-3.5 w-3.5 mr-1.5" />
-              Launch Sandbox
-            </Button>
-          }
-        />
-      ) : (
-        <div className="space-y-3">
-          {data.map((s, idx) => {
-            const meta = STATUS_META[s.status] ?? STATUS_META.terminated;
-            const active = s.status !== "terminated" && s.status !== "expired";
+      <div className="mb-6">
+        <Progress value={pct} className="h-2" />
+      </div>
+
+      {/* Category tabs */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+        {CATEGORIES.map((cat) => {
+          const Icon = cat.icon;
+          const inCat = ALL_DRILLS.filter((d) => d.category === cat.id);
+          const done = inCat.filter((d) => solved.has(d.id)).length;
+          const active = activeCat === cat.id;
+          return (
+            <button key={cat.id} onClick={() => selectCat(cat.id)} className="text-left">
+              <Card className={`transition-all h-full ${active ? "ring-2 ring-primary border-primary/40" : "border-border/60 hover:shadow-md"}`}>
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="h-9 w-9 rounded-xl flex items-center justify-center" style={{ backgroundColor: `${cat.color}15` }}>
+                      <Icon className="h-4.5 w-4.5" style={{ color: cat.color }} />
+                    </div>
+                    <span className="text-[11px] text-muted-foreground">{done}/{inCat.length}</span>
+                  </div>
+                  <p className="text-sm font-semibold text-foreground">{cat.label}</p>
+                  <p className="text-[11px] text-muted-foreground leading-snug mt-0.5 line-clamp-2">{cat.blurb}</p>
+                </CardContent>
+              </Card>
+            </button>
+          );
+        })}
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Drill list */}
+        <div className="space-y-2">
+          {drillsInCat.map((d) => {
+            const isActive = d.id === activeDrill.id;
+            const isSolved = solved.has(d.id);
             return (
-              <motion.div
-                key={s.id}
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.2, delay: idx * 0.04 }}
+              <button
+                key={d.id}
+                onClick={() => setActiveDrillId(d.id)}
+                className={`w-full text-left rounded-lg border p-3 transition-all ${
+                  isActive ? "border-primary/40 bg-primary/5 ring-1 ring-primary/20" : "border-border/60 bg-white hover:bg-muted/30"
+                }`}
               >
-                <Card className={`bg-white border-border/60 ${!active ? "opacity-65" : ""}`}>
-                  <CardContent className="p-4 flex items-center gap-3">
-                    <div className="h-10 w-10 rounded-xl bg-muted flex items-center justify-center shrink-0">
-                      <Terminal className="h-5 w-5 text-muted-foreground" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-mono text-xs text-foreground truncate">{s.sessionToken}</h3>
-                      <div className="flex items-center gap-3 text-xs text-muted-foreground mt-1">
-                        {s.ipAddress && <span>{s.ipAddress}{s.port ? `:${s.port}` : ""}</span>}
-                        <span className="flex items-center gap-1">
-                          <Clock className="h-3 w-3" />
-                          expires {new Date(s.expiresAt).toLocaleTimeString()}
-                        </span>
-                      </div>
-                    </div>
-                    <Badge
-                      className="text-[10px] shrink-0"
-                      style={{ backgroundColor: `${meta.color}15`, color: meta.color, borderColor: `${meta.color}30` }}
-                    >
-                      {meta.label}
-                    </Badge>
-                    {active && (
-                      <Button size="sm" variant="outline" onClick={() => terminate.mutate(s.id)} disabled={terminate.isPending}>
-                        <Square className="h-3.5 w-3.5 mr-1" />
-                        Stop
-                      </Button>
-                    )}
-                  </CardContent>
-                </Card>
-              </motion.div>
+                <div className="flex items-center gap-2">
+                  {isSolved ? (
+                    <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0" />
+                  ) : (
+                    <div className="h-4 w-4 rounded-full border-2 border-muted-foreground/30 shrink-0" />
+                  )}
+                  <span className="text-sm font-medium text-foreground flex-1">{d.title}</span>
+                  <Badge
+                    className="text-[9px] px-1.5 shrink-0"
+                    style={{ backgroundColor: `${DIFF_COLORS[d.difficulty]}15`, color: DIFF_COLORS[d.difficulty], borderColor: `${DIFF_COLORS[d.difficulty]}30` }}
+                  >
+                    {d.difficulty}
+                  </Badge>
+                  {isActive && <ChevronRight className="h-3.5 w-3.5 text-primary shrink-0" />}
+                </div>
+              </button>
             );
           })}
         </div>
-      )}
+
+        {/* Active drill */}
+        <div className="lg:col-span-2">
+          <motion.div key={activeDrill.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.2 }}>
+            <Card className="border-border/60">
+              <CardContent className="p-5">
+                <div className="flex items-start justify-between gap-3 mb-1">
+                  <h2 className="text-lg font-semibold text-foreground">{activeDrill.title}</h2>
+                  {solved.has(activeDrill.id) && (
+                    <Badge className="bg-emerald-50 text-emerald-600 border-emerald-200 shrink-0">
+                      <CheckCircle2 className="h-3 w-3 mr-1" />Solved
+                    </Badge>
+                  )}
+                </div>
+                <p className="text-sm text-muted-foreground mb-3">{activeDrill.prompt}</p>
+
+                <button
+                  onClick={() => setShowHint((v) => !v)}
+                  className="inline-flex items-center gap-1.5 text-xs text-amber-600 hover:text-amber-700 mb-4"
+                >
+                  <Lightbulb className="h-3.5 w-3.5" />
+                  {showHint ? "Hide hint" : "Show hint"}
+                </button>
+                {showHint && (
+                  <div className="mb-4 rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 text-xs text-amber-800 font-mono">
+                    {activeDrill.hint}
+                  </div>
+                )}
+
+                {activeDrill.category === "linux" && <LinuxLab drill={activeDrill} onSolve={() => markSolved(activeDrill)} />}
+                {activeDrill.category === "regex" && <RegexLab drill={activeDrill} onSolve={() => markSolved(activeDrill)} />}
+                {activeDrill.category === "logs" && <LogsLab drill={activeDrill} onSolve={() => markSolved(activeDrill)} />}
+                {activeDrill.category === "python" && <PythonLab drill={activeDrill} onSolve={() => markSolved(activeDrill)} />}
+              </CardContent>
+            </Card>
+          </motion.div>
+        </div>
+      </div>
     </div>
   );
 }

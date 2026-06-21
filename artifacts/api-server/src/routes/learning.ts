@@ -678,7 +678,17 @@ router.post("/learning/lessons/:lessonId/ai-explain", requireAuth, async (req: A
     req.log.info({ lessonId, userId: req.user.userId }, "ai-explain answered");
     res.json({ answer });
   } catch (err) {
-    req.log.error({ err, lessonId }, "ai-explain failed");
+    const status = (err as { status?: number })?.status;
+    const code = (err as { code?: string })?.code;
+    req.log.error({ err, lessonId, status, code }, "ai-explain failed");
+    if (status === 429 || code === "insufficient_quota") {
+      res.status(503).json({ error: "The AI tutor is out of OpenAI quota. Please add billing credits to your OpenAI account to enable AI Explain." });
+      return;
+    }
+    if (status === 401) {
+      res.status(503).json({ error: "The OpenAI API key is invalid. Please update it to enable AI Explain." });
+      return;
+    }
     res.status(502).json({ error: "The AI tutor is temporarily unavailable. Please try again in a moment." });
   }
 });

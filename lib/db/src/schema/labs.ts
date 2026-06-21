@@ -6,6 +6,8 @@ import {
   integer,
   boolean,
   real,
+  jsonb,
+  uniqueIndex,
 } from "drizzle-orm/pg-core";
 
 export const labsTable = pgTable("labs", {
@@ -20,6 +22,7 @@ export const labsTable = pgTable("labs", {
   totalPoints: integer("total_points").notNull().default(100),
   estimatedMinutes: integer("estimated_minutes").notNull().default(60),
   dockerImage: text("docker_image"),
+  simulator: jsonb("simulator"),
   isActive: boolean("is_active").notNull().default(true),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
@@ -38,11 +41,30 @@ export const labModulesTable = pgTable("lab_modules", {
   taskDescription: text("task_description").notNull(),
   hint: text("hint"),
   flagFormat: text("flag_format"),
+  flag: text("flag"),
+  solutionExplanation: text("solution_explanation"),
   points: integer("points").notNull().default(10),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .defaultNow(),
 });
+
+export const labModuleCompletionsTable = pgTable(
+  "lab_module_completions",
+  {
+    id: serial("id").primaryKey(),
+    attemptId: integer("attempt_id").notNull(),
+    userId: integer("user_id").notNull(),
+    labId: integer("lab_id").notNull(),
+    labModuleId: integer("lab_module_id").notNull(),
+    pointsAwarded: integer("points_awarded").notNull().default(0),
+    solvedAt: timestamp("solved_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  // Unique per user+module: a module's flag can only be captured once per user,
+  // ever (across attempts). This is the anti-farming guarantee the CTF
+  // leaderboard relies on — re-solving in a new attempt cannot inflate score.
+  (t) => [uniqueIndex("lab_module_completions_user_module_uq").on(t.userId, t.labModuleId)],
+);
 
 export const labAttemptsTable = pgTable("lab_attempts", {
   id: serial("id").primaryKey(),
@@ -96,4 +118,5 @@ export const sandboxSessionsTable = pgTable("sandbox_sessions", {
 export type Lab = typeof labsTable.$inferSelect;
 export type LabModule = typeof labModulesTable.$inferSelect;
 export type LabAttempt = typeof labAttemptsTable.$inferSelect;
+export type LabModuleCompletion = typeof labModuleCompletionsTable.$inferSelect;
 export type SandboxSession = typeof sandboxSessionsTable.$inferSelect;

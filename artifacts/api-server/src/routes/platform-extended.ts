@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { eq, desc, count, and, isNotNull } from "drizzle-orm";
+import { eq, desc, count, countDistinct, sum, and, isNotNull } from "drizzle-orm";
 import { db } from "@workspace/db";
 import {
   usersTable,
@@ -10,6 +10,7 @@ import {
   checkpointProgressTable,
   labAttemptsTable,
   labsTable,
+  labModuleCompletionsTable,
   labReportsTable,
   sandboxSessionsTable,
   jobApplicationsTable,
@@ -27,6 +28,7 @@ import {
   broadcastNotesTable,
 } from "@workspace/db";
 import { requireAuth, type AuthRequest } from "../middlewares/auth";
+import { getUserCareerTrack } from "../lib/track-access";
 
 const router = Router();
 
@@ -161,17 +163,86 @@ router.get("/projects", requireAuth, async (req: AuthRequest, res): Promise<void
   res.json(labs.map(l => ({ ...l, attempt: aMap.get(l.id) ?? null })));
 });
 
+/**
+ * Resolve the single track row that owns a non-admin user's domain. Returns
+ * `{ track }` on success, or `{ error }` (string) when the user has no
+ * determinable track (deny-by-default). Admins with a track get it too; admins
+ * without one get `{ track: null }` (full catalog).
+ */
+async function resolveDomainTrack(role: string, userId: number) {
+  const effective = await getUserCareerTrack(userId);
+  if (role !== "admin" && !effective) {
+    return { error: "Access denied: select a career track to unlock this content." as const };
+  }
+  if (!effective) return { track: null as null };
+  const track = await db.query.tracksTable.findFirst({ where: eq(tracksTable.domain, effective) });
+  // Deny-by-default: a non-admin with a track that doesn't resolve to a domain
+  // row must NOT fall through to the global (cross-track) query.
+  if (!track && role !== "admin") {
+    return { error: "Access denied: select a career track to unlock this content." as const };
+  }
+  return { track: track ?? null };
+}
+
 // ── CTF Challenges (labs of type ctf) ──────────────────────────────────────────
 router.get("/ctf", requireAuth, async (req: AuthRequest, res): Promise<void> => {
   if (!req.user) { res.status(401).json({ error: "Unauthorized" }); return; }
-  const user = await db.query.usersTable.findFirst({ where: eq(usersTable.id, req.user.userId) });
-  const where = user?.selectedTrackId
-    ? and(eq(labsTable.isActive, true), eq(labsTable.type, "ctf"), eq(labsTable.trackId, user.selectedTrackId))
+
+  const resolved = await resolveDomainTrack(req.user.role, req.user.userId);
+  if ("error" in resolved) { res.status(403).json({ error: resolved.error }); return; }
+
+  const where = resolved.track
+    ? and(eq(labsTable.isActive, true), eq(labsTable.type, "ctf"), eq(labsTable.trackId, resolved.track.id))
     : and(eq(labsTable.isActive, true), eq(labsTable.type, "ctf"));
   const labs = await db.select().from(labsTable).where(where).orderBy(desc(labsTable.totalPoints)).limit(50);
   const attempts = await db.select().from(labAttemptsTable).where(eq(labAttemptsTable.userId, req.user.userId));
   const aMap = new Map(attempts.map(a => [a.labId, a]));
-  res.json(labs.map(l => ({ ...l, attempt: aMap.get(l.id) ?? null })));
+  res.json(labs.map(l => {
+    const { simulator: _sim, ...rest } = l;
+    return { ...rest, attempt: aMap.get(l.id) ?? null };
+  }));
+});
+
+// ── CTF Leaderboard (ranked by flags captured on ctf-type labs, track-scoped) ──
+router.get("/ctf/leaderboard", requireAuth, async (req: AuthRequest, res): Promise<void> => {
+  if (!req.user) { res.status(401).json({ error: "Unauthorized" }); return; }
+
+  const resolved = await resolveDomainTrack(req.user.role, req.user.userId);
+  if ("error" in resolved) { res.status(403).json({ error: resolved.error }); return; }
+
+  // Scope the ranking to ctf-type labs in the viewer's domain. Admins without a
+  // track see the global ctf ranking.
+  const labFilter = resolved.track
+    ? and(eq(labsTable.type, "ctf"), eq(labsTable.trackId, resolved.track.id))
+    : eq(labsTable.type, "ctf");
+
+  const rows = await db
+    .select({
+      userId: labModuleCompletionsTable.userId,
+      name: usersTable.fullName,
+      points: sum(labModuleCompletionsTable.pointsAwarded),
+      flags: count(labModuleCompletionsTable.id),
+      challenges: countDistinct(labModuleCompletionsTable.labId),
+    })
+    .from(labModuleCompletionsTable)
+    .innerJoin(labsTable, eq(labModuleCompletionsTable.labId, labsTable.id))
+    .leftJoin(usersTable, eq(labModuleCompletionsTable.userId, usersTable.id))
+    .where(labFilter)
+    .groupBy(labModuleCompletionsTable.userId, usersTable.fullName)
+    .orderBy(desc(sum(labModuleCompletionsTable.pointsAwarded)));
+
+  const ranked = rows.map((r, i) => ({
+    rank: i + 1,
+    userId: r.userId,
+    name: r.name ?? "Anonymous",
+    points: Number(r.points ?? 0),
+    flags: Number(r.flags ?? 0),
+    challenges: Number(r.challenges ?? 0),
+    isMe: r.userId === req.user!.userId,
+  }));
+
+  const me = ranked.find((r) => r.isMe) ?? null;
+  res.json({ leaderboard: ranked.slice(0, 50), me, totalPlayers: ranked.length });
 });
 
 // ── Sandbox sessions ───────────────────────────────────────────────────────────

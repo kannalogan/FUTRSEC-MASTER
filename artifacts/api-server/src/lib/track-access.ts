@@ -4,10 +4,23 @@ import { db, tracksTable, usersTable } from "@workspace/db";
 export type CareerTrack = "soc" | "vapt" | "grc";
 
 const DENIED = "Access denied: this content belongs to a different career track.";
+const NO_TRACK = "Access denied: select a career track to unlock this content.";
 
-async function getUserCareerTrack(userId: number): Promise<CareerTrack | null> {
+/**
+ * Resolves the user's effective career track. `careerTrack` is the authoritative
+ * field, but during/after onboarding a user may have only `selectedTrackId` set,
+ * so we fall back to that track's domain. Returns null only when the user has no
+ * determinable track at all.
+ */
+export async function getUserCareerTrack(userId: number): Promise<CareerTrack | null> {
   const user = await db.query.usersTable.findFirst({ where: eq(usersTable.id, userId) });
-  return (user?.careerTrack as CareerTrack | null) ?? null;
+  if (!user) return null;
+  if (user.careerTrack) return user.careerTrack as CareerTrack;
+  if (user.selectedTrackId) {
+    const t = await db.query.tracksTable.findFirst({ where: eq(tracksTable.id, user.selectedTrackId) });
+    return (t?.domain as CareerTrack | undefined) ?? null;
+  }
+  return null;
 }
 
 /**
@@ -55,7 +68,10 @@ export async function checkResourceTrackAccess(
   if (resourceTrackId == null) return null;
 
   const careerTrack = await getUserCareerTrack(userId);
-  if (!careerTrack) return null;
+  // Track-locked: a non-admin with no determinable track cannot access
+  // track-scoped resources by ID. Denying (not allowing) closes the bypass
+  // where a null-track user could read any track's content.
+  if (!careerTrack) return NO_TRACK;
 
   const track = await db.query.tracksTable.findFirst({ where: eq(tracksTable.id, resourceTrackId) });
   if (!track) return null;

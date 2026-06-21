@@ -9,3 +9,4 @@
 - [Route ordering collisions](route-ordering.md) — Express /:param routes swallow sibling static paths; use non-colliding top-level API paths (/internships not /jobs/internships)
 - [Write-route validation](write-route-validation.md) — mutating routes must validate id/existence/track-eligibility/duplicates before insert (broken-access-control guard)
 - [Track-locked RBAC](track-locked-rbac.md) — career_track is the auth source of truth; every track-scoped resource-by-ID route needs a track-access guard (list filters arent enough).
+- [Lab completion uniqueness](lab-completion-uniqueness.md) — lab_module_completions unique per (user,module); score/leaderboard anti-farming lives at completion level, not query level.

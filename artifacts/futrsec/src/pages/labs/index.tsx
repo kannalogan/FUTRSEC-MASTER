@@ -1,17 +1,15 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
+import { useLocation } from "wouter";
 import { apiFetch } from "@/lib/api";
 import { motion } from "framer-motion";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import {
-  FlaskConical, Clock, Target, Trophy, Play, CheckCircle2, AlertCircle,
-  ChevronRight, Tag, Zap, Lock, BookOpen
+  FlaskConical, Clock, Trophy, Play, CheckCircle2, AlertCircle, Zap,
 } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
 
 const DIFF_COLORS: Record<string, string> = {
   beginner: "#10B981",
@@ -25,7 +23,7 @@ const STATUS_MAP: Record<string, { label: string; color: string }> = {
   completed: { label: "Completed", color: "#10B981" },
 };
 
-function LabCard({ lab, onSelect }: { lab: any; onSelect: (lab: any) => void }) {
+function LabCard({ lab, onOpen }: { lab: any; onOpen: (lab: any) => void }) {
   const diff = lab.difficulty ?? "beginner";
   const status = STATUS_MAP[lab.status] ?? STATUS_MAP.not_started;
 
@@ -33,7 +31,7 @@ function LabCard({ lab, onSelect }: { lab: any; onSelect: (lab: any) => void }) 
     <motion.div whileHover={{ y: -2 }} transition={{ duration: 0.15 }}>
       <Card
         className="bg-white border-border/60 hover:shadow-md transition-all cursor-pointer h-full"
-        onClick={() => onSelect(lab)}
+        onClick={() => onOpen(lab)}
       >
         <CardContent className="p-5">
           <div className="flex items-start justify-between gap-2 mb-3">
@@ -89,101 +87,8 @@ function LabCard({ lab, onSelect }: { lab: any; onSelect: (lab: any) => void }) 
   );
 }
 
-function LabDetailDialog({ lab, onClose }: { lab: any | null; onClose: () => void }) {
-  const { toast } = useToast();
-  const qc = useQueryClient();
-
-  const { data: labDetail } = useQuery({
-    queryKey: ["lab", lab?.id],
-    queryFn: () => apiFetch<any>(`/api/labs/${lab.id}`),
-    enabled: !!lab?.id,
-  });
-
-  const startMutation = useMutation({
-    mutationFn: (labId: number) => apiFetch(`/api/labs/${labId}/start`, { method: "POST", body: JSON.stringify({}) }),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["labs"] });
-      toast({ title: "Lab started!", description: "Your attempt is recorded. Good luck!" });
-      onClose();
-    },
-    onError: (e: Error) => toast({ title: "Error", description: e.message, variant: "destructive" }),
-  });
-
-  if (!lab) return null;
-
-  return (
-    <Dialog open={!!lab} onOpenChange={onClose}>
-      <DialogContent className="max-w-lg">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <FlaskConical className="h-5 w-5 text-orange-500" />
-            {lab.title}
-          </DialogTitle>
-        </DialogHeader>
-        <div className="space-y-4">
-          <p className="text-sm text-muted-foreground">{lab.description}</p>
-          <div className="flex flex-wrap gap-3 text-sm">
-            <div className="flex items-center gap-1.5 bg-muted/50 px-3 py-1.5 rounded-lg">
-              <Clock className="h-4 w-4 text-muted-foreground" />
-              <span>{lab.estimatedMinutes} minutes</span>
-            </div>
-            <div className="flex items-center gap-1.5 bg-muted/50 px-3 py-1.5 rounded-lg">
-              <Trophy className="h-4 w-4 text-muted-foreground" />
-              <span>{lab.totalPoints} points</span>
-            </div>
-            <div className="flex items-center gap-1.5 bg-muted/50 px-3 py-1.5 rounded-lg">
-              <Target className="h-4 w-4 text-muted-foreground" />
-              <span className="capitalize">{lab.difficulty}</span>
-            </div>
-          </div>
-          <div className="flex flex-wrap gap-1.5">
-            {lab.tags?.map((tag: string) => (
-              <Badge key={tag} variant="secondary" className="text-xs">{tag}</Badge>
-            ))}
-          </div>
-          {labDetail?.modules && labDetail.modules.length > 0 && (
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">Lab Tasks</p>
-              <div className="space-y-2">
-                {labDetail.modules.map((task: any, i: number) => (
-                  <div key={task.id} className="flex items-start gap-2.5 p-3 bg-muted/30 rounded-lg">
-                    <div className="h-5 w-5 rounded-full bg-primary/10 text-primary text-xs font-bold flex items-center justify-center shrink-0 mt-0.5">
-                      {i + 1}
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium text-foreground">{task.title}</p>
-                      <p className="text-xs text-muted-foreground mt-0.5">{task.taskDescription}</p>
-                      <span className="text-xs font-medium text-primary mt-1 block">{task.points} pts</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-          <div className="flex gap-2 pt-2">
-            <Button variant="outline" className="flex-1" onClick={onClose}>Cancel</Button>
-            {lab.status === "not_started" ? (
-              <Button
-                className="flex-1"
-                onClick={() => startMutation.mutate(lab.id)}
-                disabled={startMutation.isPending}
-              >
-                {startMutation.isPending ? "Starting..." : "Start Lab"}
-              </Button>
-            ) : lab.status === "in_progress" ? (
-              <Button className="flex-1 bg-orange-500 hover:bg-orange-600">Continue Lab</Button>
-            ) : (
-              <Button variant="outline" className="flex-1 text-green-600 border-green-200">View Report</Button>
-            )}
-          </div>
-        </div>
-      </DialogContent>
-    </Dialog>
-  );
-}
-
 export default function LabsPage() {
-  const [selectedLab, setSelectedLab] = useState<any | null>(null);
+  const [, navigate] = useLocation();
   const [filter, setFilter] = useState<string>("all");
 
   const { data, isLoading, isError } = useQuery({
@@ -261,12 +166,10 @@ export default function LabsPage() {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {filtered.map((lab: any) => (
-            <LabCard key={lab.id} lab={lab} onSelect={setSelectedLab} />
+            <LabCard key={lab.id} lab={lab} onOpen={(l) => navigate(`/labs/${l.id}`)} />
           ))}
         </div>
       )}
-
-      <LabDetailDialog lab={selectedLab} onClose={() => setSelectedLab(null)} />
     </div>
   );
 }

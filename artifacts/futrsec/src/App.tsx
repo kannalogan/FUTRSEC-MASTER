@@ -40,6 +40,7 @@ import CTFPage from "@/pages/labs/ctf";
 import SandboxPage from "@/pages/labs/sandbox";
 import VMsPage from "@/pages/labs/vms";
 import LabReportsPage from "@/pages/labs/reports";
+import LabWorkspacePage from "@/pages/labs/workspace";
 import JobsPage from "@/pages/jobs/index";
 import ApplicationsPage from "@/pages/jobs/applications";
 import InternshipsPage from "@/pages/jobs/internships";
@@ -161,6 +162,7 @@ function Router() {
       <Route path="/labs/sandbox"><ProtectedRoute component={SandboxPage} /></Route>
       <Route path="/labs/vms"><ProtectedRoute component={VMsPage} /></Route>
       <Route path="/labs/reports"><ProtectedRoute component={LabReportsPage} /></Route>
+      <Route path="/labs/:labId"><ProtectedRoute component={LabWorkspacePage} /></Route>
 
       {/* Jobs */}
       <Route path="/jobs"><ProtectedRoute component={JobsPage} /></Route>
