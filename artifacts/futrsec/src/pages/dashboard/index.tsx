@@ -41,7 +41,7 @@ function CircularProgress({ value, size = 84, stroke = 7, color = "#3B82F6", lab
     <div className="flex flex-col items-center">
       <div className="relative" style={{ width: size, height: size }}>
         <svg width={size} height={size} className="-rotate-90">
-          <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth={stroke} />
+          <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="hsl(var(--border))" strokeWidth={stroke} />
           <circle
             cx={size / 2} cy={size / 2} r={r} fill="none" stroke={color} strokeWidth={stroke}
             strokeDasharray={c} strokeDashoffset={offset} strokeLinecap="round"
@@ -49,10 +49,10 @@ function CircularProgress({ value, size = 84, stroke = 7, color = "#3B82F6", lab
           />
         </svg>
         <div className="absolute inset-0 flex items-center justify-center">
-          <span className="text-lg font-bold font-heading text-white">{label}</span>
+          <span className="text-lg font-bold font-heading text-foreground">{label}</span>
         </div>
       </div>
-      {sub && <span className="text-[11px] text-white/55 mt-1.5">{sub}</span>}
+      {sub && <span className="text-[11px] text-muted-foreground mt-1.5">{sub}</span>}
     </div>
   );
 }
@@ -192,7 +192,7 @@ export default function DashboardHome() {
         <div className="relative flex items-start justify-between gap-6 flex-wrap">
           <div className="flex items-center gap-5">
             <div
-              className="h-16 w-16 lg:h-20 lg:w-20 rounded-2xl flex items-center justify-center text-2xl font-bold font-heading text-white shrink-0 ring-1 ring-white/10"
+              className="h-16 w-16 lg:h-20 lg:w-20 rounded-2xl flex items-center justify-center text-2xl font-bold font-heading text-white shrink-0 ring-1 ring-border"
               style={{ background: `linear-gradient(135deg, ${trackColor}, #8B5CF6)` }}
             >
               {initial}
@@ -201,7 +201,7 @@ export default function DashboardHome() {
               <p className="text-muted-foreground text-sm mb-1">{greeting}</p>
               <h1 className="text-page-title text-foreground">{firstName}</h1>
               {trackLabel && (
-                <div className="inline-flex items-center gap-2 mt-3 px-3 py-1.5 rounded-full bg-white/5 ring-1 ring-white/10">
+                <div className="inline-flex items-center gap-2 mt-3 px-3 py-1.5 rounded-full bg-muted/60 ring-1 ring-border">
                   <span className="h-2 w-2 rounded-full" style={{ backgroundColor: trackColor, boxShadow: `0 0 8px ${trackColor}` }} />
                   <span className="text-sm font-semibold" style={{ color: trackColor }}>{trackLabel}</span>
                 </div>
@@ -233,11 +233,11 @@ export default function DashboardHome() {
         </div>
 
         {trial.isActive && (
-          <div className="relative mt-6 flex items-center gap-3 rounded-2xl bg-white/[0.04] ring-1 ring-white/10 px-4 py-3">
+          <div className="relative mt-6 flex items-center gap-3 rounded-2xl bg-muted/50 ring-1 ring-border px-4 py-3">
             <Flame className="h-5 w-5 text-orange-400 shrink-0" />
-            <span className="text-sm font-semibold text-white">Trial — Day {trial.day} / {trial.totalDays}</span>
-            <span className="text-xs text-white/55">{trial.daysRemaining} days remaining</span>
-            <div className="ml-auto h-2 w-40 max-w-[40vw] rounded-full bg-white/10 overflow-hidden">
+            <span className="text-sm font-semibold text-foreground">Trial — Day {trial.day} / {trial.totalDays}</span>
+            <span className="text-xs text-muted-foreground">{trial.daysRemaining} days remaining</span>
+            <div className="ml-auto h-2 w-40 max-w-[40vw] rounded-full bg-muted overflow-hidden">
               <div className="h-full rounded-full bg-gradient-to-r from-orange-400 to-primary" style={{ width: `${(trial.day / trial.totalDays) * 100}%` }} />
             </div>
           </div>
@@ -298,7 +298,7 @@ export default function DashboardHome() {
                   <Link
                     key={action.href}
                     href={action.href}
-                    className="flex items-center gap-3 p-3.5 rounded-xl bg-white/[0.03] ring-1 ring-white/[0.06] hover:ring-white/15 hover:bg-white/[0.06] transition-all group"
+                    className="flex items-center gap-3 p-3.5 rounded-xl bg-muted/40 ring-1 ring-border hover:ring-primary/30 hover:bg-muted/70 transition-all group"
                   >
                     <div className="h-9 w-9 rounded-xl flex items-center justify-center shrink-0" style={{ backgroundColor: `${action.color}22` }}>
                       <action.icon className="h-4 w-4" style={{ color: action.color }} />
@@ -320,7 +320,7 @@ export default function DashboardHome() {
               {(data?.recentActivity?.labs?.length > 0 || data?.recentActivity?.applications?.length > 0) ? (
                 <div className="space-y-2.5">
                   {data.recentActivity.labs?.slice(0, 3).map((lab: any) => (
-                    <div key={lab.id} className="flex items-center gap-3 p-3 rounded-xl bg-white/[0.03] ring-1 ring-white/[0.05]">
+                    <div key={lab.id} className="flex items-center gap-3 p-3 rounded-xl bg-muted/40 ring-1 ring-border">
                       <div className="h-8 w-8 rounded-lg bg-orange-500/15 flex items-center justify-center shrink-0">
                         <FlaskConical className="h-4 w-4 text-orange-400" />
                       </div>
@@ -334,7 +334,7 @@ export default function DashboardHome() {
                     </div>
                   ))}
                   {data.recentActivity.applications?.slice(0, 3).map((app: any) => (
-                    <div key={app.id} className="flex items-center gap-3 p-3 rounded-xl bg-white/[0.03] ring-1 ring-white/[0.05]">
+                    <div key={app.id} className="flex items-center gap-3 p-3 rounded-xl bg-muted/40 ring-1 ring-border">
                       <div className="h-8 w-8 rounded-lg bg-primary/15 flex items-center justify-center shrink-0">
                         <Briefcase className="h-4 w-4 text-primary" />
                       </div>

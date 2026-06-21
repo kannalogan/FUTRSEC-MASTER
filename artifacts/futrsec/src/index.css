@@ -67,67 +67,76 @@
   --radius-xl: calc(var(--radius) + 4px);
 }
 
-/* Premium 2026 dark palette is the default for the whole platform. */
+/*
+ * LIGHT theme is the :root default (Stripe / Linear / Vercel feel).
+ * DARK theme lives under .dark. The pre-React inline script in index.html
+ * sets .dark before first paint based on localStorage + system preference,
+ * so there is no flash. Brand accents are identical across both themes.
+ */
 :root {
-  --background: 224 71% 4%;        /* #030712 */
-  --foreground: 210 40% 98%;
+  --background: 210 40% 98%;       /* #F8FAFC */
+  --foreground: 222 47% 11%;       /* #0F172A */
 
-  --border: 217 33% 18%;
-  --input: 217 33% 18%;
+  --border: 214 32% 91%;           /* #E2E8F0 */
+  --input: 214 32% 91%;
   --ring: 217 91% 60%;
 
-  --card: 222 47% 11%;             /* #0F172A */
-  --card-foreground: 210 40% 98%;
-  --card-border: 217 30% 22%;
+  --card: 0 0% 100%;               /* #FFFFFF */
+  --card-foreground: 222 47% 11%;
+  --card-border: 214 32% 91%;
 
-  --popover: 222 47% 11%;
-  --popover-foreground: 210 40% 98%;
-  --popover-border: 217 30% 22%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 222 47% 11%;
+  --popover-border: 214 32% 91%;
 
   --primary: 217 91% 60%;          /* Electric Blue #3B82F6 */
   --primary-foreground: 0 0% 100%;
 
-  --secondary: 217 33% 17%;
-  --secondary-foreground: 210 40% 98%;
+  --secondary: 210 40% 96%;
+  --secondary-foreground: 222 47% 11%;
 
-  --muted: 217 33% 15%;
-  --muted-foreground: 215 20% 65%;
+  --muted: 210 40% 96%;
+  --muted-foreground: 215 19% 35%; /* #475569 */
 
-  --accent: 217 33% 17%;
-  --accent-foreground: 210 40% 98%;
+  --accent: 210 40% 96%;
+  --accent-foreground: 222 47% 11%;
 
   --destructive: 0 84% 60%;
   --destructive-foreground: 0 0% 100%;
 
-  /* Brand accents */
+  /* Brand accents — same in both themes */
   --electric: 217 91% 60%;         /* #3B82F6 */
   --violet: 258 90% 66%;           /* #8B5CF6 */
   --emerald: 160 84% 39%;          /* #10B981 */
 
-  --sidebar: 224 71% 4%;           /* #030712 */
-  --sidebar-foreground: 210 40% 98%;
-  --sidebar-border: 217 33% 14%;
+  --sidebar: 0 0% 100%;            /* #FFFFFF */
+  --sidebar-foreground: 222 47% 11%;
+  --sidebar-border: 214 32% 91%;
   --sidebar-primary: 217 91% 60%;
   --sidebar-primary-foreground: 0 0% 100%;
-  --sidebar-accent: 217 60% 14%;
-  --sidebar-accent-foreground: 210 40% 98%;
+  --sidebar-accent: 214 32% 93%;   /* hover surface */
+  --sidebar-accent-foreground: 222 47% 11%;
   --sidebar-ring: 217 91% 60%;
+
+  /* Glass surface tokens (light) */
+  --glass-bg: 0 0% 100% / 0.72;
+  --glass-border: 214 32% 88% / 0.9;
+  --glass-shadow: 222 47% 11% / 0.08;
 
   --app-font-sans: 'Inter', sans-serif;
   --app-font-mono: 'JetBrains Mono', monospace;
   --radius: 0.75rem;
 }
 
-/* Keep .dark identical so any explicit .dark usage matches the default. */
 .dark {
-  --background: 224 71% 4%;
-  --foreground: 210 40% 98%;
+  --background: 224 71% 4%;        /* #030712 */
+  --foreground: 210 40% 98%;       /* #F8FAFC */
 
   --border: 217 33% 18%;
   --input: 217 33% 18%;
   --ring: 217 91% 60%;
 
-  --card: 222 47% 11%;
+  --card: 222 47% 11%;             /* #0F172A */
   --card-foreground: 210 40% 98%;
   --card-border: 217 30% 22%;
 
@@ -162,6 +171,11 @@
   --sidebar-accent: 217 60% 14%;
   --sidebar-accent-foreground: 210 40% 98%;
   --sidebar-ring: 217 91% 60%;
+
+  /* Glass surface tokens (dark) */
+  --glass-bg: 222 47% 12% / 0.85;
+  --glass-border: 0 0% 100% / 0.06;
+  --glass-shadow: 224 71% 2% / 0.7;
 }
 
 @layer base {
@@ -178,16 +192,26 @@
   h1, h2, h3, h4, h5, h6 {
     @apply font-heading tracking-tight;
   }
+
+  /* Smooth color transitions on theme switch (enabled after first paint to
+     avoid a load flash). Explicit Tailwind transition-* utilities still win. */
+  .theme-ready *,
+  .theme-ready *::before,
+  .theme-ready *::after {
+    transition-property: background-color, border-color, color, fill, stroke;
+    transition-duration: 300ms;
+    transition-timing-function: ease;
+  }
 }
 
 @layer components {
-  /* Glassmorphism surface — frosted dark card with subtle inner highlight */
+  /* Glassmorphism surface — frosted, theme-aware via --glass-* tokens */
   .glass-card {
-    background: linear-gradient(180deg, hsl(222 47% 13% / 0.85) 0%, hsl(222 47% 10% / 0.85) 100%);
+    background: hsl(var(--glass-bg));
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
-    border: 1px solid hsl(0 0% 100% / 0.06);
-    box-shadow: 0 1px 0 0 hsl(0 0% 100% / 0.04) inset, 0 10px 30px -12px hsl(224 71% 2% / 0.7);
+    border: 1px solid hsl(var(--glass-border));
+    box-shadow: 0 1px 0 0 hsl(0 0% 100% / 0.04) inset, 0 10px 30px -12px hsl(var(--glass-shadow));
   }
 
   /* Gradient hairline border using a masked pseudo-element */

@@ -5,9 +5,10 @@ import { Link } from "wouter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
-import { Settings as SettingsIcon, Bell, Shield, Save, Lock } from "lucide-react";
+import { Settings as SettingsIcon, Bell, Shield, Save, Lock, Palette } from "lucide-react";
 import { PageHeader, CardSkeleton } from "@/components/page-shell";
 import { useToast } from "@/hooks/use-toast";
+import { ThemeSelector } from "@/components/theme-toggle";
 
 interface SettingsData {
   notifications: { email: boolean; push: boolean; marketing: boolean; weeklyDigest: boolean };
@@ -61,6 +62,18 @@ export default function SettingsPage() {
       <PageHeader icon={SettingsIcon} title="Settings" subtitle="Manage your account preferences" />
 
       <div className="space-y-5">
+        <Card className="bg-card border-border/60">
+          <CardHeader className="pb-3 pt-4 px-5">
+            <CardTitle className="text-sm font-semibold flex items-center gap-2">
+              <Palette className="h-4 w-4 text-primary" />Appearance
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="px-5 pb-5">
+            <p className="text-sm text-muted-foreground mb-3">Choose how FUTRSEC looks to you.</p>
+            <ThemeSelector />
+          </CardContent>
+        </Card>
+
         <Card className="bg-card border-border/60">
           <CardHeader className="pb-3 pt-4 px-5">
             <CardTitle className="text-sm font-semibold flex items-center gap-2">

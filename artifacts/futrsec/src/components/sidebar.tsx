@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { useLogout } from "@workspace/api-client-react";
 import { useUnreadNotificationCount } from "@/lib/notifications-api";
+import { ThemeToggle } from "@/components/theme-toggle";
 import {
   LayoutDashboard, BookOpen, GraduationCap, Calendar, Map, Bookmark, Users,
   Target, ClipboardList, CheckSquare, ListTodo, FolderKanban, Briefcase, Navigation,
@@ -319,14 +320,14 @@ function NavLink({ item }: { item: NavItem }) {
       href={item.href}
       className={`relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-base transition-all duration-150 group ${
         isActive
-          ? "bg-primary/15 text-white font-semibold"
-          : "text-white/55 hover:text-white hover:bg-white/[0.06]"
+          ? "bg-primary/15 text-foreground font-semibold"
+          : "text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent"
       }`}
     >
       {isActive && (
         <span className="absolute left-0 top-1/2 -translate-y-1/2 h-5 w-1 rounded-full bg-primary shadow-[0_0_12px_2px_rgba(59,130,246,0.7)]" />
       )}
-      <item.icon className={`h-[18px] w-[18px] shrink-0 ${isActive ? "text-primary" : "text-white/40 group-hover:text-white/80"}`} />
+      <item.icon className={`h-[18px] w-[18px] shrink-0 ${isActive ? "text-primary" : "text-sidebar-foreground/40 group-hover:text-sidebar-foreground/80"}`} />
       <span className="truncate">{item.label}</span>
       {item.badge && (
         <span className="ml-auto text-[11px] font-semibold bg-primary text-white px-2 py-0.5 rounded-full">{item.badge}</span>
@@ -367,21 +368,21 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
   const sections = navForRole(role);
 
   return (
-    <div className="flex flex-col h-full bg-sidebar text-white relative overflow-hidden">
+    <div className="flex flex-col h-full bg-sidebar text-sidebar-foreground relative overflow-hidden">
       {/* Ambient glow */}
       <div className="pointer-events-none absolute -top-24 -left-16 h-56 w-56 rounded-full bg-primary/20 blur-[80px]" />
       <div className="pointer-events-none absolute top-1/3 -right-20 h-56 w-56 rounded-full bg-violet/15 blur-[90px]" />
 
       {/* Logo */}
-      <div className="relative flex items-center justify-between px-6 h-16 border-b border-white/[0.06] shrink-0">
+      <div className="relative flex items-center justify-between px-6 h-16 border-b border-sidebar-border shrink-0">
         <div className="flex items-center gap-2.5">
           <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-primary to-violet flex items-center justify-center shadow-[0_0_18px_-2px_rgba(59,130,246,0.6)]">
             <Shield className="h-5 w-5 text-white" />
           </div>
-          <span className="font-heading font-bold text-lg tracking-tight text-white">FUTRSEC</span>
+          <span className="font-heading font-bold text-lg tracking-tight text-sidebar-foreground">FUTRSEC</span>
         </div>
         {onClose && (
-          <button onClick={onClose} className="text-white/50 hover:text-white p-1">
+          <button onClick={onClose} className="text-sidebar-foreground/50 hover:text-sidebar-foreground p-1">
             <X className="h-5 w-5" />
           </button>
         )}
@@ -389,11 +390,11 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
 
       {/* Track Badge — students only */}
       {isStudent && trackSlug && (
-        <div className="relative px-5 py-4 border-b border-white/[0.06]">
+        <div className="relative px-5 py-4 border-b border-sidebar-border">
           <div className="flex items-center gap-2.5 glass-card rounded-xl px-3.5 py-2.5">
             <span className="h-2.5 w-2.5 rounded-full shrink-0" style={{ backgroundColor: trackColor, boxShadow: `0 0 10px 1px ${trackColor}` }} />
-            <span className="text-sm font-semibold text-white/90 truncate">{trackLabel}</span>
-            <span className="ml-auto text-[10px] uppercase tracking-wider text-white/40 shrink-0">Active</span>
+            <span className="text-sm font-semibold text-sidebar-foreground/90 truncate">{trackLabel}</span>
+            <span className="ml-auto text-[10px] uppercase tracking-wider text-sidebar-foreground/40 shrink-0">Active</span>
           </div>
         </div>
       )}
@@ -406,7 +407,7 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
             <div key={section.title} className="mb-2">
               <button
                 onClick={() => toggleSection(section.title)}
-                className="w-full flex items-center justify-between px-3 py-2 text-eyebrow text-white/35 hover:text-white/60 transition-colors"
+                className="w-full flex items-center justify-between px-3 py-2 text-eyebrow text-sidebar-foreground/40 hover:text-sidebar-foreground/70 transition-colors"
               >
                 {section.title}
                 {isCollapsed ? <ChevronRight className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
@@ -429,20 +430,20 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
         {/* Explore other tracks — students only, locked/view-only */}
         {isStudent && trackSlug && lockedTracks.length > 0 && (
           <div className="mb-2 mt-3">
-            <div className="px-3 py-2 text-eyebrow text-white/35">Explore</div>
+            <div className="px-3 py-2 text-eyebrow text-sidebar-foreground/40">Explore</div>
             <div className="space-y-1">
               {lockedTracks.map((t) => (
                 <div
                   key={t}
                   title="Locked — your career track is fixed. Contact an admin to change tracks."
-                  className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-base text-white/30 cursor-not-allowed select-none"
+                  className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-base text-sidebar-foreground/35 cursor-not-allowed select-none"
                 >
                   <span
                     className="h-2.5 w-2.5 rounded-full shrink-0"
                     style={{ backgroundColor: TRACK_COLORS[t] ?? "#3B82F6" }}
                   />
                   <span className="truncate">{TRACK_LABELS[t] ?? t}</span>
-                  <Lock className="h-4 w-4 ml-auto shrink-0 text-white/30" />
+                  <Lock className="h-4 w-4 ml-auto shrink-0 text-sidebar-foreground/35" />
                 </div>
               ))}
             </div>
@@ -451,22 +452,23 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
       </nav>
 
       {/* User footer */}
-      <div className="relative px-4 py-4 border-t border-white/[0.06] shrink-0">
+      <div className="relative px-4 py-4 border-t border-sidebar-border shrink-0 space-y-3">
+        <ThemeToggle />
         <div className="flex items-center gap-3 glass-card rounded-xl px-3 py-2.5">
-          <div className="h-9 w-9 rounded-full bg-gradient-to-br from-primary/30 to-violet/30 flex items-center justify-center shrink-0 ring-1 ring-white/10">
-            <span className="text-sm font-bold text-white">
+          <div className="h-9 w-9 rounded-full bg-gradient-to-br from-primary/30 to-violet/30 flex items-center justify-center shrink-0 ring-1 ring-border">
+            <span className="text-sm font-bold text-sidebar-foreground">
               {user?.fullName?.[0]?.toUpperCase() ?? user?.email?.[0]?.toUpperCase() ?? "U"}
             </span>
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-semibold text-white truncate">
+            <p className="text-sm font-semibold text-sidebar-foreground truncate">
               {user?.fullName ?? user?.email ?? "Student"}
             </p>
-            <p className="text-[11px] text-white/45 truncate capitalize">{role ?? "student"}</p>
+            <p className="text-[11px] text-sidebar-foreground/50 truncate capitalize">{role ?? "student"}</p>
           </div>
           <button
             onClick={handleLogout}
-            className="p-2 rounded-lg text-white/40 hover:text-white hover:bg-white/[0.06] transition-colors"
+            className="p-2 rounded-lg text-sidebar-foreground/50 hover:text-sidebar-foreground hover:bg-sidebar-accent transition-colors"
             title="Log out"
           >
             <LogOut className="h-4 w-4" />

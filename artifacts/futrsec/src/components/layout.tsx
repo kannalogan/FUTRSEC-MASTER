@@ -11,7 +11,7 @@ function MobileBottomNav() {
   const items = primaryNavForRole(user?.role ?? null);
 
   return (
-    <nav className="lg:hidden fixed bottom-0 inset-x-0 z-40 border-t border-white/[0.06] bg-sidebar/95 backdrop-blur-xl">
+    <nav className="lg:hidden fixed bottom-0 inset-x-0 z-40 border-t border-sidebar-border bg-sidebar/95 backdrop-blur-xl">
       <div className="grid grid-cols-5">
         {items.map((item) => {
           const isActive = location === item.href;
@@ -20,7 +20,7 @@ function MobileBottomNav() {
               key={item.href + item.label}
               href={item.href}
               className={`flex flex-col items-center justify-center gap-1 py-2.5 text-[11px] font-medium transition-colors ${
-                isActive ? "text-primary" : "text-white/50 hover:text-white/80"
+                isActive ? "text-primary" : "text-sidebar-foreground/55 hover:text-sidebar-foreground"
               }`}
             >
               <item.icon className="h-5 w-5" />
@@ -39,7 +39,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex h-screen w-full bg-background overflow-hidden">
       {/* Desktop sidebar — 300px */}
-      <aside className="hidden lg:flex w-[300px] shrink-0 flex-col border-r border-white/[0.06] overflow-hidden">
+      <aside className="hidden lg:flex w-[300px] shrink-0 flex-col border-r border-sidebar-border overflow-hidden">
         <Sidebar />
       </aside>
 
@@ -64,10 +64,10 @@ export function Layout({ children }: { children: React.ReactNode }) {
       {/* Main content */}
       <main className="flex-1 flex flex-col min-h-0 overflow-hidden">
         {/* Mobile / tablet header */}
-        <header className="lg:hidden h-14 border-b border-white/[0.06] bg-sidebar flex items-center px-4 gap-3 shrink-0">
+        <header className="lg:hidden h-14 border-b border-sidebar-border bg-sidebar flex items-center px-4 gap-3 shrink-0">
           <button
             onClick={() => setMobileSidebarOpen(true)}
-            className="p-2 rounded-lg text-white/60 hover:text-white hover:bg-white/[0.06] transition-colors"
+            className="p-2 rounded-lg text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent transition-colors"
             aria-label="Open menu"
           >
             <Menu className="h-5 w-5" />
@@ -76,7 +76,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
             <div className="h-7 w-7 rounded-lg bg-gradient-to-br from-primary to-violet flex items-center justify-center">
               <Shield className="h-4 w-4 text-white" />
             </div>
-            <span className="font-heading font-bold text-base tracking-tight text-white">FUTRSEC</span>
+            <span className="font-heading font-bold text-base tracking-tight text-sidebar-foreground">FUTRSEC</span>
           </div>
         </header>
 

@@ -13,4 +13,4 @@
 - [SSRF-guarded URL fetch](ssrf-url-fetch.md) — server-side fetch of user URLs must re-validate every redirect hop, not just the first; redirect:"follow" bypasses the block list.
 - [Lab completion uniqueness](lab-completion-uniqueness.md) — lab_module_completions unique per (user,module); score/leaderboard anti-farming lives at completion level, not query level.
 - [Task audience batch derivation](task-audience-batch-derivation.md) — publish-from-draft of batch-targeted tasks must re-load persisted batch IDs (not default to []) and re-validate batch ownership on every mutation.
-- [Dark theme convention](dark-theme-convention.md) — futrsec is dark-by-default via :root; use semantic tokens / glass-card, never bg-white; sidebar uses navForRole() per-role isolation
+- [Theme convention](dark-theme-convention.md) — futrsec has Light(:root)/Dark(.dark)/System theming; no-flicker inline script in index.html; use semantic tokens never bg-white/text-white (except on gradient/accent bg); sidebar navForRole() isolation
