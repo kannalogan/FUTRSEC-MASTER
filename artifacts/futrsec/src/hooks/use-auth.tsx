@@ -1,5 +1,10 @@
-import { createContext, useContext, useEffect, useState } from "react";
-import { useGetMe, getGetMeQueryKey, UserProfile } from "@workspace/api-client-react";
+import { createContext, useContext, useState } from "react";
+import { useGetMe, getGetMeQueryKey, UserProfile, setAuthTokenGetter } from "@workspace/api-client-react";
+
+// Wire the token getter ONCE at module load time so every Orval-generated
+// hook (useCaptureConsent, useGetMe, etc.) automatically attaches
+// "Authorization: Bearer <token>" without any per-call plumbing.
+setAuthTokenGetter(() => localStorage.getItem("futrsec_token"));
 
 interface AuthContextType {
   user: UserProfile | null;

@@ -117,14 +117,16 @@ router.post("/consent", requireAuth, async (req: AuthRequest, res): Promise<void
     .where(eq(usersTable.id, req.user.userId));
 
   const needsApproval = userRow?.role === "tpo" || userRow?.role === "employer";
-  const nextStep = needsApproval ? "pending_approval" : "profile";
+  const nextStep = needsApproval ? "pending_approval" : "track_selection";
 
   if (userRow?.onboardingStep === "consent") {
     await db
       .update(usersTable)
-      .set({ onboardingStep: nextStep as "pending_approval" | "profile" })
+      .set({ onboardingStep: nextStep as "pending_approval" | "track_selection" })
       .where(eq(usersTable.id, req.user.userId));
   }
+
+  req.log.info({ userId: req.user.userId, role: userRow?.role, nextStep }, "Consent saved");
 
   res.json({
     userId: consent.userId,

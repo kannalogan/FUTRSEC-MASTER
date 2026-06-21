@@ -21,9 +21,9 @@ export default function Consent() {
       { data: { dataProcessing: true, marketing, analytics, thirdParty } },
       {
         onSuccess: (data) => {
-          const nextStep = (data as unknown as Record<string, unknown>).nextStep as string | undefined ?? "profile";
+          const nextStep = (data as unknown as Record<string, unknown>).nextStep as string | undefined ?? "track_selection";
           if (nextStep === "pending_approval") setLocation("/onboarding/pending");
-          else setLocation("/onboarding/profile");
+          else setLocation("/onboarding/tracks");
         }
       }
     );
