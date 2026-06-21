@@ -13,7 +13,10 @@ import profileRouter from "./profile";
 import platformExtendedRouter from "./platform-extended";
 import adminRouter from "./admin";
 import adminMentorsRouter from "./admin-mentors";
+import adminExtendedRouter from "./admin-extended";
 import mentorRouter from "./mentor";
+import tpoRouter from "./tpo";
+import employerRouter from "./employer";
 import aiRouter from "./ai";
 import aiInterviewRouter from "./ai-interview";
 
@@ -35,6 +38,9 @@ router.use(aiRouter);
 router.use(aiInterviewRouter);
 router.use(adminRouter);
 router.use(adminMentorsRouter);
+router.use(adminExtendedRouter);
 router.use(mentorRouter);
+router.use(tpoRouter);
+router.use(employerRouter);
 
 export default router;

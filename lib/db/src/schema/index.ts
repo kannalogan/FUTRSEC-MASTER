@@ -7,4 +7,5 @@ export * from "./jobs";
 export * from "./assignments";
 export * from "./ai";
 export * from "./mentor";
+export * from "./placement";
 export * from "./relations";

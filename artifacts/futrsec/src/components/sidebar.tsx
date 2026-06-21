@@ -132,6 +132,36 @@ const MENTOR_NAV: NavSection[] = [
   },
 ];
 
+const TPO_NAV: NavSection[] = [
+  {
+    title: "TPO",
+    items: [
+      { label: "Overview", href: "/tpo", icon: Gauge },
+      { label: "Student Analytics", href: "/tpo/analytics", icon: BarChart3 },
+      { label: "Placements", href: "/tpo/placements", icon: Briefcase },
+      { label: "Student Directory", href: "/tpo/directory", icon: Users },
+      { label: "Reports", href: "/tpo/reports", icon: FileText },
+      { label: "Events", href: "/tpo/events", icon: Calendar },
+      { label: "Settings", href: "/tpo/settings", icon: Settings },
+    ],
+  },
+];
+
+const EMPLOYER_NAV: NavSection[] = [
+  {
+    title: "EMPLOYER",
+    items: [
+      { label: "Overview", href: "/employer", icon: Gauge },
+      { label: "Job Postings", href: "/employer/jobs", icon: Briefcase },
+      { label: "Candidates", href: "/employer/candidates", icon: Users },
+      { label: "Interviews", href: "/employer/interviews", icon: MessageSquare },
+      { label: "Offers", href: "/employer/offers", icon: Gift },
+      { label: "Hiring Analytics", href: "/employer/analytics", icon: BarChart3 },
+      { label: "Settings", href: "/employer/settings", icon: Settings },
+    ],
+  },
+];
+
 const TRACK_COLORS: Record<string, string> = {
   soc: "#2563EB",
   vapt: "#F97316",
@@ -225,7 +255,14 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
 
       {/* Nav */}
       <nav className="flex-1 overflow-y-auto py-2 px-2 scrollbar-thin">
-        {(user?.role === "mentor" ? MENTOR_NAV : NAV_SECTIONS).map((section) => {
+        {(user?.role === "mentor"
+          ? MENTOR_NAV
+          : user?.role === "tpo"
+            ? TPO_NAV
+            : user?.role === "employer"
+              ? EMPLOYER_NAV
+              : NAV_SECTIONS
+        ).map((section) => {
           const isCollapsed = collapsed[section.title];
           return (
             <div key={section.title} className="mb-1">
@@ -254,8 +291,19 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
               Admin
             </div>
             <div className="space-y-0.5">
+              <NavLink item={{ label: "Overview", href: "/admin", icon: Gauge }} />
               <NavLink item={{ label: "Student Management", href: "/admin/students", icon: Users }} />
               <NavLink item={{ label: "Mentor Management", href: "/admin/mentors", icon: UserCog }} />
+              <NavLink item={{ label: "TPO Management", href: "/admin/tpos", icon: GraduationCap }} />
+              <NavLink item={{ label: "Company Management", href: "/admin/companies", icon: Building }} />
+              <NavLink item={{ label: "Jobs", href: "/admin/jobs", icon: Briefcase }} />
+              <NavLink item={{ label: "Applications", href: "/admin/applications", icon: Send }} />
+              <NavLink item={{ label: "Placements", href: "/admin/placements", icon: Award }} />
+              <NavLink item={{ label: "Subscriptions", href: "/admin/subscriptions", icon: CreditCard }} />
+              <NavLink item={{ label: "Payments", href: "/admin/payments", icon: Receipt }} />
+              <NavLink item={{ label: "AI Usage", href: "/admin/ai-usage", icon: Bot }} />
+              <NavLink item={{ label: "Consent Logs", href: "/admin/consent-logs", icon: Shield }} />
+              <NavLink item={{ label: "Audit Logs", href: "/admin/audit-logs", icon: History }} />
             </div>
           </div>
         )}

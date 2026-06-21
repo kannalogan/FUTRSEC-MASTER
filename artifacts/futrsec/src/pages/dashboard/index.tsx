@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { apiFetch } from "@/lib/api";
 import { useAuth } from "@/hooks/use-auth";
-import { Link } from "wouter";
+import { Link, Redirect } from "wouter";
 import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -99,6 +99,9 @@ function CheckpointTimeline({ timeline }: { timeline: any[] }) {
 
 export default function DashboardHome() {
   const { user } = useAuth();
+
+  if (user?.role === "tpo") return <Redirect to="/tpo" />;
+  if (user?.role === "employer") return <Redirect to="/employer" />;
 
   const { data, isLoading, isError } = useQuery({
     queryKey: ["dashboard/home"],

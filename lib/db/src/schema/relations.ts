@@ -78,6 +78,11 @@ import {
   mentorTaskBatchesTable,
   mentorTaskAssignmentsTable,
 } from "./mentor";
+import {
+  studentTpoMapTable,
+  eventsTable,
+  eventRegistrationsTable,
+} from "./placement";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Users
@@ -789,6 +794,45 @@ export const mentorTaskAssignmentsRelations = relations(
     }),
     student: one(usersTable, {
       fields: [mentorTaskAssignmentsTable.studentId],
+      references: [usersTable.id],
+    }),
+  })
+);
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Placement (TPO mapping + events)
+// ─────────────────────────────────────────────────────────────────────────────
+export const studentTpoMapRelations = relations(
+  studentTpoMapTable,
+  ({ one }) => ({
+    tpo: one(usersTable, {
+      fields: [studentTpoMapTable.tpoId],
+      references: [usersTable.id],
+    }),
+    student: one(usersTable, {
+      fields: [studentTpoMapTable.studentId],
+      references: [usersTable.id],
+    }),
+  })
+);
+
+export const eventsRelations = relations(eventsTable, ({ one, many }) => ({
+  tpo: one(usersTable, {
+    fields: [eventsTable.tpoId],
+    references: [usersTable.id],
+  }),
+  registrations: many(eventRegistrationsTable),
+}));
+
+export const eventRegistrationsRelations = relations(
+  eventRegistrationsTable,
+  ({ one }) => ({
+    event: one(eventsTable, {
+      fields: [eventRegistrationsTable.eventId],
+      references: [eventsTable.id],
+    }),
+    student: one(usersTable, {
+      fields: [eventRegistrationsTable.studentId],
       references: [usersTable.id],
     }),
   })

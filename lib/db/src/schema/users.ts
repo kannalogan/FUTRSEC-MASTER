@@ -104,6 +104,10 @@ export const tpoProfilesTable = pgTable("tpo_profiles", {
   institution: text("institution").notNull(),
   institutionCode: text("institution_code"),
   designation: text("designation"),
+  approvalStatus: text("approval_status").notNull().default("pending"),
+  reviewedBy: integer("reviewed_by"),
+  reviewedAt: timestamp("reviewed_at", { withTimezone: true }),
+  rejectionReason: text("rejection_reason"),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .defaultNow(),
@@ -124,6 +128,10 @@ export const employersTable = pgTable("employers", {
   designation: text("designation"),
   logoUrl: text("logo_url"),
   isVerified: boolean("is_verified").notNull().default(false),
+  approvalStatus: text("approval_status").notNull().default("pending"),
+  reviewedBy: integer("reviewed_by"),
+  reviewedAt: timestamp("reviewed_at", { withTimezone: true }),
+  rejectionReason: text("rejection_reason"),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .defaultNow(),

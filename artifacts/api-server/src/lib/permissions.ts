@@ -34,8 +34,15 @@ export const Permission = {
   BROADCASTS_SEND: "broadcasts:send",
   BROADCASTS_VIEW: "broadcasts:view",
 
+  TPO_DASHBOARD: "tpo:dashboard",
   TPO_VIEW_STUDENTS: "tpo:view_students",
   TPO_MANAGE_PLACEMENTS: "tpo:manage_placements",
+  TPO_MANAGE_EVENTS: "tpo:manage_events",
+
+  EMPLOYER_DASHBOARD: "employer:dashboard",
+  EMPLOYER_MANAGE_CANDIDATES: "employer:manage_candidates",
+  EMPLOYER_MANAGE_INTERVIEWS: "employer:manage_interviews",
+  EMPLOYER_MANAGE_OFFERS: "employer:manage_offers",
 
   MENTOR_DASHBOARD: "mentor:dashboard",
   MENTOR_VIEW_STUDENTS: "mentor:view_students",
@@ -93,8 +100,11 @@ const TPO_PERMISSIONS: Set<PermissionKey> = new Set([
   Permission.DPDP_OWN,
   Permission.BROADCASTS_SEND,
   Permission.BROADCASTS_VIEW,
+  Permission.TPO_DASHBOARD,
   Permission.TPO_VIEW_STUDENTS,
   Permission.TPO_MANAGE_PLACEMENTS,
+  Permission.TPO_MANAGE_EVENTS,
+  Permission.AUDIT_LOGS_VIEW,
 ]);
 
 const EMPLOYER_PERMISSIONS: Set<PermissionKey> = new Set([
@@ -105,6 +115,10 @@ const EMPLOYER_PERMISSIONS: Set<PermissionKey> = new Set([
   Permission.JOBS_MANAGE,
   Permission.PLATFORM_STATS_VIEW,
   Permission.DPDP_OWN,
+  Permission.EMPLOYER_DASHBOARD,
+  Permission.EMPLOYER_MANAGE_CANDIDATES,
+  Permission.EMPLOYER_MANAGE_INTERVIEWS,
+  Permission.EMPLOYER_MANAGE_OFFERS,
 ]);
 
 const ROLE_PERMISSIONS: Record<string, Set<PermissionKey>> = {

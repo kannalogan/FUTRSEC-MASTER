@@ -81,6 +81,35 @@ import MentorTasksPage from "@/pages/mentor/tasks";
 import MentorAuditLogsPage from "@/pages/mentor/audit-logs";
 import MentorReportsPage from "@/pages/mentor/reports";
 import MentorSettingsPage from "@/pages/mentor/settings";
+
+import TpoOverviewPage from "@/pages/tpo/overview";
+import TpoAnalyticsPage from "@/pages/tpo/analytics";
+import TpoPlacementsPage from "@/pages/tpo/placements";
+import TpoDirectoryPage from "@/pages/tpo/directory";
+import TpoReportsPage from "@/pages/tpo/reports";
+import TpoEventsPage from "@/pages/tpo/events";
+import TpoSettingsPage from "@/pages/tpo/settings";
+
+import EmployerOverviewPage from "@/pages/employer/overview";
+import EmployerJobsPage from "@/pages/employer/jobs";
+import EmployerCandidatesPage from "@/pages/employer/candidates";
+import EmployerInterviewsPage from "@/pages/employer/interviews";
+import EmployerOffersPage from "@/pages/employer/offers";
+import EmployerAnalyticsPage from "@/pages/employer/analytics";
+import EmployerSettingsPage from "@/pages/employer/settings";
+
+import AdminOverviewPage from "@/pages/admin/overview";
+import AdminTposPage from "@/pages/admin/tpos";
+import AdminCompaniesPage from "@/pages/admin/companies";
+import AdminJobsPage from "@/pages/admin/jobs";
+import AdminApplicationsPage from "@/pages/admin/applications";
+import AdminPlacementsPage from "@/pages/admin/placements";
+import AdminSubscriptionsPage from "@/pages/admin/subscriptions";
+import AdminPaymentsPage from "@/pages/admin/payments";
+import AdminAiUsagePage from "@/pages/admin/ai-usage";
+import AdminConsentLogsPage from "@/pages/admin/consent-logs";
+import AdminAuditLogsPage from "@/pages/admin/audit-logs";
+
 import Forbidden from "@/pages/forbidden";
 
 const queryClient = new QueryClient({
@@ -124,6 +153,30 @@ function MentorRoute({ component: Component }: { component: React.ComponentType<
   );
   if (!token) return <Redirect to="/login" />;
   if (user?.role !== "mentor") return <Layout><Forbidden /></Layout>;
+  return <Layout><Component /></Layout>;
+}
+
+function TpoRoute({ component: Component }: { component: React.ComponentType<any> }) {
+  const { token, user, isLoading } = useAuth();
+  if (isLoading) return (
+    <div className="min-h-screen flex items-center justify-center bg-background">
+      <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full" />
+    </div>
+  );
+  if (!token) return <Redirect to="/login" />;
+  if (user?.role !== "tpo") return <Layout><Forbidden /></Layout>;
+  return <Layout><Component /></Layout>;
+}
+
+function EmployerRoute({ component: Component }: { component: React.ComponentType<any> }) {
+  const { token, user, isLoading } = useAuth();
+  if (isLoading) return (
+    <div className="min-h-screen flex items-center justify-center bg-background">
+      <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full" />
+    </div>
+  );
+  if (!token) return <Redirect to="/login" />;
+  if (user?.role !== "employer") return <Layout><Forbidden /></Layout>;
   return <Layout><Component /></Layout>;
 }
 
@@ -229,8 +282,37 @@ function Router() {
       <Route path="/privacy"><ProtectedRoute component={PrivacyCenter} /></Route>
 
       {/* Admin */}
+      <Route path="/admin"><AdminRoute component={AdminOverviewPage} /></Route>
       <Route path="/admin/students"><AdminRoute component={AdminStudentsPage} /></Route>
       <Route path="/admin/mentors"><AdminRoute component={AdminMentorsPage} /></Route>
+      <Route path="/admin/tpos"><AdminRoute component={AdminTposPage} /></Route>
+      <Route path="/admin/companies"><AdminRoute component={AdminCompaniesPage} /></Route>
+      <Route path="/admin/jobs"><AdminRoute component={AdminJobsPage} /></Route>
+      <Route path="/admin/applications"><AdminRoute component={AdminApplicationsPage} /></Route>
+      <Route path="/admin/placements"><AdminRoute component={AdminPlacementsPage} /></Route>
+      <Route path="/admin/subscriptions"><AdminRoute component={AdminSubscriptionsPage} /></Route>
+      <Route path="/admin/payments"><AdminRoute component={AdminPaymentsPage} /></Route>
+      <Route path="/admin/ai-usage"><AdminRoute component={AdminAiUsagePage} /></Route>
+      <Route path="/admin/consent-logs"><AdminRoute component={AdminConsentLogsPage} /></Route>
+      <Route path="/admin/audit-logs"><AdminRoute component={AdminAuditLogsPage} /></Route>
+
+      {/* TPO */}
+      <Route path="/tpo"><TpoRoute component={TpoOverviewPage} /></Route>
+      <Route path="/tpo/analytics"><TpoRoute component={TpoAnalyticsPage} /></Route>
+      <Route path="/tpo/placements"><TpoRoute component={TpoPlacementsPage} /></Route>
+      <Route path="/tpo/directory"><TpoRoute component={TpoDirectoryPage} /></Route>
+      <Route path="/tpo/reports"><TpoRoute component={TpoReportsPage} /></Route>
+      <Route path="/tpo/events"><TpoRoute component={TpoEventsPage} /></Route>
+      <Route path="/tpo/settings"><TpoRoute component={TpoSettingsPage} /></Route>
+
+      {/* Employer */}
+      <Route path="/employer"><EmployerRoute component={EmployerOverviewPage} /></Route>
+      <Route path="/employer/jobs"><EmployerRoute component={EmployerJobsPage} /></Route>
+      <Route path="/employer/candidates"><EmployerRoute component={EmployerCandidatesPage} /></Route>
+      <Route path="/employer/interviews"><EmployerRoute component={EmployerInterviewsPage} /></Route>
+      <Route path="/employer/offers"><EmployerRoute component={EmployerOffersPage} /></Route>
+      <Route path="/employer/analytics"><EmployerRoute component={EmployerAnalyticsPage} /></Route>
+      <Route path="/employer/settings"><EmployerRoute component={EmployerSettingsPage} /></Route>
 
       {/* Mentor */}
       <Route path="/mentor"><MentorRoute component={MentorOverview} /></Route>
