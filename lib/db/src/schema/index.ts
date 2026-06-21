@@ -15,4 +15,5 @@ export * from "./campus";
 export * from "./billing";
 export * from "./certificates";
 export * from "./platform";
+export * from "./preferences";
 export * from "./relations";

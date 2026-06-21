@@ -19,6 +19,16 @@ The futrsec frontend supports **Light, Dark, and System** themes (all roles). Li
 - Brand accent hex (`#3B82F6` blue, `#8B5CF6` violet, `#10B981` emerald) and per-track colors are intentionally **identical in both themes** — inline hex/gradients for these are fine.
 - Global 300ms color transition is gated behind `.theme-ready` (added after first paint) to avoid load-flash. SVG theme-sensitive strokes use `stroke="hsl(var(--border))"`, not `rgba(255,255,255,…)`.
 
+# Theme persistence (DB is source of truth)
+
+Theme preference lives in the `user_preferences` table (`lib/db/src/schema/preferences.ts`: `userId` integer unique FK → users, `theme` text default `system`). localStorage (`futrsec-theme`) is only a **cache** for the instant no-flicker first paint; the DB is authoritative across devices/browsers.
+
+- Backend: dedicated `GET/PUT /api/settings/theme` (in `platform-extended.ts`) upsert via `onConflictDoUpdate` on `userId`. `PUT /api/settings` deliberately strips `theme` so the Settings "Save" button can't clobber it — theme is written immediately on selection, not on Save.
+- Frontend: `usePersistedTheme()` (in `use-theme.tsx`) = base `setTheme` (localStorage + apply) + optimistic `queryClient.setQueryData` + `PUT`; on PUT failure it `invalidateQueries` so the DB value is refetched and the optimistic change reverts. `ThemeSync` (rendered inside AuthProvider) `useQuery`s `["/api/settings/theme", token]` and applies the DB theme when it differs — this is the on-login reconciliation. Query key includes `token` to avoid cross-user cache bleed on a shared browser.
+- `ThemeProvider` sits ABOVE `AuthProvider`; persistence/sync are separate hooks/components used only inside AuthProvider, so the provider stays auth-agnostic. All theme-picking UI must use `usePersistedTheme`, never raw `useTheme`, or DB won't be updated.
+
+**Why:** users.id is `serial` (integer) — FKs to it must be integer, not uuid. `/auth/me` is Orval-generated (`UserProfile`), so theme was NOT added there to avoid an OpenAPI regen; reconciliation via a second lightweight request is the chosen tradeoff (cache prevents flicker meanwhile).
+
 # Sidebar role isolation
 
 `Sidebar` picks exactly one nav set via `navForRole(role)` (admin/mentor/tpo/employer/student-default) — never merge or append blocks across roles. Track badge + locked "Explore" tracks render ONLY when `isStudent`. `ADMIN_NAV` is the admin-only menu; keep it self-contained.

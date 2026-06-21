@@ -3,7 +3,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider, useAuth } from "@/hooks/use-auth";
-import { ThemeProvider } from "@/hooks/use-theme";
+import { ThemeProvider, ThemeSync } from "@/hooks/use-theme";
 import { Layout } from "@/components/layout";
 import NotFound from "@/pages/not-found";
 
@@ -380,6 +380,7 @@ function App() {
       <ThemeProvider>
         <TooltipProvider>
           <AuthProvider>
+            <ThemeSync />
             <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
               <Router />
             </WouterRouter>

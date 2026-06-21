@@ -26,6 +26,7 @@ import {
   offersTable,
   ftsScoresTable,
   broadcastNotesTable,
+  userPreferencesTable,
 } from "@workspace/db";
 import { requireAuth, type AuthRequest } from "../middlewares/auth";
 import { getUserCareerTrack } from "../lib/track-access";
@@ -553,15 +554,55 @@ router.get("/ai/placement-prediction", requireAuth, async (req: AuthRequest, res
 });
 
 // ── Settings ──────────────────────────────────────────────────────────────────
-router.get("/settings", requireAuth, async (_req: AuthRequest, res): Promise<void> => {
+const THEME_VALUES = ["light", "dark", "system"] as const;
+type ThemeValue = (typeof THEME_VALUES)[number];
+
+async function readTheme(userId: number): Promise<ThemeValue> {
+  const [pref] = await db
+    .select({ theme: userPreferencesTable.theme })
+    .from(userPreferencesTable)
+    .where(eq(userPreferencesTable.userId, userId));
+  const theme = pref?.theme;
+  return THEME_VALUES.includes(theme as ThemeValue) ? (theme as ThemeValue) : "system";
+}
+
+async function writeTheme(userId: number, theme: ThemeValue): Promise<void> {
+  await db
+    .insert(userPreferencesTable)
+    .values({ userId, theme })
+    .onConflictDoUpdate({
+      target: userPreferencesTable.userId,
+      set: { theme, updatedAt: new Date() },
+    });
+}
+
+router.get("/settings", requireAuth, async (req: AuthRequest, res): Promise<void> => {
+  const theme = await readTheme(req.user!.userId);
   res.json({
     notifications: { email: true, push: true, marketing: false, weeklyDigest: true },
     privacy: { profileVisible: true, showLeaderboard: true },
-    theme: "system",
+    theme,
   });
 });
 router.put("/settings", requireAuth, async (req: AuthRequest, res): Promise<void> => {
-  res.json({ success: true, ...req.body });
+  // Theme is persisted via the dedicated /settings/theme endpoint; ignore it here.
+  const { theme: _theme, ...rest } = req.body ?? {};
+  res.json({ success: true, ...rest });
+});
+
+// Theme preference — DB is the source of truth, localStorage is only a cache.
+router.get("/settings/theme", requireAuth, async (req: AuthRequest, res): Promise<void> => {
+  const theme = await readTheme(req.user!.userId);
+  res.json({ theme });
+});
+router.put("/settings/theme", requireAuth, async (req: AuthRequest, res): Promise<void> => {
+  const theme = req.body?.theme;
+  if (!THEME_VALUES.includes(theme)) {
+    res.status(400).json({ error: "theme must be one of: light, dark, system" });
+    return;
+  }
+  await writeTheme(req.user!.userId, theme);
+  res.json({ success: true, theme });
 });
 
 // ── Support ───────────────────────────────────────────────────────────────────

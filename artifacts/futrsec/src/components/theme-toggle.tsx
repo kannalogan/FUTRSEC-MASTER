@@ -1,5 +1,5 @@
 import { Sun, Moon, Laptop } from "lucide-react";
-import { useTheme, type Theme } from "@/hooks/use-theme";
+import { usePersistedTheme, type Theme } from "@/hooks/use-theme";
 
 const OPTIONS: { value: Theme; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
   { value: "light", label: "Light", icon: Sun },
@@ -9,7 +9,7 @@ const OPTIONS: { value: Theme; label: string; icon: React.ComponentType<{ classN
 
 /** Compact 3-way segmented control — used in the sidebar footer (all roles). */
 export function ThemeToggle({ className = "" }: { className?: string }) {
-  const { theme, setTheme } = useTheme();
+  const { theme, setTheme } = usePersistedTheme();
   return (
     <div
       className={`flex items-center gap-1 rounded-xl bg-muted/60 p-1 ring-1 ring-border ${className}`}
@@ -43,7 +43,7 @@ export function ThemeToggle({ className = "" }: { className?: string }) {
 
 /** Labelled radio cards — used in the Settings → Appearance section. */
 export function ThemeSelector() {
-  const { theme, setTheme } = useTheme();
+  const { theme, setTheme } = usePersistedTheme();
   return (
     <div className="grid grid-cols-3 gap-3" role="radiogroup" aria-label="Color theme">
       {OPTIONS.map((opt) => {
