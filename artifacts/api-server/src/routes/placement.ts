@@ -130,7 +130,7 @@ router.post(
         return;
       }
       employerCompanyName = emp.companyName;
-    } else {
+    } else if (job.employerId !== null) {
       // Admin: resolve company name for placement record if available.
       const emp = await db.query.employersTable.findFirst({
         where: eq(employersTable.id, job.employerId),

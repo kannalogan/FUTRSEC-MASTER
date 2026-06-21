@@ -81,6 +81,8 @@ export const studentProfilesTable = pgTable("student_profiles", {
 export const mentorProfilesTable = pgTable("mentor_profiles", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").notNull().unique(),
+  // Track a mentor is assigned to (admin-assigned). Nullable = unassigned.
+  careerTrack: careerTrackEnum("career_track"),
   specialization: text("specialization"),
   yearsOfExperience: integer("years_of_experience"),
   company: text("company"),

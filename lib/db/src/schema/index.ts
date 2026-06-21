@@ -13,4 +13,6 @@ export * from "./jobagent";
 export * from "./pipeline";
 export * from "./campus";
 export * from "./billing";
+export * from "./certificates";
+export * from "./platform";
 export * from "./relations";

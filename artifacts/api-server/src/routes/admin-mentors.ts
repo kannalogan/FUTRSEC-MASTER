@@ -188,6 +188,7 @@ router.post(
 
     await db.insert(mentorProfilesTable).values({
       userId: mentor.id,
+      careerTrack: data.careerTrack,
       specialization: data.specialization,
       yearsOfExperience: data.yearsOfExperience,
       company: data.company,

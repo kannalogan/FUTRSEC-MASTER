@@ -1,0 +1,616 @@
+PART 6 — Build the complete ADMIN PLATFORM for FUTRSEC.
+
+IMPORTANT RULES
+
+1. Do NOT modify Part 1–5 functionality.
+2. Do NOT change existing routes or APIs.
+3. Use additive development only.
+4. Keep strict track isolation:
+   - SOC users see only SOC content
+   - VAPT users see only VAPT content
+   - GRC users see only GRC content
+5. Student track is FIXED at signup.
+6. There must be NO track switching option anywhere.
+7. Mentor accounts CANNOT signup.
+8. Mentor accounts can ONLY be created by Admin.
+
+==================================================
+
+A. ADMIN DASHBOARD
+
+Create:
+
+/admin/dashboard
+
+Widgets:
+
+- Total Students
+- Active Students
+- Trial Students
+- Premium Students
+- SOC Students
+- VAPT Students
+- GRC Students
+- Total Mentors
+- Total TPO
+- Total Employers
+- Total Courses
+- Total Labs
+- Total Jobs
+- Total Internships
+- Daily Signups
+- Revenue
+
+Charts:
+
+- Daily signups
+- Track distribution
+- Trial vs Premium
+- Placement statistics
+- FTS distribution
+
+==================================================
+
+B. STUDENT MANAGEMENT
+
+Create:
+
+/admin/students
+
+Features:
+
+- Search students
+- Filter by:
+    SOC
+    VAPT
+    GRC
+
+- Filter by:
+    Trial
+    Premium
+
+- View profile
+- Suspend account
+- Activate account
+- Export CSV
+- View FTS
+- View CP progress
+- View completed labs
+- View certificates
+
+==================================================
+
+C. MENTOR MANAGEMENT
+
+IMPORTANT:
+
+Mentor signup MUST NOT exist.
+
+Only Admin can:
+
+/admin/mentors
+
+Features:
+
+- Create mentor account
+- Edit mentor
+- Disable mentor
+- Assign mentor to:
+
+   SOC
+   VAPT
+   GRC
+
+- Assign mentor to:
+
+   Batch
+   Students
+
+Mentor login only.
+
+==================================================
+
+D. TRACK MANAGEMENT
+
+/admin/tracks
+
+Create:
+
+SOC
+VAPT
+GRC
+
+Rules:
+
+Student Track = Immutable
+
+SOC Student:
+
+- SOC Dashboard
+- SOC Courses
+- SOC Labs
+- SOC Jobs
+- SOC Assessments
+
+VAPT Student:
+
+- VAPT Dashboard
+- VAPT Courses
+- VAPT Labs
+- VAPT Jobs
+- VAPT Assessments
+
+GRC Student:
+
+- GRC Dashboard
+- GRC Courses
+- GRC Labs
+- GRC Jobs
+- GRC Assessments
+
+NO cross-track access.
+
+==================================================
+
+E. COURSE CMS
+
+/admin/courses
+
+Admin can:
+
+- Create course
+- Edit course
+- Archive course
+- Publish course
+
+Fields:
+
+Course Name
+
+Track:
+
+SOC
+VAPT
+GRC
+
+Category:
+
+Beginner
+Intermediate
+Advanced
+
+Thumbnail
+
+Description
+
+Lessons
+
+Videos
+
+Resources
+
+Quiz
+
+Certificate Enabled
+
+Status
+
+==================================================
+
+F. LAB CMS
+
+/admin/labs
+
+Admin creates labs.
+
+SOC examples:
+
+- Splunk Fundamentals
+- QRadar
+- SIEM Investigation
+- Incident Response
+- Threat Hunting
+
+VAPT examples:
+
+- Burp Suite
+- Nmap
+- OWASP Top 10
+- SQL Injection
+- XSS
+- Metasploit
+
+GRC examples:
+
+- ISO27001
+- NIST
+- Risk Assessment
+- DPDP Compliance
+- Vendor Assessment
+
+Fields:
+
+Lab Name
+
+Track
+
+Difficulty
+
+Description
+
+Instructions
+
+Questions
+
+Flags
+
+Score
+
+Passing Score
+
+Hints
+
+Time Limit
+
+==================================================
+
+G. ASSESSMENT CMS
+
+/admin/assessments
+
+Types:
+
+- Pre Assessment
+- CP1
+- CP2
+- CP3
+- CP4
+- CP5
+- Mock Assessment
+
+Fields:
+
+Track
+
+Assessment Name
+
+Questions
+
+MCQ
+
+Scenario Based
+
+Passing %
+
+FTS Points
+
+==================================================
+
+H. FTS ENGINE
+
+Create dynamic FUTRSEC Talent Score.
+
+Range:
+
+0 – 100
+
+Calculation:
+
+Profile Complete:
++5
+
+Pre Assessment:
++10
+
+Course Completion:
++15
+
+Lab Completion:
++20
+
+Assignment:
++10
+
+CP1:
++10
+
+CP2:
++10
+
+CP3:
++10
+
+CP4:
++5
+
+CP5:
++5
+
+Unlock Rules:
+
+FTS >= 10
+
+Unlock CP1
+
+FTS >= 25
+
+Unlock CP2
+
+FTS >= 45
+
+Unlock CP3
+
+FTS >= 65
+
+Unlock CP4
+
+FTS >= 80
+
+Unlock CP5
+
+FTS >= 90
+
+Unlock AI Job Agent
+
+==================================================
+
+I. CERTIFICATE SYSTEM
+
+/admin/certificates
+
+Admin can:
+
+- Create template
+- Upload logo
+- Upload signature
+- Issue certificate
+
+Types:
+
+1.
+
+Course Completion
+
+Fields:
+
+Course Name
+
+Track
+
+Issued Date
+
+Certificate ID
+
+QR Verification
+
+--------------------------------------------------
+
+2.
+
+Internship Certificate
+
+Fields:
+
+Internship Name
+
+Track
+
+Mentor
+
+Duration
+
+Certificate ID
+
+QR Verification
+
+--------------------------------------------------
+
+3.
+
+Achievement Certificate
+
+Examples:
+
+- Top Performer
+- CP5 Completed
+- Lab Champion
+- AI Job Agent Eligible
+
+==================================================
+
+J. JOB CMS
+
+/admin/jobs
+
+Fields:
+
+Job Title
+
+Track:
+
+SOC
+VAPT
+GRC
+
+Experience
+
+Location
+
+CTC
+
+Skills
+
+Description
+
+Eligibility
+
+Apply Link
+
+Status
+
+RULE:
+
+SOC jobs visible ONLY to SOC students
+
+VAPT jobs visible ONLY to VAPT students
+
+GRC jobs visible ONLY to GRC students
+
+==================================================
+
+K. INTERNSHIP CMS
+
+/admin/internships
+
+Fields:
+
+Internship Title
+
+Track
+
+Duration
+
+Mentor
+
+Seats
+
+Mode:
+
+Online
+Offline
+Hybrid
+
+Tasks
+
+Certificate
+
+Status
+
+==================================================
+
+L. AI ADMIN PANEL
+
+/admin/ai
+
+Manage:
+
+1.
+
+AI Explain Tutor
+
+Enable / Disable
+
+--------------------------------------------------
+
+2.
+
+AI Career Coach
+
+Enable / Disable
+
+--------------------------------------------------
+
+3.
+
+AI Mock Interview
+
+Settings:
+
+Question Count
+
+Difficulty
+
+Track
+
+SOC
+
+VAPT
+
+GRC
+
+--------------------------------------------------
+
+4.
+
+Resume Analyzer
+
+SOC Keywords:
+
+Splunk
+QRadar
+SIEM
+EDR
+Threat Hunting
+MITRE ATT&CK
+
+VAPT Keywords:
+
+Burp Suite
+Metasploit
+Nmap
+OWASP
+SQLi
+XSS
+
+GRC Keywords:
+
+ISO27001
+NIST
+DPDP
+Risk Management
+Vendor Assessment
+
+==================================================
+
+M. PLATFORM SETTINGS
+
+/admin/settings
+
+Manage:
+
+- SMTP
+- OpenAI API Key
+- Gemini API Key
+- Razorpay Keys
+- Logo
+- Banner
+- Terms
+- Privacy Policy
+- Refund Policy
+
+Trial Days:
+
+Default:
+
+15 Days
+
+Admin editable.
+
+==================================================
+
+TECHNICAL REQUIREMENTS
+
+- Use existing Drizzle ORM schema.
+- Do NOT break existing APIs.
+- Add routes only.
+- Add RBAC guards.
+- Typecheck must pass.
+- Track isolation must be enforced at backend.
+- Role guards must return:
+
+401 = Unauthenticated
+
+403 = Unauthorized
+
+==================================================
+
+At the end provide:
+
+1. List of created routes
+2. List of created APIs
+3. DB tables used
+4. Security fixes applied
+5. Verification summary
+6. Typecheck result
+
+Build everything completely.

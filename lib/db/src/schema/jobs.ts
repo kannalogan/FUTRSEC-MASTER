@@ -9,7 +9,10 @@ import {
 
 export const jobsTable = pgTable("jobs", {
   id: serial("id").primaryKey(),
-  employerId: integer("employer_id").notNull(),
+  // Nullable so admins can author platform-level jobs/internships (no employer).
+  employerId: integer("employer_id"),
+  // Set when an admin authored the posting (vs an employer).
+  createdByAdminId: integer("created_by_admin_id"),
   title: text("title").notNull(),
   description: text("description").notNull(),
   type: text("type").notNull().default("full_time"),

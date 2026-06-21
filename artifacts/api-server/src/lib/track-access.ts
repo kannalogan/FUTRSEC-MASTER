@@ -24,6 +24,35 @@ export async function getUserCareerTrack(userId: number): Promise<CareerTrack | 
 }
 
 /**
+ * Resolves the identifiers that may appear in a job's `requiredTracks` array for
+ * this user's permanent track. Historically `requiredTracks` stored track slugs
+ * (e.g. "soc-analyst") while newer admin-authored postings store domain values
+ * (e.g. "soc"), so we match against BOTH forms. `careerTrack` (domain) is the
+ * authoritative source; the slug is resolved from the domain's track row.
+ * Returns null when the user has no determinable track (deny-by-default).
+ */
+export async function getUserTrackIdentifiers(
+  userId: number,
+): Promise<{ domain: CareerTrack; slug: string | null } | null> {
+  const domain = await getUserCareerTrack(userId);
+  if (!domain) return null;
+  const track = await db.query.tracksTable.findFirst({ where: eq(tracksTable.domain, domain) });
+  return { domain, slug: track?.slug ?? null };
+}
+
+/**
+ * Returns true when a job's requiredTracks list grants access to a user whose
+ * track identifiers are given. Empty/absent requiredTracks = open to everyone.
+ */
+export function jobMatchesTrack(
+  requiredTracks: string[] | null | undefined,
+  ids: { domain: CareerTrack; slug: string | null },
+): boolean {
+  if (!requiredTracks || requiredTracks.length === 0) return true;
+  return requiredTracks.includes(ids.domain) || (ids.slug != null && requiredTracks.includes(ids.slug));
+}
+
+/**
  * Track-locked RBAC for endpoints that accept an explicit `track` (slug) query
  * param. In the track-locked architecture a student may only access content for
  * their own permanent career track. Admins bypass the check.
@@ -90,13 +119,13 @@ export async function checkJobTrackAccess(
   requiredTracks: string[] | null | undefined,
 ): Promise<string | null> {
   if (role === "admin") return null;
+  // Open posting (no track restriction) — accessible to everyone.
   if (!requiredTracks || requiredTracks.length === 0) return null;
 
-  const user = await db.query.usersTable.findFirst({ where: eq(usersTable.id, userId) });
-  if (!user?.selectedTrackId) return null;
+  const ids = await getUserTrackIdentifiers(userId);
+  // Track-locked: a non-admin with no determinable track cannot access a
+  // track-restricted job. Deny (not allow) to close the fail-open bypass.
+  if (!ids) return NO_TRACK;
 
-  const track = await db.query.tracksTable.findFirst({ where: eq(tracksTable.id, user.selectedTrackId) });
-  if (!track) return null;
-
-  return requiredTracks.includes(track.slug) ? null : DENIED;
+  return jobMatchesTrack(requiredTracks, ids) ? null : DENIED;
 }

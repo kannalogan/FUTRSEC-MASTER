@@ -23,7 +23,7 @@ import {
   subscriptionsTable,
 } from "@workspace/db";
 import { requireAuth, requireRole, type AuthRequest } from "../middlewares/auth";
-import { getUserCareerTrack, checkJobTrackAccess, type CareerTrack } from "../lib/track-access";
+import { getUserCareerTrack, checkJobTrackAccess, getUserTrackIdentifiers, jobMatchesTrack, type CareerTrack } from "../lib/track-access";
 import {
   computeMatch,
   heuristicMatch,
@@ -162,15 +162,27 @@ async function loadStudentBundle(userId: number): Promise<StudentBundle | null> 
   return { userId, user, trackSlug, careerTrack, matchCtx, careerCtx, cp5Complete };
 }
 
-/** Active jobs visible to this student under strict track isolation. */
-async function loadTrackJobs(trackSlug: string | null): Promise<(typeof jobsTable.$inferSelect)[]> {
+/**
+ * Active jobs visible to this student under strict track isolation. A student
+ * with no determinable track sees only open postings (deny-by-default for
+ * track-restricted jobs). Matches both legacy slug-form and domain-form
+ * `requiredTracks` values.
+ */
+async function loadTrackJobs(
+  careerTrack: CareerTrack | null,
+  trackSlug: string | null,
+): Promise<(typeof jobsTable.$inferSelect)[]> {
   const jobs = await db
     .select()
     .from(jobsTable)
     .where(eq(jobsTable.status, "active"))
     .orderBy(desc(jobsTable.createdAt))
     .limit(100);
-  return jobs.filter((j) => j.requiredTracks.length === 0 || (trackSlug != null && j.requiredTracks.includes(trackSlug)));
+  if (!careerTrack) {
+    return jobs.filter((j) => j.requiredTracks.length === 0);
+  }
+  const ids = { domain: careerTrack, slug: trackSlug };
+  return jobs.filter((j) => jobMatchesTrack(j.requiredTracks, ids));
 }
 
 async function loadJobSkills(jobIds: number[]): Promise<Map<number, string[]>> {
@@ -269,7 +281,7 @@ router.get(
     const bundle = await loadStudentBundle(req.user.userId);
     if (!bundle) { res.status(404).json({ error: "Student not found" }); return; }
 
-    const trackJobs = await loadTrackJobs(bundle.trackSlug);
+    const trackJobs = await loadTrackJobs(bundle.careerTrack, bundle.trackSlug);
     const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
 
     const [appliedAgg, offersAgg, savedAgg, applications] = await Promise.all([
@@ -311,7 +323,7 @@ router.get(
     const bundle = await loadStudentBundle(userId);
     if (!bundle) { res.status(404).json({ error: "Student not found" }); return; }
 
-    const trackJobs = await loadTrackJobs(bundle.trackSlug);
+    const trackJobs = await loadTrackJobs(bundle.careerTrack, bundle.trackSlug);
     if (trackJobs.length === 0) { res.json({ jobs: [] }); return; }
 
     const jobIds = trackJobs.map((j) => j.id);
@@ -319,7 +331,7 @@ router.get(
       loadJobSkills(jobIds),
       db.select().from(jobApplicationsTable).where(and(eq(jobApplicationsTable.studentId, userId), inArray(jobApplicationsTable.jobId, jobIds))),
       db.select().from(savedJobsTable).where(and(eq(savedJobsTable.studentId, userId), inArray(savedJobsTable.jobId, jobIds))),
-      db.select().from(employersTable).where(inArray(employersTable.id, [...new Set(trackJobs.map((j) => j.employerId))])),
+      db.select().from(employersTable).where(inArray(employersTable.id, [...new Set(trackJobs.map((j) => j.employerId).filter((id): id is number => id !== null))])),
     ]);
 
     const appliedSet = new Set(applications.map((a) => a.jobId));
@@ -334,7 +346,7 @@ router.get(
         return {
           ...job,
           skills,
-          employer: employerMap.get(job.employerId) ?? null,
+          employer: job.employerId !== null ? employerMap.get(job.employerId) ?? null : null,
           matchScore: match.score,
           matchReasons: match.reasons,
           matchFactors: match.factors,
@@ -368,7 +380,15 @@ router.get(
       db.select().from(employersTable),
       db.select().from(jobApplicationsTable).where(and(eq(jobApplicationsTable.studentId, userId), inArray(jobApplicationsTable.jobId, jobIds))),
     ]);
-    const jobMap = new Map(jobs.map((j) => [j.id, j]));
+
+    // Strict track isolation: re-filter saved jobs by the student's effective
+    // track. Stale/cross-track saved rows (e.g. from a pre-isolation state) must
+    // never be exposed; with no determinable track, only open jobs are visible.
+    const ids = await getUserTrackIdentifiers(userId);
+    const visibleJobs = jobs.filter((j) =>
+      ids ? jobMatchesTrack(j.requiredTracks, ids) : j.requiredTracks.length === 0,
+    );
+    const jobMap = new Map(visibleJobs.map((j) => [j.id, j]));
     const employerMap = new Map(employers.map((e) => [e.id, e]));
     const appliedSet = new Set(applications.map((a) => a.jobId));
 
@@ -380,7 +400,7 @@ router.get(
           ...job,
           savedAt: s.createdAt,
           skills: skillsMap.get(job.id) ?? [],
-          employer: employerMap.get(job.employerId) ?? null,
+          employer: job.employerId !== null ? employerMap.get(job.employerId) ?? null : null,
           applied: appliedSet.has(job.id),
         };
       })
@@ -544,7 +564,7 @@ router.post(
     if (lockReason) { res.status(403).json({ error: lockReason, code: "FEATURE_LOCKED" }); return; }
     if (!settings?.enabled) { res.status(400).json({ error: "Auto-apply is not enabled." }); return; }
 
-    const trackJobs = await loadTrackJobs(bundle.trackSlug);
+    const trackJobs = await loadTrackJobs(bundle.careerTrack, bundle.trackSlug);
     if (trackJobs.length === 0) { res.json({ applied: [] }); return; }
 
     const jobIds = trackJobs.map((j) => j.id);

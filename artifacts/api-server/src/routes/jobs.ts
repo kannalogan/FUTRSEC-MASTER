@@ -10,7 +10,13 @@ import {
   employersTable,
 } from "@workspace/db";
 import { requireAuth, type AuthRequest } from "../middlewares/auth";
-import { checkTrackQueryAccess, checkJobTrackAccess, type CareerTrack } from "../lib/track-access";
+import {
+  checkTrackQueryAccess,
+  checkJobTrackAccess,
+  getUserTrackIdentifiers,
+  jobMatchesTrack,
+  type CareerTrack,
+} from "../lib/track-access";
 
 const router = Router();
 
@@ -27,17 +33,16 @@ router.get("/jobs", requireAuth, async (req: AuthRequest, res): Promise<void> =>
   );
   if (denied) { res.status(403).json({ error: denied }); return; }
 
-  let trackSlug: string | null = (req.query.track as string) ?? null;
-
-  if (!trackSlug && user?.selectedTrackId) {
-    const track = await db.query.tracksTable.findFirst({ where: eq(tracksTable.id, user.selectedTrackId) });
-    trackSlug = track?.slug ?? null;
-  }
-
   let jobs = await db.select().from(jobsTable).where(eq(jobsTable.status, "active")).orderBy(desc(jobsTable.createdAt)).limit(50);
 
-  if (trackSlug) {
-    jobs = jobs.filter((j) => j.requiredTracks.length === 0 || j.requiredTracks.includes(trackSlug!));
+  // Track isolation: admins see all postings; everyone else is restricted to
+  // postings matching their permanent track. A non-admin with no determinable
+  // track sees only open postings (deny-by-default for track-restricted jobs).
+  if (req.user.role !== "admin") {
+    const ids = await getUserTrackIdentifiers(userId);
+    jobs = jobs.filter((j) =>
+      ids ? jobMatchesTrack(j.requiredTracks, ids) : j.requiredTracks.length === 0,
+    );
   }
 
   if (jobs.length === 0) { res.json({ jobs: [] }); return; }
@@ -45,7 +50,7 @@ router.get("/jobs", requireAuth, async (req: AuthRequest, res): Promise<void> =>
   const [skills, applications, employers] = await Promise.all([
     db.select().from(jobSkillsTable).where(inArray(jobSkillsTable.jobId, jobs.map((j) => j.id))),
     db.select().from(jobApplicationsTable).where(and(eq(jobApplicationsTable.studentId, userId), inArray(jobApplicationsTable.jobId, jobs.map((j) => j.id)))),
-    db.select().from(employersTable).where(inArray(employersTable.id, [...new Set(jobs.map((j) => j.employerId))])),
+    db.select().from(employersTable).where(inArray(employersTable.id, [...new Set(jobs.map((j) => j.employerId).filter((id): id is number => id !== null))])),
   ]);
 
   const skillsMap = new Map<number, typeof skills>();
@@ -62,7 +67,7 @@ router.get("/jobs", requireAuth, async (req: AuthRequest, res): Promise<void> =>
       skills: skillsMap.get(j.id) ?? [],
       application: applicationMap.get(j.id) ?? null,
       applied: applicationMap.has(j.id),
-      employer: employerMap.get(j.employerId) ?? null,
+      employer: j.employerId !== null ? employerMap.get(j.employerId) ?? null : null,
     })),
   });
 });
@@ -79,7 +84,15 @@ router.get("/jobs/applications/mine", requireAuth, async (req: AuthRequest, res)
 
   const jobs = await db.select().from(jobsTable)
     .where(inArray(jobsTable.id, applications.map((a) => a.jobId)));
-  const jobMap = new Map(jobs.map((j) => [j.id, j]));
+
+  // Strict track isolation: hydrate only jobs matching the student's effective
+  // track. Stale cross-track application rows must not leak job details; with no
+  // determinable track, only open jobs are exposed.
+  const ids = req.user.role === "admin" ? null : await getUserTrackIdentifiers(userId);
+  const visibleJobs = req.user.role === "admin"
+    ? jobs
+    : jobs.filter((j) => (ids ? jobMatchesTrack(j.requiredTracks, ids) : j.requiredTracks.length === 0));
+  const jobMap = new Map(visibleJobs.map((j) => [j.id, j]));
 
   res.json({ applications: applications.map((a) => ({ ...a, job: jobMap.get(a.jobId) ?? null })) });
 });
@@ -99,7 +112,9 @@ router.get("/jobs/:jobId", requireAuth, async (req: AuthRequest, res): Promise<v
   const [skills, application, employer] = await Promise.all([
     db.select().from(jobSkillsTable).where(eq(jobSkillsTable.jobId, jobId)),
     db.query.jobApplicationsTable.findFirst({ where: and(eq(jobApplicationsTable.studentId, userId), eq(jobApplicationsTable.jobId, jobId)) }),
-    db.query.employersTable.findFirst({ where: eq(employersTable.id, job.employerId) }),
+    job.employerId !== null
+      ? db.query.employersTable.findFirst({ where: eq(employersTable.id, job.employerId) })
+      : Promise.resolve(null),
   ]);
 
   res.json({ job, skills, application: application ?? null, employer: employer ?? null, applied: !!application });

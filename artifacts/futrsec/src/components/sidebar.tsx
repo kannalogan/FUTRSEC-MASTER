@@ -308,7 +308,16 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
             </div>
             <div className="space-y-0.5">
               <NavLink item={{ label: "Overview", href: "/admin", icon: Gauge }} />
+              <NavLink item={{ label: "Dashboard", href: "/admin/dashboard", icon: LayoutDashboard }} />
               <NavLink item={{ label: "Student Management", href: "/admin/students", icon: Users }} />
+              <NavLink item={{ label: "Track Management", href: "/admin/tracks", icon: Layers }} />
+              <NavLink item={{ label: "Courses", href: "/admin/courses", icon: BookOpen }} />
+              <NavLink item={{ label: "Labs", href: "/admin/labs", icon: FlaskConical }} />
+              <NavLink item={{ label: "Assessments", href: "/admin/assessments", icon: ClipboardCheck }} />
+              <NavLink item={{ label: "Certificates", href: "/admin/certificates", icon: Award }} />
+              <NavLink item={{ label: "Job Postings", href: "/admin/job-postings", icon: Briefcase }} />
+              <NavLink item={{ label: "AI Config", href: "/admin/ai-config", icon: BrainCircuit }} />
+              <NavLink item={{ label: "Platform Settings", href: "/admin/settings", icon: Settings }} />
               <NavLink item={{ label: "Mentor Management", href: "/admin/mentors", icon: UserCog }} />
               <NavLink item={{ label: "TPO Management", href: "/admin/tpos", icon: GraduationCap }} />
               <NavLink item={{ label: "Company Management", href: "/admin/companies", icon: Building }} />

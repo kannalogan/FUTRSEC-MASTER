@@ -322,7 +322,7 @@ router.get(
       .from(jobsTable)
       .orderBy(desc(jobsTable.createdAt))
       .limit(500);
-    const employerIds = [...new Set(jobs.map((j) => j.employerId))];
+    const employerIds = [...new Set(jobs.map((j) => j.employerId).filter((id): id is number => id !== null))];
     const emps = employerIds.length
       ? await db
           .select({ id: employersTable.id, companyName: employersTable.companyName })
@@ -336,7 +336,7 @@ router.get(
         applicationDeadline: j.applicationDeadline?.toISOString() ?? null,
         createdAt: j.createdAt.toISOString(),
         updatedAt: j.updatedAt.toISOString(),
-        companyName: empMap.get(j.employerId) ?? null,
+        companyName: j.employerId !== null ? empMap.get(j.employerId) ?? null : null,
       })),
     });
   }

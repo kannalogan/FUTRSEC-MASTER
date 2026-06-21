@@ -111,6 +111,16 @@ import AdminConsentLogsPage from "@/pages/admin/consent-logs";
 import AdminAuditLogsPage from "@/pages/admin/audit-logs";
 import AdminCouponsPage from "@/pages/admin/coupons";
 import AdminAnalyticsPage from "@/pages/admin/analytics";
+import AdminDashboardPage from "@/pages/admin/dashboard";
+import AdminTracksPage from "@/pages/admin/tracks";
+import AdminCoursesPage from "@/pages/admin/courses";
+import AdminLabsPage from "@/pages/admin/labs";
+import AdminAssessmentsPage from "@/pages/admin/assessments";
+import AdminCertificatesPage from "@/pages/admin/certificates";
+import AdminJobPostingsPage from "@/pages/admin/job-postings";
+import AdminAiConfigPage from "@/pages/admin/ai-config";
+import AdminSettingsPage from "@/pages/admin/settings";
+import VerifyCertificatePage from "@/pages/verify";
 
 import JobAgentPage from "@/pages/job-agent/index";
 import JobAgentAutoApplyPage from "@/pages/job-agent/auto-apply";
@@ -213,6 +223,7 @@ function Router() {
       <Route path="/register/employer" component={RegisterEmployer} />
       <Route path="/auth/verify" component={VerifyOTP} />
       <Route path="/auth/forgot-password" component={ForgotPassword} />
+      <Route path="/verify/:token" component={VerifyCertificatePage} />
 
       {/* Onboarding */}
       <Route path="/onboarding/consent"><OnboardingRoute component={Consent} /></Route>
@@ -300,7 +311,16 @@ function Router() {
 
       {/* Admin */}
       <Route path="/admin"><AdminRoute component={AdminOverviewPage} /></Route>
+      <Route path="/admin/dashboard"><AdminRoute component={AdminDashboardPage} /></Route>
       <Route path="/admin/students"><AdminRoute component={AdminStudentsPage} /></Route>
+      <Route path="/admin/tracks"><AdminRoute component={AdminTracksPage} /></Route>
+      <Route path="/admin/courses"><AdminRoute component={AdminCoursesPage} /></Route>
+      <Route path="/admin/labs"><AdminRoute component={AdminLabsPage} /></Route>
+      <Route path="/admin/assessments"><AdminRoute component={AdminAssessmentsPage} /></Route>
+      <Route path="/admin/certificates"><AdminRoute component={AdminCertificatesPage} /></Route>
+      <Route path="/admin/job-postings"><AdminRoute component={AdminJobPostingsPage} /></Route>
+      <Route path="/admin/ai-config"><AdminRoute component={AdminAiConfigPage} /></Route>
+      <Route path="/admin/settings"><AdminRoute component={AdminSettingsPage} /></Route>
       <Route path="/admin/mentors"><AdminRoute component={AdminMentorsPage} /></Route>
       <Route path="/admin/tpos"><AdminRoute component={AdminTposPage} /></Route>
       <Route path="/admin/companies"><AdminRoute component={AdminCompaniesPage} /></Route>
