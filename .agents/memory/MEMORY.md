@@ -8,3 +8,4 @@
 - [TypeScript codegen cast](ts-cast-unknown.md) — downcasting codegen response types requires double-cast via unknown: `(data as unknown as Record<string, unknown>)`, direct cast errors with TS2352
 - [Route ordering collisions](route-ordering.md) — Express /:param routes swallow sibling static paths; use non-colliding top-level API paths (/internships not /jobs/internships)
 - [Write-route validation](write-route-validation.md) — mutating routes must validate id/existence/track-eligibility/duplicates before insert (broken-access-control guard)
+- [Track-locked RBAC](track-locked-rbac.md) — career_track is the auth source of truth; every track-scoped resource-by-ID route needs a track-access guard (list filters arent enough).

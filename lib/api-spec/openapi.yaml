@@ -207,6 +207,75 @@ paths:
               schema:
                 $ref: "#/components/schemas/ApiError"
 
+  # ─────────────────────────────── ADMIN ─────────────────────────────────────
+  /admin/students:
+    get:
+      operationId: listStudents
+      tags: [admin]
+      summary: List or search students (admin only)
+      parameters:
+        - name: search
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Student list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminStudentList"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+
+  /admin/students/{id}/track:
+    patch:
+      operationId: changeStudentTrack
+      tags: [admin]
+      summary: Change a student's permanent career track (admin only)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ChangeTrackInput"
+      responses:
+        "200":
+          description: Track changed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChangeTrackResult"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "404":
+          description: Student not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+
   # ───────────────────────────── CONSENT / DPDP ──────────────────────────────
   /consent:
     get:
@@ -583,6 +652,9 @@ components:
           enum: [consent, profile, track_selection, pre_assessment, complete]
         selectedTrackId:
           type: ["integer", "null"]
+        careerTrack:
+          type: ["string", "null"]
+          enum: [soc, vapt, grc, null]
         avatarUrl:
           type: ["string", "null"]
         createdAt:
@@ -875,6 +947,57 @@ components:
           type: string
         suggestedTrackLevel:
           type: ["string", "null"]
+
+    # ── Admin ──
+    AdminStudent:
+      type: object
+      required: [id, onboardingStep, isActive, createdAt]
+      properties:
+        id:
+          type: integer
+        email:
+          type: ["string", "null"]
+        fullName:
+          type: ["string", "null"]
+        careerTrack:
+          type: ["string", "null"]
+          enum: [soc, vapt, grc, null]
+        selectedTrackId:
+          type: ["integer", "null"]
+        onboardingStep:
+          type: string
+        isActive:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+
+    AdminStudentList:
+      type: object
+      required: [students]
+      properties:
+        students:
+          type: array
+          items:
+            $ref: "#/components/schemas/AdminStudent"
+
+    ChangeTrackInput:
+      type: object
+      required: [careerTrack]
+      properties:
+        careerTrack:
+          type: string
+          enum: [soc, vapt, grc]
+
+    ChangeTrackResult:
+      type: object
+      required: [student]
+      properties:
+        student:
+          $ref: "#/components/schemas/AdminStudent"
+        previousTrack:
+          type: ["string", "null"]
+          enum: [soc, vapt, grc, null]
 
     # ── Platform ──
     PlatformStats:

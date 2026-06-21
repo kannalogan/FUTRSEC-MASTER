@@ -66,6 +66,8 @@ import NotificationsPage from "@/pages/notifications/index";
 import SettingsPage from "@/pages/settings/index";
 import HelpPage from "@/pages/help/index";
 import SupportPage from "@/pages/support/index";
+import AdminStudentsPage from "@/pages/admin/students";
+import Forbidden from "@/pages/forbidden";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -84,6 +86,18 @@ function ProtectedRoute({ component: Component }: { component: React.ComponentTy
     </div>
   );
   if (!token) return <Redirect to="/login" />;
+  return <Layout><Component /></Layout>;
+}
+
+function AdminRoute({ component: Component }: { component: React.ComponentType<any> }) {
+  const { token, user, isLoading } = useAuth();
+  if (isLoading) return (
+    <div className="min-h-screen flex items-center justify-center bg-background">
+      <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full" />
+    </div>
+  );
+  if (!token) return <Redirect to="/login" />;
+  if (user?.role !== "admin") return <Layout><Forbidden /></Layout>;
   return <Layout><Component /></Layout>;
 }
 
@@ -184,6 +198,9 @@ function Router() {
 
       {/* Privacy / DPDP */}
       <Route path="/privacy"><ProtectedRoute component={PrivacyCenter} /></Route>
+
+      {/* Admin */}
+      <Route path="/admin/students"><AdminRoute component={AdminStudentsPage} /></Route>
 
       {/* Catch-all */}
       <Route component={NotFound} />

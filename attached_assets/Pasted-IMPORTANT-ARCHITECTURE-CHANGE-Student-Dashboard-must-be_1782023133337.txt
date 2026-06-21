@@ -1,0 +1,383 @@
+IMPORTANT ARCHITECTURE CHANGE
+
+Student Dashboard must be TRACK LOCKED.
+
+Student selects track ONLY ONCE during onboarding.
+
+Tracks:
+
+SOC
+
+VAPT
+
+GRC
+
+-----------------------------------
+
+After selection:
+
+Save permanently in:
+
+users.career_track
+
+Allowed values:
+
+SOC
+
+VAPT
+
+GRC
+
+-----------------------------------
+
+Dashboard must be completely different for each track.
+
+There should NOT be:
+
+- Change Track button
+
+- Switch Track dropdown
+
+- Track selector in dashboard
+
+- Track settings page
+
+- Track edit option
+
+Hide all track switching capabilities.
+
+-----------------------------------
+
+SOC STUDENT
+
+Show only:
+
+Dashboard
+
+Learning
+
+SOC Courses
+
+SOC Labs
+
+SIEM
+
+Splunk
+
+QRadar
+
+Wazuh
+
+Threat Hunting
+
+Incident Response
+
+Malware Analysis
+
+SOC Checkpoints
+
+SOC Assignments
+
+SOC Assessments
+
+SOC Projects
+
+SOC Jobs
+
+SOC Mock Interviews
+
+SOC Career Roadmap
+
+SOC AI Career Coach
+
+SOC AI Mock Interview
+
+SOC AI Skill Gap
+
+SOC Placements
+
+-----------------------------------
+
+Hide:
+
+VAPT Labs
+
+Burp Suite
+
+Metasploit
+
+OWASP
+
+AD Pentesting
+
+GRC
+
+ISO
+
+NIST
+
+DPDP
+
+GDPR
+
+-----------------------------------
+
+Show locked cards:
+
+Explore VAPT 🔒
+
+Explore GRC 🔒
+
+No switching allowed.
+
+-----------------------------------
+
+VAPT STUDENT
+
+Show only:
+
+Dashboard
+
+Learning
+
+VAPT Courses
+
+Burp Suite
+
+Nmap
+
+Metasploit
+
+OWASP
+
+API Security
+
+AD Pentesting
+
+Mobile Pentesting
+
+Cloud Pentesting
+
+VAPT Labs
+
+VAPT Assessments
+
+VAPT Projects
+
+VAPT Checkpoints
+
+VAPT Assignments
+
+VAPT Jobs
+
+VAPT Mock Interviews
+
+VAPT Career Roadmap
+
+VAPT AI Career Coach
+
+VAPT Placements
+
+-----------------------------------
+
+Hide:
+
+SOC
+
+SIEM
+
+Splunk
+
+QRadar
+
+Wazuh
+
+Threat Hunting
+
+GRC
+
+ISO
+
+NIST
+
+DPDP
+
+GDPR
+
+-----------------------------------
+
+Show locked cards:
+
+Explore SOC 🔒
+
+Explore GRC 🔒
+
+No switching allowed.
+
+-----------------------------------
+
+GRC STUDENT
+
+Show only:
+
+Dashboard
+
+Learning
+
+ISO27001
+
+NIST
+
+DPDP
+
+GDPR
+
+Risk Assessment
+
+Compliance
+
+Audit
+
+Vendor Risk
+
+GRC Labs
+
+GRC Assessments
+
+GRC Projects
+
+GRC Checkpoints
+
+GRC Assignments
+
+GRC Jobs
+
+GRC Mock Interviews
+
+GRC Career Roadmap
+
+GRC AI Career Coach
+
+GRC Placements
+
+-----------------------------------
+
+Hide:
+
+SOC
+
+SIEM
+
+Threat Hunting
+
+Splunk
+
+QRadar
+
+VAPT
+
+Burp
+
+Nmap
+
+Metasploit
+
+OWASP
+
+-----------------------------------
+
+Show locked cards:
+
+Explore SOC 🔒
+
+Explore VAPT 🔒
+
+No switching allowed.
+
+-----------------------------------
+
+SECURITY
+
+Even if user manually enters URL:
+
+/vapt-lab
+
+or
+
+/grc-lab
+
+SOC students must get:
+
+403 Access Denied
+
+-----------------------------------
+
+Same for all tracks.
+
+Track based RBAC must be enforced on:
+
+Pages
+
+APIs
+
+Labs
+
+Assessments
+
+AI modules
+
+Jobs
+
+Placements
+
+Certificates
+
+-----------------------------------
+
+Admin CAN change track manually.
+
+Students CANNOT.
+
+Mentors CANNOT.
+
+TPO CANNOT.
+
+Employers CANNOT.
+
+-----------------------------------
+
+Track can be changed only by:
+
+Admin Dashboard
+
+↓
+
+Student Management
+
+↓
+
+Edit Student
+
+↓
+
+Change Career Track
+
+↓
+
+Confirmation Required
+
+↓
+
+Create Audit Log
+
+-----------------------------------
+
+Maintain existing Drizzle ORM architecture.
+
+Maintain RBAC.
+
+Maintain DPDP.
+
+Maintain Audit Logs.
+
+Implement production-ready track locked architecture.

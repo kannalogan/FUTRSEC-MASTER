@@ -75,6 +75,18 @@ export const UserProfileOnboardingStep = {
   complete: 'complete',
 } as const;
 
+/**
+ * @nullable
+ */
+export type UserProfileCareerTrack = typeof UserProfileCareerTrack[keyof typeof UserProfileCareerTrack] | null;
+
+
+export const UserProfileCareerTrack = {
+  soc: 'soc',
+  vapt: 'vapt',
+  grc: 'grc',
+} as const;
+
 export interface UserProfile {
   id: number;
   /** @nullable */
@@ -87,6 +99,8 @@ export interface UserProfile {
   onboardingStep: UserProfileOnboardingStep;
   /** @nullable */
   selectedTrackId?: number | null;
+  /** @nullable */
+  careerTrack?: UserProfileCareerTrack;
   /** @nullable */
   avatarUrl?: string | null;
   createdAt: string;
@@ -331,6 +345,68 @@ export interface AssessmentResult {
   suggestedTrackLevel?: string | null;
 }
 
+/**
+ * @nullable
+ */
+export type AdminStudentCareerTrack = typeof AdminStudentCareerTrack[keyof typeof AdminStudentCareerTrack] | null;
+
+
+export const AdminStudentCareerTrack = {
+  soc: 'soc',
+  vapt: 'vapt',
+  grc: 'grc',
+} as const;
+
+export interface AdminStudent {
+  id: number;
+  /** @nullable */
+  email?: string | null;
+  /** @nullable */
+  fullName?: string | null;
+  /** @nullable */
+  careerTrack?: AdminStudentCareerTrack;
+  /** @nullable */
+  selectedTrackId?: number | null;
+  onboardingStep: string;
+  isActive: boolean;
+  createdAt: string;
+}
+
+export interface AdminStudentList {
+  students: AdminStudent[];
+}
+
+export type ChangeTrackInputCareerTrack = typeof ChangeTrackInputCareerTrack[keyof typeof ChangeTrackInputCareerTrack];
+
+
+export const ChangeTrackInputCareerTrack = {
+  soc: 'soc',
+  vapt: 'vapt',
+  grc: 'grc',
+} as const;
+
+export interface ChangeTrackInput {
+  careerTrack: ChangeTrackInputCareerTrack;
+}
+
+/**
+ * @nullable
+ */
+export type ChangeTrackResultPreviousTrack = typeof ChangeTrackResultPreviousTrack[keyof typeof ChangeTrackResultPreviousTrack] | null;
+
+
+export const ChangeTrackResultPreviousTrack = {
+  soc: 'soc',
+  vapt: 'vapt',
+  grc: 'grc',
+} as const;
+
+export interface ChangeTrackResult {
+  student: AdminStudent;
+  /** @nullable */
+  previousTrack?: ChangeTrackResultPreviousTrack;
+}
+
 export interface PlatformStats {
   totalStudents: number;
   totalMentors: number;
@@ -340,4 +416,8 @@ export interface PlatformStats {
   averageRating: number;
   placementRate?: number;
 }
+
+export type ListStudentsParams = {
+search?: string;
+};
 

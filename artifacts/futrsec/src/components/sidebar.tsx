@@ -165,9 +165,15 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
     setCollapsed((prev) => ({ ...prev, [title]: !prev[title] }));
   };
 
-  const trackSlug = null; // resolved from dashboard data, not user profile
+  // The career track is permanent (chosen once at onboarding) and is the single
+  // source of truth for what this student can access. There is intentionally NO
+  // track-switching UI here — only an admin can change a track.
+  const trackSlug = user?.careerTrack ?? null;
   const trackColor = trackSlug ? (TRACK_COLORS[trackSlug] ?? "#2563EB") : "#2563EB";
   const trackLabel = trackSlug ? (TRACK_LABELS[trackSlug] ?? trackSlug) : "No Track";
+
+  // Locked "Explore" cards for the other tracks — visible but not accessible.
+  const lockedTracks = (["soc", "vapt", "grc"] as const).filter((t) => t !== trackSlug);
 
   return (
     <div className="flex flex-col h-full bg-[#08111F] text-white">
@@ -220,6 +226,43 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
             </div>
           );
         })}
+
+        {/* Admin-only */}
+        {user?.role === "admin" && (
+          <div className="mb-1 mt-2">
+            <div className="px-3 py-1.5 text-[10px] font-semibold tracking-widest text-white/30 uppercase">
+              Admin
+            </div>
+            <div className="space-y-0.5">
+              <NavLink item={{ label: "Student Management", href: "/admin/students", icon: Users }} />
+            </div>
+          </div>
+        )}
+
+        {/* Explore other tracks — locked, view-only */}
+        {trackSlug && lockedTracks.length > 0 && (
+          <div className="mb-1 mt-2">
+            <div className="px-3 py-1.5 text-[10px] font-semibold tracking-widest text-white/30 uppercase">
+              Explore
+            </div>
+            <div className="space-y-0.5">
+              {lockedTracks.map((t) => (
+                <div
+                  key={t}
+                  title="Locked — your career track is fixed. Contact an admin to change tracks."
+                  className="flex items-center gap-2.5 px-3 py-1.5 rounded-md text-sm text-white/30 cursor-not-allowed select-none"
+                >
+                  <span
+                    className="h-2 w-2 rounded-full shrink-0"
+                    style={{ backgroundColor: TRACK_COLORS[t] ?? "#2563EB" }}
+                  />
+                  <span className="truncate">{TRACK_LABELS[t] ?? t}</span>
+                  <Lock className="h-3 w-3 ml-auto shrink-0 text-white/30" />
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </nav>
 
       {/* User footer */}

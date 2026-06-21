@@ -11,6 +11,7 @@ import {
   lessonBookmarksTable,
 } from "@workspace/db";
 import { requireAuth, type AuthRequest } from "../middlewares/auth";
+import { checkTrackQueryAccess, checkResourceTrackAccess, type CareerTrack } from "../lib/track-access";
 
 const router = Router();
 
@@ -29,6 +30,14 @@ router.get("/learning/modules", requireAuth, async (req: AuthRequest, res): Prom
   const userId = req.user.userId;
 
   const user = await db.query.usersTable.findFirst({ where: eq(usersTable.id, userId) });
+
+  const denied = await checkTrackQueryAccess(
+    req.user.role,
+    (user?.careerTrack as CareerTrack | null) ?? null,
+    req.query.track as string | undefined,
+  );
+  if (denied) { res.status(403).json({ error: denied }); return; }
+
   const track = await resolveTrack(user, req.query.track as string | undefined);
 
   let modules: any[] = [];
@@ -63,6 +72,9 @@ router.get("/learning/modules/:moduleId", requireAuth, async (req: AuthRequest, 
 
   const module = await db.query.learningModulesTable.findFirst({ where: eq(learningModulesTable.id, moduleId) });
   if (!module) { res.status(404).json({ error: "Module not found" }); return; }
+
+  const moduleDenied = await checkResourceTrackAccess(req.user.role, userId, module.trackId);
+  if (moduleDenied) { res.status(403).json({ error: moduleDenied }); return; }
 
   const lessons = await db.select().from(lessonsTable)
     .where(and(eq(lessonsTable.moduleId, moduleId), eq(lessonsTable.isPublished, true)))
@@ -104,6 +116,9 @@ router.post("/learning/modules/:moduleId/enroll", requireAuth, async (req: AuthR
   const module = await db.query.learningModulesTable.findFirst({ where: eq(learningModulesTable.id, moduleId) });
   if (!module) { res.status(404).json({ error: "Module not found" }); return; }
 
+  const enrollDenied = await checkResourceTrackAccess(req.user.role, userId, module.trackId);
+  if (enrollDenied) { res.status(403).json({ error: enrollDenied }); return; }
+
   const existing = await db.query.moduleEnrollmentsTable.findFirst({
     where: and(eq(moduleEnrollmentsTable.userId, userId), eq(moduleEnrollmentsTable.moduleId, moduleId)),
   });
@@ -127,6 +142,10 @@ router.post("/learning/lessons/:lessonId/complete", requireAuth, async (req: Aut
 
   const lesson = await db.query.lessonsTable.findFirst({ where: eq(lessonsTable.id, lessonId) });
   if (!lesson) { res.status(404).json({ error: "Lesson not found" }); return; }
+
+  const lessonModule = await db.query.learningModulesTable.findFirst({ where: eq(learningModulesTable.id, lesson.moduleId) });
+  const completeDenied = await checkResourceTrackAccess(req.user.role, userId, lessonModule?.trackId);
+  if (completeDenied) { res.status(403).json({ error: completeDenied }); return; }
 
   const existing = await db.query.lessonProgressTable.findFirst({
     where: and(eq(lessonProgressTable.userId, userId), eq(lessonProgressTable.lessonId, lessonId)),
@@ -173,6 +192,12 @@ router.post("/learning/lessons/:lessonId/bookmark", requireAuth, async (req: Aut
   const userId = req.user.userId;
   const lessonId = parseInt(String(req.params.lessonId), 10);
   if (isNaN(lessonId)) { res.status(400).json({ error: "Invalid lessonId" }); return; }
+
+  const bookmarkLesson = await db.query.lessonsTable.findFirst({ where: eq(lessonsTable.id, lessonId) });
+  if (!bookmarkLesson) { res.status(404).json({ error: "Lesson not found" }); return; }
+  const bookmarkModule = await db.query.learningModulesTable.findFirst({ where: eq(learningModulesTable.id, bookmarkLesson.moduleId) });
+  const bookmarkDenied = await checkResourceTrackAccess(req.user.role, userId, bookmarkModule?.trackId);
+  if (bookmarkDenied) { res.status(403).json({ error: bookmarkDenied }); return; }
 
   const existing = await db.query.lessonBookmarksTable.findFirst({
     where: and(eq(lessonBookmarksTable.userId, userId), eq(lessonBookmarksTable.lessonId, lessonId)),

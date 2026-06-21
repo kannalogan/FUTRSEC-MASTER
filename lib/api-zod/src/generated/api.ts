@@ -51,6 +51,7 @@ export const VerifyOtpResponse = zod.object({
   "role": zod.enum(['student', 'mentor', 'tpo', 'employer', 'admin']),
   "onboardingStep": zod.enum(['consent', 'profile', 'track_selection', 'pre_assessment', 'complete']),
   "selectedTrackId": zod.number().nullish(),
+  "careerTrack": zod.union([zod.literal('soc'),zod.literal('vapt'),zod.literal('grc'),zod.literal(null)]).nullish(),
   "avatarUrl": zod.string().nullish(),
   "createdAt": zod.coerce.date()
 })
@@ -75,6 +76,7 @@ export const RefreshTokenResponse = zod.object({
   "role": zod.enum(['student', 'mentor', 'tpo', 'employer', 'admin']),
   "onboardingStep": zod.enum(['consent', 'profile', 'track_selection', 'pre_assessment', 'complete']),
   "selectedTrackId": zod.number().nullish(),
+  "careerTrack": zod.union([zod.literal('soc'),zod.literal('vapt'),zod.literal('grc'),zod.literal(null)]).nullish(),
   "avatarUrl": zod.string().nullish(),
   "createdAt": zod.coerce.date()
 })
@@ -92,6 +94,7 @@ export const GetMeResponse = zod.object({
   "role": zod.enum(['student', 'mentor', 'tpo', 'employer', 'admin']),
   "onboardingStep": zod.enum(['consent', 'profile', 'track_selection', 'pre_assessment', 'complete']),
   "selectedTrackId": zod.number().nullish(),
+  "careerTrack": zod.union([zod.literal('soc'),zod.literal('vapt'),zod.literal('grc'),zod.literal(null)]).nullish(),
   "avatarUrl": zod.string().nullish(),
   "createdAt": zod.coerce.date()
 })
@@ -120,6 +123,7 @@ export const CompleteProfileResponse = zod.object({
   "role": zod.enum(['student', 'mentor', 'tpo', 'employer', 'admin']),
   "onboardingStep": zod.enum(['consent', 'profile', 'track_selection', 'pre_assessment', 'complete']),
   "selectedTrackId": zod.number().nullish(),
+  "careerTrack": zod.union([zod.literal('soc'),zod.literal('vapt'),zod.literal('grc'),zod.literal(null)]).nullish(),
   "avatarUrl": zod.string().nullish(),
   "createdAt": zod.coerce.date()
 })
@@ -140,8 +144,56 @@ export const SelectTrackResponse = zod.object({
   "role": zod.enum(['student', 'mentor', 'tpo', 'employer', 'admin']),
   "onboardingStep": zod.enum(['consent', 'profile', 'track_selection', 'pre_assessment', 'complete']),
   "selectedTrackId": zod.number().nullish(),
+  "careerTrack": zod.union([zod.literal('soc'),zod.literal('vapt'),zod.literal('grc'),zod.literal(null)]).nullish(),
   "avatarUrl": zod.string().nullish(),
   "createdAt": zod.coerce.date()
+})
+
+
+/**
+ * @summary List or search students (admin only)
+ */
+export const ListStudentsQueryParams = zod.object({
+  "search": zod.coerce.string().optional()
+})
+
+export const ListStudentsResponse = zod.object({
+  "students": zod.array(zod.object({
+  "id": zod.number(),
+  "email": zod.string().nullish(),
+  "fullName": zod.string().nullish(),
+  "careerTrack": zod.union([zod.literal('soc'),zod.literal('vapt'),zod.literal('grc'),zod.literal(null)]).nullish(),
+  "selectedTrackId": zod.number().nullish(),
+  "onboardingStep": zod.string(),
+  "isActive": zod.boolean(),
+  "createdAt": zod.coerce.date()
+}))
+})
+
+
+/**
+ * @summary Change a student's permanent career track (admin only)
+ */
+export const ChangeStudentTrackParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const ChangeStudentTrackBody = zod.object({
+  "careerTrack": zod.enum(['soc', 'vapt', 'grc'])
+})
+
+export const ChangeStudentTrackResponse = zod.object({
+  "student": zod.object({
+  "id": zod.number(),
+  "email": zod.string().nullish(),
+  "fullName": zod.string().nullish(),
+  "careerTrack": zod.union([zod.literal('soc'),zod.literal('vapt'),zod.literal('grc'),zod.literal(null)]).nullish(),
+  "selectedTrackId": zod.number().nullish(),
+  "onboardingStep": zod.string(),
+  "isActive": zod.boolean(),
+  "createdAt": zod.coerce.date()
+}),
+  "previousTrack": zod.union([zod.literal('soc'),zod.literal('vapt'),zod.literal('grc'),zod.literal(null)]).nullish()
 })
 
 

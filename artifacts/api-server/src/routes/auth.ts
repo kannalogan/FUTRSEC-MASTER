@@ -50,6 +50,7 @@ function serializeUser(user: typeof usersTable.$inferSelect) {
     role: user.role,
     onboardingStep: user.onboardingStep,
     selectedTrackId: user.selectedTrackId ?? null,
+    careerTrack: user.careerTrack ?? null,
     avatarUrl: user.avatarUrl ?? null,
     createdAt: user.createdAt.toISOString(),
   };
@@ -348,6 +349,23 @@ router.post("/auth/select-track", requireAuth, async (req: AuthRequest, res): Pr
 
   const { trackSlug } = parsed.data;
 
+  // Track lock: a career track is chosen ONCE during onboarding and is permanent.
+  // Only an admin may change it afterwards (via the admin student-management flow).
+  const [current] = await db
+    .select()
+    .from(usersTable)
+    .where(eq(usersTable.id, req.user.userId));
+  if (!current) {
+    res.status(401).json({ error: "User not found" });
+    return;
+  }
+  if (current.careerTrack && current.role !== "admin") {
+    res.status(409).json({
+      error: "Your career track is locked and cannot be changed. Contact an administrator if this is a mistake.",
+    });
+    return;
+  }
+
   const [track] = await db
     .select()
     .from(tracksTable)
@@ -358,10 +376,18 @@ router.post("/auth/select-track", requireAuth, async (req: AuthRequest, res): Pr
     return;
   }
 
+  // Only the soc/vapt/grc tracks are open for enrollment in the locked architecture.
+  const careerTrack = track.domain;
+  if (careerTrack !== "soc" && careerTrack !== "vapt" && careerTrack !== "grc") {
+    res.status(400).json({ error: "This track is not available for enrollment." });
+    return;
+  }
+
   const [user] = await db
     .update(usersTable)
     .set({
       selectedTrackId: track.id,
+      careerTrack,
       onboardingStep: "pre_assessment",
     })
     .where(eq(usersTable.id, req.user.userId))

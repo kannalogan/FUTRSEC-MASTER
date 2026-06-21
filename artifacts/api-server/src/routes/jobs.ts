@@ -10,6 +10,7 @@ import {
   employersTable,
 } from "@workspace/db";
 import { requireAuth, type AuthRequest } from "../middlewares/auth";
+import { checkTrackQueryAccess, checkJobTrackAccess, type CareerTrack } from "../lib/track-access";
 
 const router = Router();
 
@@ -18,6 +19,14 @@ router.get("/jobs", requireAuth, async (req: AuthRequest, res): Promise<void> =>
   const userId = req.user.userId;
 
   const user = await db.query.usersTable.findFirst({ where: eq(usersTable.id, userId) });
+
+  const denied = await checkTrackQueryAccess(
+    req.user.role,
+    (user?.careerTrack as CareerTrack | null) ?? null,
+    (req.query.track as string) ?? null,
+  );
+  if (denied) { res.status(403).json({ error: denied }); return; }
+
   let trackSlug: string | null = (req.query.track as string) ?? null;
 
   if (!trackSlug && user?.selectedTrackId) {
@@ -84,6 +93,9 @@ router.get("/jobs/:jobId", requireAuth, async (req: AuthRequest, res): Promise<v
   const job = await db.query.jobsTable.findFirst({ where: and(eq(jobsTable.id, jobId), eq(jobsTable.status, "active")) });
   if (!job) { res.status(404).json({ error: "Job not found" }); return; }
 
+  const jobDenied = await checkJobTrackAccess(req.user.role, userId, job.requiredTracks);
+  if (jobDenied) { res.status(403).json({ error: jobDenied }); return; }
+
   const [skills, application, employer] = await Promise.all([
     db.select().from(jobSkillsTable).where(eq(jobSkillsTable.jobId, jobId)),
     db.query.jobApplicationsTable.findFirst({ where: and(eq(jobApplicationsTable.studentId, userId), eq(jobApplicationsTable.jobId, jobId)) }),
@@ -101,6 +113,9 @@ router.post("/jobs/:jobId/apply", requireAuth, async (req: AuthRequest, res): Pr
 
   const job = await db.query.jobsTable.findFirst({ where: and(eq(jobsTable.id, jobId), eq(jobsTable.status, "active")) });
   if (!job) { res.status(404).json({ error: "Job not found or closed" }); return; }
+
+  const applyDenied = await checkJobTrackAccess(req.user.role, userId, job.requiredTracks);
+  if (applyDenied) { res.status(403).json({ error: applyDenied }); return; }
 
   const existing = await db.query.jobApplicationsTable.findFirst({
     where: and(eq(jobApplicationsTable.studentId, userId), eq(jobApplicationsTable.jobId, jobId)),

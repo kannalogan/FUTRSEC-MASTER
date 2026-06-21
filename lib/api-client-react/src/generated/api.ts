@@ -20,11 +20,14 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
+  AdminStudentList,
   ApiError,
   Assessment,
   AssessmentResult,
   AssessmentSubmissionInput,
   AuthResult,
+  ChangeTrackInput,
+  ChangeTrackResult,
   ConsentCaptureInput,
   ConsentHistoryEntry,
   ConsentStatus,
@@ -33,6 +36,7 @@ import type {
   DataDeletionInput,
   DataRequest,
   HealthStatus,
+  ListStudentsParams,
   OtpSendInput,
   OtpSendResult,
   OtpVerifyInput,
@@ -635,6 +639,162 @@ export const useSelectTrack = <TError = ErrorType<ApiError>,
         TContext
       > => {
       return useMutation(getSelectTrackMutationOptions(options));
+    }
+
+export const getListStudentsUrl = (params?: ListStudentsParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/admin/students?${stringifiedParams}` : `/api/admin/students`
+}
+
+/**
+ * @summary List or search students (admin only)
+ */
+export const listStudents = async (params?: ListStudentsParams, options?: RequestInit): Promise<AdminStudentList> => {
+
+  return customFetch<AdminStudentList>(getListStudentsUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListStudentsQueryKey = (params?: ListStudentsParams,) => {
+    return [
+    `/api/admin/students`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListStudentsQueryOptions = <TData = Awaited<ReturnType<typeof listStudents>>, TError = ErrorType<ApiError>>(params?: ListStudentsParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listStudents>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListStudentsQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listStudents>>> = ({ signal }) => listStudents(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listStudents>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListStudentsQueryResult = NonNullable<Awaited<ReturnType<typeof listStudents>>>
+export type ListStudentsQueryError = ErrorType<ApiError>
+
+
+/**
+ * @summary List or search students (admin only)
+ */
+
+export function useListStudents<TData = Awaited<ReturnType<typeof listStudents>>, TError = ErrorType<ApiError>>(
+ params?: ListStudentsParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listStudents>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListStudentsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getChangeStudentTrackUrl = (id: number,) => {
+
+
+
+
+  return `/api/admin/students/${id}/track`
+}
+
+/**
+ * @summary Change a student's permanent career track (admin only)
+ */
+export const changeStudentTrack = async (id: number,
+    changeTrackInput: ChangeTrackInput, options?: RequestInit): Promise<ChangeTrackResult> => {
+
+  return customFetch<ChangeTrackResult>(getChangeStudentTrackUrl(id),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      changeTrackInput,)
+  }
+);}
+
+
+
+
+export const getChangeStudentTrackMutationOptions = <TError = ErrorType<ApiError>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof changeStudentTrack>>, TError,{id: number;data: BodyType<ChangeTrackInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof changeStudentTrack>>, TError,{id: number;data: BodyType<ChangeTrackInput>}, TContext> => {
+
+const mutationKey = ['changeStudentTrack'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof changeStudentTrack>>, {id: number;data: BodyType<ChangeTrackInput>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  changeStudentTrack(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ChangeStudentTrackMutationResult = NonNullable<Awaited<ReturnType<typeof changeStudentTrack>>>
+    export type ChangeStudentTrackMutationBody = BodyType<ChangeTrackInput>
+    export type ChangeStudentTrackMutationError = ErrorType<ApiError>
+
+    /**
+ * @summary Change a student's permanent career track (admin only)
+ */
+export const useChangeStudentTrack = <TError = ErrorType<ApiError>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof changeStudentTrack>>, TError,{id: number;data: BodyType<ChangeTrackInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof changeStudentTrack>>,
+        TError,
+        {id: number;data: BodyType<ChangeTrackInput>},
+        TContext
+      > => {
+      return useMutation(getChangeStudentTrackMutationOptions(options));
     }
 
 export const getGetConsentStatusUrl = () => {

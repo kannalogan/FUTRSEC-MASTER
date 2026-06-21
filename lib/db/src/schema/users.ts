@@ -27,6 +27,11 @@ export const onboardingStepEnum = pgEnum("onboarding_step", [
   "complete",
 ]);
 
+// Permanent career track. Selected ONCE during onboarding and locked thereafter;
+// only admins may change it (via the admin student-management flow). Values are
+// kept in sync with the soc/vapt/grc subset of the learning `domain` enum.
+export const careerTrackEnum = pgEnum("career_track", ["soc", "vapt", "grc"]);
+
 export const usersTable = pgTable("users", {
   id: serial("id").primaryKey(),
   email: text("email").unique(),
@@ -38,6 +43,7 @@ export const usersTable = pgTable("users", {
     .notNull()
     .default("consent"),
   selectedTrackId: integer("selected_track_id"),
+  careerTrack: careerTrackEnum("career_track"),
   avatarUrl: text("avatar_url"),
   isActive: boolean("is_active").notNull().default(true),
   lastLoginAt: timestamp("last_login_at", { withTimezone: true }),

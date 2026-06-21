@@ -11,6 +11,7 @@ import labsRouter from "./labs";
 import jobsRouter from "./jobs";
 import profileRouter from "./profile";
 import platformExtendedRouter from "./platform-extended";
+import adminRouter from "./admin";
 
 const router: IRouter = Router();
 
@@ -26,5 +27,6 @@ router.use(labsRouter);
 router.use(jobsRouter);
 router.use(profileRouter);
 router.use(platformExtendedRouter);
+router.use(adminRouter);
 
 export default router;

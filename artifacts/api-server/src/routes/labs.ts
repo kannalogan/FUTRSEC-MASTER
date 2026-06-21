@@ -10,6 +10,7 @@ import {
   labReportsTable,
 } from "@workspace/db";
 import { requireAuth, type AuthRequest } from "../middlewares/auth";
+import { checkTrackQueryAccess, checkResourceTrackAccess, type CareerTrack } from "../lib/track-access";
 
 const router = Router();
 
@@ -19,6 +20,13 @@ router.get("/labs", requireAuth, async (req: AuthRequest, res): Promise<void> =>
 
   const user = await db.query.usersTable.findFirst({ where: eq(usersTable.id, userId) });
   const queryTrack = req.query.track as string | undefined;
+
+  const denied = await checkTrackQueryAccess(
+    req.user.role,
+    (user?.careerTrack as CareerTrack | null) ?? null,
+    queryTrack,
+  );
+  if (denied) { res.status(403).json({ error: denied }); return; }
 
   let track = null;
   if (queryTrack) {
@@ -64,6 +72,9 @@ router.get("/labs/:labId", requireAuth, async (req: AuthRequest, res): Promise<v
   const lab = await db.query.labsTable.findFirst({ where: eq(labsTable.id, labId) });
   if (!lab) { res.status(404).json({ error: "Lab not found" }); return; }
 
+  const labDenied = await checkResourceTrackAccess(req.user.role, userId, lab.trackId);
+  if (labDenied) { res.status(403).json({ error: labDenied }); return; }
+
   const [modules, attempts] = await Promise.all([
     db.select().from(labModulesTable).where(eq(labModulesTable.labId, labId)).orderBy(labModulesTable.order),
     db.select().from(labAttemptsTable)
@@ -82,6 +93,9 @@ router.post("/labs/:labId/start", requireAuth, async (req: AuthRequest, res): Pr
 
   const lab = await db.query.labsTable.findFirst({ where: and(eq(labsTable.id, labId), eq(labsTable.isActive, true)) });
   if (!lab) { res.status(404).json({ error: "Lab not found or inactive" }); return; }
+
+  const startDenied = await checkResourceTrackAccess(req.user.role, userId, lab.trackId);
+  if (startDenied) { res.status(403).json({ error: startDenied }); return; }
 
   const existing = await db.query.labAttemptsTable.findFirst({
     where: and(eq(labAttemptsTable.userId, userId), eq(labAttemptsTable.labId, labId), eq(labAttemptsTable.status, "in_progress")),

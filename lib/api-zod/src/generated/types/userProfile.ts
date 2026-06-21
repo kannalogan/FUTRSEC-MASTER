@@ -5,6 +5,7 @@
  * FUTRSEC - Cybersecurity Learning + Mentorship + AI + Placement Ecosystem API
  * OpenAPI spec version: 0.1.0
  */
+import type { UserProfileCareerTrack } from './userProfileCareerTrack';
 import type { UserProfileOnboardingStep } from './userProfileOnboardingStep';
 import type { UserProfileRole } from './userProfileRole';
 
@@ -20,6 +21,8 @@ export interface UserProfile {
   onboardingStep: UserProfileOnboardingStep;
   /** @nullable */
   selectedTrackId?: number | null;
+  /** @nullable */
+  careerTrack?: UserProfileCareerTrack;
   /** @nullable */
   avatarUrl?: string | null;
   createdAt: Date;
