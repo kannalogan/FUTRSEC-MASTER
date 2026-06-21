@@ -11,3 +11,4 @@
 - [Track-locked RBAC](track-locked-rbac.md) — career_track is the auth source of truth; every track-scoped resource-by-ID route needs a track-access guard (list filters arent enough).
 - [SSRF-guarded URL fetch](ssrf-url-fetch.md) — server-side fetch of user URLs must re-validate every redirect hop, not just the first; redirect:"follow" bypasses the block list.
 - [Lab completion uniqueness](lab-completion-uniqueness.md) — lab_module_completions unique per (user,module); score/leaderboard anti-farming lives at completion level, not query level.
+- [Task audience batch derivation](task-audience-batch-derivation.md) — publish-from-draft of batch-targeted tasks must re-load persisted batch IDs (not default to []) and re-validate batch ownership on every mutation.

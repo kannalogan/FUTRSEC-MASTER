@@ -70,6 +70,17 @@ import SettingsPage from "@/pages/settings/index";
 import HelpPage from "@/pages/help/index";
 import SupportPage from "@/pages/support/index";
 import AdminStudentsPage from "@/pages/admin/students";
+import AdminMentorsPage from "@/pages/admin/mentors";
+import MentorOverview from "@/pages/mentor/overview";
+import MentorStudentsPage from "@/pages/mentor/students";
+import MentorBatchesPage from "@/pages/mentor/batches";
+import MentorAnalyticsPage from "@/pages/mentor/analytics";
+import MentorAtRiskPage from "@/pages/mentor/at-risk";
+import MentorBroadcastsPage from "@/pages/mentor/broadcasts";
+import MentorTasksPage from "@/pages/mentor/tasks";
+import MentorAuditLogsPage from "@/pages/mentor/audit-logs";
+import MentorReportsPage from "@/pages/mentor/reports";
+import MentorSettingsPage from "@/pages/mentor/settings";
 import Forbidden from "@/pages/forbidden";
 
 const queryClient = new QueryClient({
@@ -101,6 +112,18 @@ function AdminRoute({ component: Component }: { component: React.ComponentType<a
   );
   if (!token) return <Redirect to="/login" />;
   if (user?.role !== "admin") return <Layout><Forbidden /></Layout>;
+  return <Layout><Component /></Layout>;
+}
+
+function MentorRoute({ component: Component }: { component: React.ComponentType<any> }) {
+  const { token, user, isLoading } = useAuth();
+  if (isLoading) return (
+    <div className="min-h-screen flex items-center justify-center bg-background">
+      <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full" />
+    </div>
+  );
+  if (!token) return <Redirect to="/login" />;
+  if (user?.role !== "mentor") return <Layout><Forbidden /></Layout>;
   return <Layout><Component /></Layout>;
 }
 
@@ -207,6 +230,19 @@ function Router() {
 
       {/* Admin */}
       <Route path="/admin/students"><AdminRoute component={AdminStudentsPage} /></Route>
+      <Route path="/admin/mentors"><AdminRoute component={AdminMentorsPage} /></Route>
+
+      {/* Mentor */}
+      <Route path="/mentor"><MentorRoute component={MentorOverview} /></Route>
+      <Route path="/mentor/students"><MentorRoute component={MentorStudentsPage} /></Route>
+      <Route path="/mentor/batches"><MentorRoute component={MentorBatchesPage} /></Route>
+      <Route path="/mentor/analytics"><MentorRoute component={MentorAnalyticsPage} /></Route>
+      <Route path="/mentor/at-risk"><MentorRoute component={MentorAtRiskPage} /></Route>
+      <Route path="/mentor/broadcasts"><MentorRoute component={MentorBroadcastsPage} /></Route>
+      <Route path="/mentor/tasks"><MentorRoute component={MentorTasksPage} /></Route>
+      <Route path="/mentor/audit-logs"><MentorRoute component={MentorAuditLogsPage} /></Route>
+      <Route path="/mentor/reports"><MentorRoute component={MentorReportsPage} /></Route>
+      <Route path="/mentor/settings"><MentorRoute component={MentorSettingsPage} /></Route>
 
       {/* Catch-all */}
       <Route component={NotFound} />

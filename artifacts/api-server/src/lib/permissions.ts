@@ -37,6 +37,12 @@ export const Permission = {
   TPO_VIEW_STUDENTS: "tpo:view_students",
   TPO_MANAGE_PLACEMENTS: "tpo:manage_placements",
 
+  MENTOR_DASHBOARD: "mentor:dashboard",
+  MENTOR_VIEW_STUDENTS: "mentor:view_students",
+  MENTOR_ANALYTICS_VIEW: "mentor:analytics:view",
+  MENTOR_TASKS_MANAGE: "mentor:tasks:manage",
+  MENTORS_MANAGE: "mentors:manage",
+
   ADMIN_ALL: "admin:all",
 } as const;
 
@@ -67,6 +73,12 @@ const MENTOR_PERMISSIONS: Set<PermissionKey> = new Set([
   Permission.PLATFORM_STATS_VIEW,
   Permission.DPDP_OWN,
   Permission.BROADCASTS_VIEW,
+  Permission.BROADCASTS_SEND,
+  Permission.AUDIT_LOGS_VIEW,
+  Permission.MENTOR_DASHBOARD,
+  Permission.MENTOR_VIEW_STUDENTS,
+  Permission.MENTOR_ANALYTICS_VIEW,
+  Permission.MENTOR_TASKS_MANAGE,
 ]);
 
 const TPO_PERMISSIONS: Set<PermissionKey> = new Set([

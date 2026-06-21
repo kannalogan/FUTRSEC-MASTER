@@ -12,6 +12,8 @@ import jobsRouter from "./jobs";
 import profileRouter from "./profile";
 import platformExtendedRouter from "./platform-extended";
 import adminRouter from "./admin";
+import adminMentorsRouter from "./admin-mentors";
+import mentorRouter from "./mentor";
 import aiRouter from "./ai";
 import aiInterviewRouter from "./ai-interview";
 
@@ -32,5 +34,7 @@ router.use(platformExtendedRouter);
 router.use(aiRouter);
 router.use(aiInterviewRouter);
 router.use(adminRouter);
+router.use(adminMentorsRouter);
+router.use(mentorRouter);
 
 export default router;

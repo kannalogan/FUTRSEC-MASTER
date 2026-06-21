@@ -10,7 +10,8 @@ import {
   User, FileSearch, Star, BarChart2, TreePine, Link2,
   Bot, Mic2, ScanSearch, BrainCircuit, Brain, TrendingUp, Languages,
   CreditCard, Receipt, Bell, Lock, Settings, HelpCircle, HeadphonesIcon,
-  ChevronDown, ChevronRight, LogOut, Menu, X, ExternalLink
+  ChevronDown, ChevronRight, LogOut, Menu, X, ExternalLink,
+  Gauge, Layers, BarChart3, AlertTriangle, Megaphone, ListChecks, UserCog
 } from "lucide-react";
 
 type NavItem = {
@@ -113,6 +114,24 @@ const NAV_SECTIONS: NavSection[] = [
   },
 ];
 
+const MENTOR_NAV: NavSection[] = [
+  {
+    title: "MENTOR",
+    items: [
+      { label: "Overview", href: "/mentor", icon: Gauge },
+      { label: "Assigned Students", href: "/mentor/students", icon: Users },
+      { label: "Assigned Batches", href: "/mentor/batches", icon: Layers },
+      { label: "Cohort Analytics", href: "/mentor/analytics", icon: BarChart3 },
+      { label: "At-Risk Students", href: "/mentor/at-risk", icon: AlertTriangle },
+      { label: "Broadcast Notes", href: "/mentor/broadcasts", icon: Megaphone },
+      { label: "Task Builder", href: "/mentor/tasks", icon: ListChecks },
+      { label: "Audit Logs", href: "/mentor/audit-logs", icon: History },
+      { label: "Reports", href: "/mentor/reports", icon: FileText },
+      { label: "Settings", href: "/mentor/settings", icon: Settings },
+    ],
+  },
+];
+
 const TRACK_COLORS: Record<string, string> = {
   soc: "#2563EB",
   vapt: "#F97316",
@@ -206,7 +225,7 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
 
       {/* Nav */}
       <nav className="flex-1 overflow-y-auto py-2 px-2 scrollbar-thin">
-        {NAV_SECTIONS.map((section) => {
+        {(user?.role === "mentor" ? MENTOR_NAV : NAV_SECTIONS).map((section) => {
           const isCollapsed = collapsed[section.title];
           return (
             <div key={section.title} className="mb-1">
@@ -236,12 +255,13 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
             </div>
             <div className="space-y-0.5">
               <NavLink item={{ label: "Student Management", href: "/admin/students", icon: Users }} />
+              <NavLink item={{ label: "Mentor Management", href: "/admin/mentors", icon: UserCog }} />
             </div>
           </div>
         )}
 
         {/* Explore other tracks — locked, view-only */}
-        {trackSlug && lockedTracks.length > 0 && (
+        {user?.role !== "mentor" && trackSlug && lockedTracks.length > 0 && (
           <div className="mb-1 mt-2">
             <div className="px-3 py-1.5 text-[10px] font-semibold tracking-widest text-white/30 uppercase">
               Explore

@@ -70,6 +70,14 @@ import {
   paymentsTable,
   invoicesTable,
 } from "./ai";
+import {
+  batchesTable,
+  batchStudentsTable,
+  mentorStudentsTable,
+  mentorTasksTable,
+  mentorTaskBatchesTable,
+  mentorTaskAssignmentsTable,
+} from "./mentor";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Users
@@ -702,3 +710,86 @@ export const invoicesRelations = relations(invoicesTable, ({ one }) => ({
     references: [paymentsTable.id],
   }),
 }));
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Mentor (batches, assignments, task builder)
+// ─────────────────────────────────────────────────────────────────────────────
+export const batchesRelations = relations(batchesTable, ({ one, many }) => ({
+  mentor: one(usersTable, {
+    fields: [batchesTable.mentorId],
+    references: [usersTable.id],
+  }),
+  students: many(batchStudentsTable),
+}));
+
+export const batchStudentsRelations = relations(
+  batchStudentsTable,
+  ({ one }) => ({
+    batch: one(batchesTable, {
+      fields: [batchStudentsTable.batchId],
+      references: [batchesTable.id],
+    }),
+    student: one(usersTable, {
+      fields: [batchStudentsTable.studentId],
+      references: [usersTable.id],
+    }),
+  })
+);
+
+export const mentorStudentsRelations = relations(
+  mentorStudentsTable,
+  ({ one }) => ({
+    mentor: one(usersTable, {
+      fields: [mentorStudentsTable.mentorId],
+      references: [usersTable.id],
+    }),
+    student: one(usersTable, {
+      fields: [mentorStudentsTable.studentId],
+      references: [usersTable.id],
+    }),
+    batch: one(batchesTable, {
+      fields: [mentorStudentsTable.batchId],
+      references: [batchesTable.id],
+    }),
+  })
+);
+
+export const mentorTasksRelations = relations(
+  mentorTasksTable,
+  ({ one, many }) => ({
+    mentor: one(usersTable, {
+      fields: [mentorTasksTable.mentorId],
+      references: [usersTable.id],
+    }),
+    batches: many(mentorTaskBatchesTable),
+    assignments: many(mentorTaskAssignmentsTable),
+  })
+);
+
+export const mentorTaskBatchesRelations = relations(
+  mentorTaskBatchesTable,
+  ({ one }) => ({
+    task: one(mentorTasksTable, {
+      fields: [mentorTaskBatchesTable.taskId],
+      references: [mentorTasksTable.id],
+    }),
+    batch: one(batchesTable, {
+      fields: [mentorTaskBatchesTable.batchId],
+      references: [batchesTable.id],
+    }),
+  })
+);
+
+export const mentorTaskAssignmentsRelations = relations(
+  mentorTaskAssignmentsTable,
+  ({ one }) => ({
+    task: one(mentorTasksTable, {
+      fields: [mentorTaskAssignmentsTable.taskId],
+      references: [mentorTasksTable.id],
+    }),
+    student: one(usersTable, {
+      fields: [mentorTaskAssignmentsTable.studentId],
+      references: [usersTable.id],
+    }),
+  })
+);
