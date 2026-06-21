@@ -1,38 +1,34 @@
 import { useMentorReports, type MentorReportRow } from "@/lib/mentor-api";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import { PageHeader, CardSkeleton, EmptyState } from "@/components/page-shell";
 import { RiskBadge } from "./students";
-import { FileText, Download } from "lucide-react";
+import { FileText, Download, Activity, Clock, BookOpen, ClipboardCheck } from "lucide-react";
+import { motion } from "framer-motion";
 
-const COLUMNS: { key: keyof MentorReportRow; label: string }[] = [
-  { key: "fullName", label: "Name" },
-  { key: "email", label: "Email" },
+const COLUMNS: { key: keyof MentorReportRow; label: string; icon?: any }[] = [
+  { key: "fullName", label: "Identity" },
   { key: "careerTrack", label: "Track" },
-  { key: "learningHours", label: "Learning Hrs" },
-  { key: "lessonsCompleted", label: "Lessons" },
-  { key: "avgModuleProgress", label: "Progress %" },
-  { key: "ftsTotal", label: "FTS" },
-  { key: "labsCompleted", label: "Labs" },
-  { key: "assessmentsTaken", label: "Assessments" },
-  { key: "assessmentsPassed", label: "Passed" },
-  { key: "assignmentsSubmitted", label: "Assignments" },
+  { key: "learningHours", label: "Hours", icon: Clock },
+  { key: "lessonsCompleted", label: "Lessons", icon: BookOpen },
+  { key: "avgModuleProgress", label: "Prog %" },
+  { key: "ftsTotal", label: "FTS", icon: Activity },
+  { key: "assessmentsPassed", label: "Passed", icon: ClipboardCheck },
   { key: "missedTasks", label: "Missed" },
 ];
 
 function toCsv(rows: MentorReportRow[]): string {
-  const header = [...COLUMNS.map((c) => c.label), "Risk Level", "Risk Score"];
+  const header = ["Name", "Email", "Track", "Hours", "Lessons", "Progress", "FTS", "Labs", "Assessments", "Passed", "Assignments", "Missed", "Risk Level", "Risk Score"];
   const lines = rows.map((r) => [
-    ...COLUMNS.map((c) => {
-      const v = r[c.key];
-      const s = v == null ? "" : String(v);
-      return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
-    }),
-    r.riskLevel, r.riskScore,
-  ].join(","));
+    r.fullName, r.email, r.careerTrack, r.learningHours, r.lessonsCompleted, r.avgModuleProgress, r.ftsTotal, r.labsCompleted, r.assessmentsTaken, r.assessmentsPassed, r.assignmentsSubmitted, r.missedTasks, r.riskLevel, r.riskScore
+  ].map(v => {
+    const s = v == null ? "" : String(v);
+    return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+  }).join(","));
   return [header.join(","), ...lines].join("\n");
 }
 
@@ -45,7 +41,7 @@ export default function MentorReportsPage() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `cohort-report-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.download = `futrsec-cohort-export-${new Date().toISOString().slice(0, 10)}.csv`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -53,54 +49,89 @@ export default function MentorReportsPage() {
   };
 
   return (
-    <div className="p-6 max-w-full mx-auto">
-      <PageHeader
-        icon={FileText}
-        title="Reports"
-        subtitle="Full performance breakdown for your cohort. Export to CSV."
-        actions={
-          <Button onClick={download} disabled={rows.length === 0}>
-            <Download className="h-4 w-4 mr-1.5" /> Export CSV
-          </Button>
-        }
-      />
+    <div className="p-6 md:p-10 max-w-[1400px] mx-auto space-y-8">
+      <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
+        <PageHeader
+          icon={FileText}
+          title="Data Exports"
+          subtitle="Generate and download comprehensive performance matrix for your cohort."
+          actions={
+            <Button onClick={download} disabled={rows.length === 0} className="rounded-full px-6 font-semibold shadow-sm">
+              <Download className="h-4 w-4 mr-2" /> Download CSV
+            </Button>
+          }
+        />
+      </motion.div>
 
       {isLoading ? (
-        <CardSkeleton rows={8} />
+        <CardSkeleton rows={10} />
       ) : rows.length === 0 ? (
-        <EmptyState icon={FileText} title="No data to report" description="Once you have assigned students, their metrics appear here." />
+        <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}>
+          <EmptyState 
+            icon={FileText} 
+            title="Telemetry unavailable" 
+            description="Cohort telemetry data will compile here once student activity begins." 
+          />
+        </motion.div>
       ) : (
-        <Card>
-          <CardContent className="p-0 overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  {COLUMNS.map((c) => <TableHead key={c.key} className="whitespace-nowrap">{c.label}</TableHead>)}
-                  <TableHead>Risk</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {rows.map((r) => (
-                  <TableRow key={r.studentId}>
-                    <TableCell className="font-medium whitespace-nowrap">{r.fullName ?? "—"}</TableCell>
-                    <TableCell className="text-muted-foreground whitespace-nowrap">{r.email ?? "—"}</TableCell>
-                    <TableCell className="uppercase text-xs">{r.careerTrack ?? "—"}</TableCell>
-                    <TableCell>{r.learningHours}</TableCell>
-                    <TableCell>{r.lessonsCompleted}</TableCell>
-                    <TableCell>{r.avgModuleProgress}%</TableCell>
-                    <TableCell>{r.ftsTotal}</TableCell>
-                    <TableCell>{r.labsCompleted}</TableCell>
-                    <TableCell>{r.assessmentsTaken}</TableCell>
-                    <TableCell>{r.assessmentsPassed}</TableCell>
-                    <TableCell>{r.assignmentsSubmitted}</TableCell>
-                    <TableCell>{r.missedTasks}</TableCell>
-                    <TableCell><RiskBadge level={r.riskLevel} score={r.riskScore} /></TableCell>
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.2 }}>
+          <Card className="glass-card overflow-hidden border-border/60">
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader className="bg-muted/40">
+                  <TableRow>
+                    {COLUMNS.map((c) => (
+                      <TableHead key={c.key} className="whitespace-nowrap py-4">
+                        <span className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider">
+                          {c.icon && <c.icon className="h-3.5 w-3.5" />} {c.label}
+                        </span>
+                      </TableHead>
+                    ))}
+                    <TableHead className="text-right whitespace-nowrap">
+                      <span className="text-xs font-bold uppercase tracking-wider">Risk Matrix</span>
+                    </TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
+                </TableHeader>
+                <TableBody>
+                  {rows.map((r, i) => (
+                    <TableRow key={r.studentId} className="hover:bg-muted/30 transition-colors group">
+                      <TableCell className="py-3">
+                        <div className="font-semibold text-foreground truncate max-w-[180px]">{r.fullName ?? "—"}</div>
+                        <div className="text-sm text-muted-foreground font-mono truncate max-w-[180px]">{r.email ?? "—"}</div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="outline" className="bg-background text-xs uppercase tracking-widest px-2 py-0.5 border-border/60">
+                          {r.careerTrack ?? "—"}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="font-mono text-sm">{r.learningHours}h</TableCell>
+                      <TableCell className="font-mono text-sm">{r.lessonsCompleted}</TableCell>
+                      <TableCell>
+                        <div className="font-mono text-sm font-semibold flex items-center gap-2">
+                          {r.avgModuleProgress}%
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="secondary" className="font-mono font-bold px-2 py-0.5 text-primary bg-primary/10 border-0">
+                          {r.ftsTotal}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="font-mono text-sm">{r.assessmentsPassed} / {r.assessmentsTaken}</TableCell>
+                      <TableCell>
+                        <span className={`font-mono text-sm font-bold ${r.missedTasks > 0 ? 'text-destructive' : 'text-muted-foreground'}`}>
+                          {r.missedTasks}
+                        </span>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <RiskBadge level={r.riskLevel} score={r.riskScore} />
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </Card>
+        </motion.div>
       )}
     </div>
   );

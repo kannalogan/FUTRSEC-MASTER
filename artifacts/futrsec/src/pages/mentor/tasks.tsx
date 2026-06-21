@@ -27,8 +27,9 @@ import { PageHeader, CardSkeleton, EmptyState } from "@/components/page-shell";
 import { useToast } from "@/hooks/use-toast";
 import {
   ListChecks, Plus, Send, Archive, CalendarClock, Trash2, FileText,
-  ClipboardCheck, BookOpen, FileSignature,
+  ClipboardCheck, BookOpen, FileSignature, Target, Users
 } from "lucide-react";
+import { motion } from "framer-motion";
 
 const TYPE_META: Record<MentorTaskType, { label: string; icon: React.ComponentType<{ className?: string; style?: React.CSSProperties }>; color: string }> = {
   assessment: { label: "Assessment", icon: ClipboardCheck, color: "#2563EB" },
@@ -46,10 +47,10 @@ const AUDIENCE_OPTIONS: { value: MentorTaskAudience; label: string }[] = [
 ];
 
 const STATUS_STYLE: Record<string, string> = {
-  published: "bg-emerald-100 text-emerald-700",
-  draft: "bg-muted text-muted-foreground",
-  scheduled: "bg-blue-100 text-blue-700",
-  archived: "bg-muted text-muted-foreground/70",
+  published: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30",
+  draft: "bg-muted text-muted-foreground border-border",
+  scheduled: "bg-blue-500/15 text-blue-700 dark:text-blue-400 border-blue-500/30",
+  archived: "bg-muted/50 text-muted-foreground/70 border-border/50",
 };
 
 function toLocalInput(date: Date) {
@@ -132,76 +133,91 @@ export default function MentorTasksPage() {
   };
 
   return (
-    <div className="p-6 max-w-6xl mx-auto">
-      <PageHeader
-        icon={ListChecks}
-        title="Task Builder"
-        subtitle="Create assessments, resources, assignments & declarations for your cohort."
-        actions={<Button onClick={() => setOpen(true)}><Plus className="h-4 w-4 mr-1.5" /> New Task</Button>}
-      />
+    <div className="p-6 md:p-10 max-w-7xl mx-auto space-y-8">
+      <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
+        <PageHeader
+          icon={ListChecks}
+          title="Task Builder"
+          subtitle="Design, schedule, and assign custom modules to your cohort."
+          actions={<Button onClick={() => setOpen(true)} className="rounded-full px-6 font-semibold shadow-sm"><Plus className="h-4 w-4 mr-2" /> Create Task</Button>}
+        />
+      </motion.div>
 
       {isLoading ? (
-        <CardSkeleton rows={6} />
+        <CardSkeleton rows={8} />
       ) : tasks.length === 0 ? (
-        <EmptyState
-          icon={ListChecks}
-          title="No tasks yet"
-          description="Build your first task and publish it to your students."
-          action={<Button onClick={() => setOpen(true)}><Plus className="h-4 w-4 mr-1.5" /> New Task</Button>}
-        />
+        <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}>
+          <EmptyState
+            icon={ListChecks}
+            title="Task library is empty"
+            description="Build your first assessment, assignment, or resource for your students."
+            action={<Button onClick={() => setOpen(true)} className="mt-4"><Plus className="h-4 w-4 mr-2" /> Create Task</Button>}
+          />
+        </motion.div>
       ) : (
-        <Card>
-          <CardContent className="p-0">
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.2 }}>
+          <Card className="glass-card overflow-hidden border-border/60">
             <Table>
-              <TableHeader>
+              <TableHeader className="bg-muted/40">
                 <TableRow>
-                  <TableHead>Task</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Audience</TableHead>
-                  <TableHead>Assigned</TableHead>
+                  <TableHead className="py-4">Task Definition</TableHead>
+                  <TableHead>Category</TableHead>
+                  <TableHead>Target Audience</TableHead>
+                  <TableHead className="text-center">Assigned</TableHead>
                   <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
+                  <TableHead className="text-right">Manage</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {tasks.map((t) => {
                   const meta = TYPE_META[t.type];
                   return (
-                    <TableRow key={t.id}>
-                      <TableCell>
-                        <div className="font-medium">{t.title}</div>
-                        <div className="text-xs text-muted-foreground">{TRACK_LABELS[t.careerTrack] ?? t.careerTrack}</div>
+                    <TableRow key={t.id} className="group hover:bg-muted/30 transition-colors">
+                      <TableCell className="py-4">
+                        <div className="font-semibold text-foreground text-base tracking-tight mb-1">{t.title}</div>
+                        <div className="flex items-center gap-1.5 text-xs text-muted-foreground font-medium uppercase tracking-wide">
+                          <Target className="h-3 w-3" /> {TRACK_LABELS[t.careerTrack] ?? t.careerTrack}
+                        </div>
                       </TableCell>
                       <TableCell>
-                        <span className="inline-flex items-center gap-1.5 text-sm">
-                          <meta.icon className="h-3.5 w-3.5" style={{ color: meta.color }} />
+                        <Badge variant="outline" className="bg-background text-xs uppercase tracking-wider py-1 px-2.5 font-semibold" style={{ borderColor: `${meta.color}40`, color: meta.color }}>
+                          <meta.icon className="h-3.5 w-3.5 mr-1.5 inline-block" />
                           {meta.label}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2 text-sm font-medium text-foreground">
+                          <Users className="h-4 w-4 text-muted-foreground" />
+                          {AUDIENCE_OPTIONS.find((a) => a.value === t.audience)?.label ?? t.audience}
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-center">
+                        <span className="inline-flex items-center justify-center h-8 w-8 rounded-full bg-muted font-bold text-sm">
+                          {t.assignedCount}
                         </span>
                       </TableCell>
-                      <TableCell className="text-sm text-muted-foreground">
-                        {AUDIENCE_OPTIONS.find((a) => a.value === t.audience)?.label ?? t.audience}
-                      </TableCell>
-                      <TableCell>{t.assignedCount}</TableCell>
                       <TableCell>
-                        <Badge className={`border-0 ${STATUS_STYLE[t.status] ?? STATUS_STYLE.draft}`}>{t.status}</Badge>
+                        <Badge variant="outline" className={`border text-xs uppercase tracking-wider py-0.5 px-2 ${STATUS_STYLE[t.status] ?? STATUS_STYLE.draft}`}>{t.status}</Badge>
                         {t.status === "scheduled" && t.scheduledAt && (
-                          <div className="text-[10px] text-muted-foreground mt-0.5">{new Date(t.scheduledAt).toLocaleString()}</div>
+                          <div className="text-sm font-medium text-muted-foreground mt-1.5 flex items-center gap-1">
+                            <CalendarClock className="h-3 w-3" /> {new Date(t.scheduledAt).toLocaleString()}
+                          </div>
                         )}
                       </TableCell>
                       <TableCell className="text-right">
-                        <div className="flex justify-end gap-1">
+                        <div className="flex justify-end gap-1 opacity-60 group-hover:opacity-100 transition-opacity">
                           {t.status !== "published" && (
-                            <Button size="sm" variant="ghost" title="Publish" onClick={() => act(t.id, "publish")} disabled={updateMut.isPending}>
-                              <Send className="h-3.5 w-3.5" />
+                            <Button size="icon" variant="ghost" title="Publish" onClick={() => act(t.id, "publish")} disabled={updateMut.isPending} className="h-8 w-8 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-500/10">
+                              <Send className="h-4 w-4" />
                             </Button>
                           )}
                           {t.status !== "archived" && (
-                            <Button size="sm" variant="ghost" title="Archive" onClick={() => act(t.id, "archive")} disabled={updateMut.isPending}>
-                              <Archive className="h-3.5 w-3.5" />
+                            <Button size="icon" variant="ghost" title="Archive" onClick={() => act(t.id, "archive")} disabled={updateMut.isPending} className="h-8 w-8 hover:bg-muted">
+                              <Archive className="h-4 w-4" />
                             </Button>
                           )}
-                          <Button size="sm" variant="ghost" title="Delete" onClick={() => setDeleteId(t.id)} disabled={deleteMut.isPending}>
-                            <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                          <Button size="icon" variant="ghost" title="Delete" onClick={() => setDeleteId(t.id)} disabled={deleteMut.isPending} className="h-8 w-8 text-red-500 hover:text-red-600 hover:bg-red-500/10">
+                            <Trash2 className="h-4 w-4" />
                           </Button>
                         </div>
                       </TableCell>
@@ -210,140 +226,153 @@ export default function MentorTasksPage() {
                 })}
               </TableBody>
             </Table>
-          </CardContent>
-        </Card>
+          </Card>
+        </motion.div>
       )}
 
-      {/* Builder dialog */}
       <Dialog open={open} onOpenChange={(v) => { if (!v) resetForm(); setOpen(v); }}>
-        <DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>New Task</DialogTitle>
-            <DialogDescription>Configure type, audience, schedule and dates.</DialogDescription>
-          </DialogHeader>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto p-0 border-border/60 glass-card">
+          <div className="bg-muted/50 p-6 border-b border-border/50 sticky top-0 z-10 backdrop-blur-md">
+            <DialogHeader>
+              <DialogTitle className="text-2xl font-heading">Task Configuration</DialogTitle>
+              <DialogDescription>Define parameters, schedule, and targeting for your new task.</DialogDescription>
+            </DialogHeader>
+          </div>
 
-          <div className="space-y-4 py-2">
-            <div>
-              <Label className="mb-2 block">Type</Label>
-              <div className="grid grid-cols-2 gap-2">
+          <div className="p-6 space-y-8">
+            <div className="space-y-3">
+              <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Task Category</Label>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                 {(Object.keys(TYPE_META) as MentorTaskType[]).map((t) => {
                   const meta = TYPE_META[t];
+                  const isActive = type === t;
                   return (
                     <button
                       key={t}
                       type="button"
                       onClick={() => setType(t)}
-                      className={`flex items-center gap-2 rounded-lg border px-3 py-2.5 text-left text-sm transition-colors ${type === t ? "border-primary bg-primary/5" : "border-border hover:bg-muted/50"}`}
+                      className={`flex flex-col items-center justify-center gap-3 rounded-xl border p-4 transition-all duration-200 ${isActive ? "border-primary bg-primary/5 shadow-[0_0_15px_-3px_rgba(59,130,246,0.3)] ring-1 ring-primary/50" : "border-border hover:bg-muted/50 hover:border-border/80"}`}
                     >
-                      <meta.icon className="h-4 w-4" style={{ color: meta.color }} />
-                      {meta.label}
+                      <div className={`p-2.5 rounded-full ${isActive ? 'bg-background shadow-sm' : 'bg-muted'}`}>
+                        <meta.icon className="h-5 w-5" style={{ color: isActive ? meta.color : "var(--muted-foreground)" }} />
+                      </div>
+                      <span className={`text-sm font-semibold ${isActive ? "text-foreground" : "text-muted-foreground"}`}>{meta.label}</span>
                     </button>
                   );
                 })}
               </div>
             </div>
 
-            <div>
-              <Label htmlFor="t-title">Title</Label>
-              <Input id="t-title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Module 3 assessment" />
-            </div>
-            <div>
-              <Label htmlFor="t-desc">Description (optional)</Label>
-              <Textarea id="t-desc" value={description} onChange={(e) => setDescription(e.target.value)} rows={3} />
-            </div>
-            <div>
-              <Label htmlFor="t-url">Content URL (optional)</Label>
-              <Input id="t-url" value={contentUrl} onChange={(e) => setContentUrl(e.target.value)} placeholder="https://…" />
+            <div className="space-y-5">
+              <div className="space-y-2">
+                <Label htmlFor="t-title" className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Task Title</Label>
+                <Input id="t-title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Incident Response Lab #1" className="h-11 font-medium" />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="t-desc" className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Detailed Instructions (Optional)</Label>
+                <Textarea id="t-desc" value={description} onChange={(e) => setDescription(e.target.value)} rows={4} className="resize-none" placeholder="Provide context, goals, and grading criteria..." />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="t-url" className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">External Content Link (Optional)</Label>
+                <Input id="t-url" value={contentUrl} onChange={(e) => setContentUrl(e.target.value)} placeholder="https://..." className="h-11" />
+              </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <Label>Track</Label>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-5 rounded-xl bg-muted/30 border border-border/50">
+              <div className="space-y-2">
+                <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Career Track Requirement</Label>
                 <Select value={careerTrack} onValueChange={setCareerTrack}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectTrigger className="h-11 bg-background"><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    {TRACKS.map((t) => <SelectItem key={t} value={t}>{TRACK_LABELS[t]}</SelectItem>)}
+                    {TRACKS.map((t) => <SelectItem key={t} value={t} className="font-medium">{TRACK_LABELS[t]}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </div>
-              <div>
-                <Label>Audience</Label>
+              <div className="space-y-2">
+                <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Target Audience</Label>
                 <Select value={audience} onValueChange={(v) => setAudience(v as MentorTaskAudience)}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectTrigger className="h-11 bg-background"><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    {AUDIENCE_OPTIONS.map((a) => <SelectItem key={a.value} value={a.value}>{a.label}</SelectItem>)}
+                    {AUDIENCE_OPTIONS.map((a) => <SelectItem key={a.value} value={a.value} className="font-medium">{a.label}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </div>
+
+              {audience === "specific_batches" && (
+                <div className="col-span-1 md:col-span-2 space-y-2 mt-2">
+                  <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Select Target Batches</Label>
+                  {batches.length === 0 ? (
+                    <p className="text-sm text-amber-600 bg-amber-500/10 p-3 rounded-lg border border-amber-500/20 font-medium">You have no active batches assigned to target.</p>
+                  ) : (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 bg-background border rounded-xl p-3 max-h-40 overflow-y-auto">
+                      {batches.map((b) => (
+                        <label key={b.id} className={`flex items-center gap-3 px-3 py-2 cursor-pointer rounded-lg border transition-colors ${batchIds.has(b.id) ? 'bg-primary/5 border-primary/30 text-primary' : 'hover:bg-muted/50 border-transparent text-foreground'}`}>
+                          <input type="checkbox" className="accent-primary w-4 h-4 rounded border-border" checked={batchIds.has(b.id)} onChange={() => toggleBatch(b.id)} />
+                          <span className="font-medium text-sm truncate">{b.name}</span>
+                        </label>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
-            {audience === "specific_batches" && (
-              <div>
-                <Label className="mb-1.5 block">Select batches</Label>
-                {batches.length === 0 ? (
-                  <p className="text-xs text-muted-foreground">You have no batches assigned.</p>
-                ) : (
-                  <div className="space-y-1 border rounded-lg p-2 max-h-32 overflow-y-auto">
-                    {batches.map((b) => (
-                      <label key={b.id} className="flex items-center gap-2 px-1.5 py-1 cursor-pointer hover:bg-muted/50 rounded text-sm">
-                        <input type="checkbox" checked={batchIds.has(b.id)} onChange={() => toggleBatch(b.id)} />
-                        {b.name}
-                      </label>
-                    ))}
-                  </div>
-                )}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <div className="space-y-2">
+                <Label htmlFor="t-start" className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Available From (Optional)</Label>
+                <Input id="t-start" type="datetime-local" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="h-11 text-sm font-medium" />
               </div>
-            )}
-
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <Label htmlFor="t-start">Start date (optional)</Label>
-                <Input id="t-start" type="datetime-local" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
-              </div>
-              <div>
-                <Label htmlFor="t-end">End date (optional)</Label>
-                <Input id="t-end" type="datetime-local" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
+              <div className="space-y-2">
+                <Label htmlFor="t-end" className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Due Deadline (Optional)</Label>
+                <Input id="t-end" type="datetime-local" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="h-11 text-sm font-medium" />
               </div>
             </div>
 
-            <div>
-              <Label htmlFor="t-sched">Schedule publish at (optional)</Label>
-              <Input id="t-sched" type="datetime-local" min={toLocalInput(new Date())} value={scheduledAt} onChange={(e) => setScheduledAt(e.target.value)} />
+            <div className="space-y-2 pt-4 border-t border-border/50">
+              <Label htmlFor="t-sched" className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+                <CalendarClock className="h-4 w-4" /> Automate Publishing (Optional)
+              </Label>
+              <Input id="t-sched" type="datetime-local" min={toLocalInput(new Date())} value={scheduledAt} onChange={(e) => setScheduledAt(e.target.value)} className="h-11 text-sm font-medium max-w-sm" />
             </div>
           </div>
 
-          <DialogFooter className="flex-col-reverse sm:flex-row gap-2">
-            <Button variant="ghost" onClick={() => submit("draft")} disabled={!title || createMut.isPending}>Save Draft</Button>
-            <Button variant="outline" onClick={() => submit("schedule")} disabled={!title || !scheduledAt || createMut.isPending}>
-              <CalendarClock className="h-4 w-4 mr-1.5" /> Schedule
+          <div className="bg-muted/50 p-6 border-t border-border/50 flex flex-col-reverse sm:flex-row justify-end gap-3 sticky bottom-0 z-10 backdrop-blur-md">
+            <Button variant="ghost" className="font-semibold" onClick={() => submit("draft")} disabled={!title || createMut.isPending}>Save as Draft</Button>
+            <Button variant="outline" className="font-semibold bg-background" onClick={() => submit("schedule")} disabled={!title || !scheduledAt || createMut.isPending}>
+              <CalendarClock className="h-4 w-4 mr-2" /> Schedule Automation
             </Button>
-            <Button onClick={() => submit("publish")} disabled={!title || createMut.isPending}>
-              <Send className="h-4 w-4 mr-1.5" /> Publish
+            <Button onClick={() => submit("publish")} disabled={!title || createMut.isPending} className="font-semibold px-6">
+              <Send className="h-4 w-4 mr-2" /> Publish Immediately
             </Button>
-          </DialogFooter>
+          </div>
         </DialogContent>
       </Dialog>
 
       <AlertDialog open={deleteId !== null} onOpenChange={(v) => { if (!v) setDeleteId(null); }}>
-        <AlertDialogContent>
+        <AlertDialogContent className="glass-card border-destructive/20">
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete task?</AlertDialogTitle>
-            <AlertDialogDescription>This permanently removes the task and its assignments. This cannot be undone.</AlertDialogDescription>
+            <AlertDialogTitle className="flex items-center gap-2 text-destructive">
+              <Trash2 className="h-5 w-5" /> Permanent Deletion
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-base text-foreground/80">
+              This action will instantly destroy the task, removing it from all student dashboards. Any submitted work tied to this task may become orphaned.
+            </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <AlertDialogFooter className="mt-4">
+            <AlertDialogCancel className="font-semibold">Cancel</AlertDialogCancel>
             <AlertDialogAction
+              className="bg-destructive hover:bg-destructive/90 text-destructive-foreground font-semibold px-6"
               onClick={() => {
                 if (deleteId !== null) {
                   deleteMut.mutate(deleteId, {
-                    onSuccess: () => toast({ title: "Task deleted" }),
+                    onSuccess: () => toast({ title: "Task annihilated" }),
                     onError: (e: Error) => toast({ title: e.message, variant: "destructive" }),
                   });
                 }
                 setDeleteId(null);
               }}
             >
-              Delete
+              Confirm Delete
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

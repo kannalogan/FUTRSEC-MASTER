@@ -9,6 +9,7 @@
 - [Route ordering collisions](route-ordering.md) — Express /:param routes swallow sibling static paths; use non-colliding top-level API paths (/internships not /jobs/internships)
 - [Write-route validation](write-route-validation.md) — mutating routes must validate id/existence/track-eligibility/duplicates before insert (broken-access-control guard)
 - [Track-locked RBAC](track-locked-rbac.md) — career_track is the auth source of truth; every track-scoped resource-by-ID route needs a track-access guard (list filters arent enough).
+- [E2E auth testing](e2e-auth-testing.md) — OTP-only login blocks the test agent; set a bcrypt password on a dev account, login via /auth/login/password, inject futrsec_token in localStorage.
 - [Typography system](typography-system.md) — Poppins headings + Inter body; type scale as .text-* custom utilities in index.css; min-14px rule; twMerge can't merge custom type classes.
 - [Entitlement & paywall gating](entitlement-gating.md) — premium gates must check subscription.status==active+expiry not just plan name; track-specific plans need server-side track validation (frontend filtering is bypassable).
 - [SSRF-guarded URL fetch](ssrf-url-fetch.md) — server-side fetch of user URLs must re-validate every redirect hop, not just the first; redirect:"follow" bypasses the block list.
