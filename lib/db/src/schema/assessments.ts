@@ -23,6 +23,8 @@ export const questionTypeEnum = pgEnum("question_type", [
   "multi_select",
   "true_false",
   "code",
+  "practical",
+  "scenario",
 ]);
 
 export const assessmentsTable = pgTable("assessments", {

@@ -7,6 +7,8 @@ export * from "./jobs";
 export * from "./assignments";
 export * from "./ai";
 export * from "./mentor";
+export * from "./question-bank";
+export * from "./mock-interview";
 export * from "./placement";
 export * from "./notifications";
 export * from "./jobagent";

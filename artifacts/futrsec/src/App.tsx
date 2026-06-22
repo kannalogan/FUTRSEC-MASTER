@@ -83,6 +83,10 @@ import MentorTasksPage from "@/pages/mentor/tasks";
 import MentorAuditLogsPage from "@/pages/mentor/audit-logs";
 import MentorReportsPage from "@/pages/mentor/reports";
 import MentorSettingsPage from "@/pages/mentor/settings";
+import MentorQuestionBankPage from "@/pages/mentor/question-bank";
+import MentorMockInterviewsPage from "@/pages/mentor/mock-interviews";
+import MentorMockInterviewResultsPage from "@/pages/mentor/mock-interview-results";
+import StudentAssignedInterviewsPage from "@/pages/student/assigned-interviews";
 
 import TpoOverviewPage from "@/pages/tpo/overview";
 import TpoAnalyticsPage from "@/pages/tpo/analytics";
@@ -122,6 +126,7 @@ import AdminCertificatesPage from "@/pages/admin/certificates";
 import AdminJobPostingsPage from "@/pages/admin/job-postings";
 import AdminAiConfigPage from "@/pages/admin/ai-config";
 import AdminSettingsPage from "@/pages/admin/settings";
+import AdminQuestionBankPage from "@/pages/admin/question-bank";
 import VerifyCertificatePage from "@/pages/verify";
 
 import JobAgentPage from "@/pages/job-agent/index";
@@ -254,6 +259,7 @@ function Router() {
       <Route path="/jobs/offers"><StudentRoute component={OffersPage} /></Route>
       <Route path="/certifications"><StudentRoute component={CertificationsPage} /></Route>
       <Route path="/interviews/history"><StudentRoute component={InterviewHistoryPage} /></Route>
+      <Route path="/interviews/assigned"><StudentRoute component={StudentAssignedInterviewsPage} /></Route>
 
       {/* Profile */}
       <Route path="/profile"><StudentRoute component={ProfilePage} /></Route>
@@ -302,6 +308,7 @@ function Router() {
       <Route path="/admin/courses"><AdminRoute component={AdminCoursesPage} /></Route>
       <Route path="/admin/labs"><AdminRoute component={AdminLabsPage} /></Route>
       <Route path="/admin/assessments"><AdminRoute component={AdminAssessmentsPage} /></Route>
+      <Route path="/admin/question-bank"><AdminRoute component={AdminQuestionBankPage} /></Route>
       <Route path="/admin/certificates"><AdminRoute component={AdminCertificatesPage} /></Route>
       <Route path="/admin/job-postings"><AdminRoute component={AdminJobPostingsPage} /></Route>
       <Route path="/admin/ai-config"><AdminRoute component={AdminAiConfigPage} /></Route>
@@ -351,6 +358,9 @@ function Router() {
       <Route path="/mentor/at-risk"><MentorRoute component={MentorAtRiskPage} /></Route>
       <Route path="/mentor/broadcasts"><MentorRoute component={MentorBroadcastsPage} /></Route>
       <Route path="/mentor/tasks"><MentorRoute component={MentorTasksPage} /></Route>
+      <Route path="/mentor/question-bank"><MentorRoute component={MentorQuestionBankPage} /></Route>
+      <Route path="/mentor/mock-interviews"><MentorRoute component={MentorMockInterviewsPage} /></Route>
+      <Route path="/mentor/mock-interviews/:id"><MentorRoute component={MentorMockInterviewResultsPage} /></Route>
       <Route path="/mentor/audit-logs"><MentorRoute component={MentorAuditLogsPage} /></Route>
       <Route path="/mentor/reports"><MentorRoute component={MentorReportsPage} /></Route>
       <Route path="/mentor/settings"><MentorRoute component={MentorSettingsPage} /></Route>

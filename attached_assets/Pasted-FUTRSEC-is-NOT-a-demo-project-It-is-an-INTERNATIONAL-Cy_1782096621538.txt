@@ -1,0 +1,493 @@
+FUTRSEC is NOT a demo project.
+
+It is an INTERNATIONAL Cybersecurity Learning + Assessment + Mentorship + Placement Ecosystem.
+
+Target quality:
+
+UI / UX             : 10/10
+Architecture        : 10/10
+Performance         : 10/10
+Security            : 10/10
+Scalability         : 10/10
+Feature completeness: 100%
+Accessibility       : WCAG AA+
+Code quality        : Enterprise grade
+
+====================================================
+ABSOLUTE RULES
+====================================================
+
+1.
+
+NO
+
+- Mock data
+- Placeholder buttons
+- Empty cards
+- Static charts
+- Dummy analytics
+- "Coming soon"
+- Fake counts
+- Hardcoded values
+- Disconnected pages
+- Unused APIs
+
+Everything must work.
+
+----------------------------------------------------
+
+2.
+
+Every feature MUST have:
+
+✓ DB schema
+✓ Backend APIs
+✓ Validation
+✓ RBAC
+✓ Frontend UI
+✓ Notifications
+✓ Audit logs
+✓ Analytics
+✓ Search
+✓ Filters
+✓ Pagination
+✓ CSV export
+✓ Excel export
+✓ PDF export
+✓ Responsive mobile/tablet/desktop
+
+----------------------------------------------------
+
+3.
+
+Every action must:
+
+store in DB
+
+AND
+
+trigger
+
+audit log
++
+notifications
++
+analytics event
+
+----------------------------------------------------
+
+4.
+
+Every dashboard must be UNIQUE.
+
+Student UI ≠ Mentor UI
+
+Mentor UI ≠ TPO UI
+
+TPO UI ≠ Employer UI
+
+Employer UI ≠ Admin UI
+
+Never reuse Student dashboard for other roles.
+
+====================================================
+ROLE BASED FEATURES
+====================================================
+
+STUDENT
+
+100% complete.
+
+Include:
+
+Learning
+- Tracks
+- Courses
+- Lessons
+- Labs
+- Virtual Machines
+- Sandbox
+- CTF Challenges
+- Assignments
+- Projects
+
+Assessment
+
+- MCQ
+- Coding
+- Practical
+- Scenario
+- Adaptive assessments
+- Question bank
+- Attempt history
+
+AI
+
+- Explain Tutor
+- Career Coach
+- Skill Gap Analyzer
+- Resume Analyzer
+- Mock Interview
+- English Coach
+- Placement Predictor
+
+Career
+
+- Job Agent
+- Placements
+- Campus drives
+- Resume
+- Certifications
+- Internships
+- Applications
+- Offer tracker
+
+Gamification
+
+- XP
+- Badges
+- Leaderboards
+- Skill tree
+- Streaks
+
+Analytics
+
+- FTS score
+- AI readiness
+- Placement readiness
+- Weekly progress
+- Learning analytics
+
+====================================================
+
+MENTOR
+
+Must be more powerful.
+
+Include:
+
+Student Management
+
+- Assigned students
+- Cohorts
+- Batches
+- Attendance
+- Progress tracking
+- Risk students
+
+Question Bank
+
+- MCQ
+- Coding
+- Practical
+- Scenario
+- AI question generation
+- Difficulty analyzer
+
+Assessment Builder
+
+- Randomization
+- Negative marking
+- Time limits
+- Adaptive assessments
+
+Learning
+
+- Course Builder
+- Lab Builder
+- Resource Builder
+
+Assignments
+
+- Create
+- Publish
+- Schedule
+- Archive
+
+Mock Interviews
+
+- Create
+- Assign
+- Review
+- AI transcripts
+- Feedback
+- Analytics
+
+Analytics
+
+- Cohort analytics
+- Heatmaps
+- Performance trends
+
+Reports
+
+- CSV
+- Excel
+- PDF
+
+====================================================
+
+TPO
+
+Enterprise grade.
+
+Include:
+
+Students
+
+- Eligible students
+- Resume DB
+- FTS filters
+- Skill filters
+- Search
+
+Campus Drives
+
+- Create drive
+- Registration
+- Hall allocation
+- Round management
+- Results
+
+Placements
+
+- Shortlist
+- Interview scheduling
+- Selected students
+- Rejected students
+- Offer tracker
+
+Analytics
+
+- Placement %
+- Salary trends
+- Company statistics
+
+Reports
+
+CSV
+Excel
+PDF
+
+====================================================
+
+EMPLOYER
+
+Enterprise ATS.
+
+Include:
+
+Company profile
+
+Job Management
+
+- Jobs
+- Internships
+- Bulk hiring
+
+ATS
+
+Pipeline:
+
+Applied
+↓
+Shortlisted
+↓
+Interview
+↓
+Technical
+↓
+HR
+↓
+Selected
+↓
+Offer
+↓
+Joined
+
+Features:
+
+- Resume parser
+- AI ranking
+- Skill matching
+- Interview scheduler
+- Offer management
+
+Analytics
+
+- Hiring funnel
+- Time to hire
+- Acceptance rate
+
+====================================================
+
+ADMIN
+
+Global control.
+
+Include:
+
+User management
+
+- Students
+- Mentors
+- TPOs
+- Employers
+
+Content CMS
+
+- Tracks
+- Courses
+- Labs
+- Assessments
+- Question bank
+- Certificates
+
+AI
+
+- Providers
+- Models
+- Costs
+- Usage
+- Prompts
+
+Finance
+
+- Plans
+- Coupons
+- Payments
+- Invoices
+
+Security
+
+- Consent logs
+- Audit logs
+- Session management
+- Rate limiting
+
+Analytics
+
+Everything.
+
+====================================================
+UI / UX
+
+WORLD CLASS ONLY.
+
+Design inspiration:
+
+Linear
+Stripe Dashboard
+Notion
+Framer
+Vercel
+Coursera
+LeetCode
+HackerRank
+Datadog
+GitHub
+
+Requirements:
+
+- Large typography
+- Beautiful hero sections
+- Glassmorphism
+- Gradient accents
+- Smooth animations
+- Skeleton loading
+- Empty state illustrations
+- Sticky tables
+- Advanced filters
+- Kanban views
+- Heatmaps
+- Interactive charts
+- Drag & drop
+- Keyboard shortcuts
+
+Theme:
+
+✓ Light
+✓ Dark
+✓ System
+
+Every role gets:
+
+✓ Different dashboard
+✓ Different hero
+✓ Different KPIs
+✓ Different actions
+✓ Different analytics
+
+====================================================
+
+SECURITY
+
+Mandatory.
+
+Implement:
+
+- RBAC
+- ABAC if required
+- Track isolation
+- Tenant isolation
+- Rate limiting
+- CSRF protection
+- XSS protection
+- SQL injection protection
+- SSRF protection
+- Audit logs
+- Secrets manager
+- Signed URLs
+- Session expiration
+
+====================================================
+
+QUALITY GATE
+
+DO NOT mark feature complete unless:
+
+✓ DB exists
+✓ APIs work
+✓ UI works
+✓ Notifications work
+✓ Audit logs work
+✓ Analytics work
+✓ Role permissions verified
+✓ Mobile works
+✓ Light mode works
+✓ Dark mode works
+✓ Architect review passes
+
+====================================================
+
+Final Goal:
+
+Build FUTRSEC as a world-class cybersecurity ecosystem.
+
+No shortcuts.
+
+No demos.
+
+No placeholders.
+
+No "coming soon".
+
+Every feature must be production-ready, fully connected, scalable and beautiful.
+
+Feature completeness target:
+
+Student 100%
+Mentor 100%
+TPO 100%
+Employer 100%
+Admin 100%
+
+Overall Platform Score:
+
+UI / UX        10/10
+Architecture   10/10
+Performance    10/10
+Security       10/10
+Scalability    10/10
+Feature Set    100%
+Production     Ready

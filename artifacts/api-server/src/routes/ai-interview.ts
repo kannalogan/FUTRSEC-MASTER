@@ -1,7 +1,11 @@
 import { Router } from "express";
 import { eq, and, desc } from "drizzle-orm";
 import { db } from "@workspace/db";
-import { aiInterviewsTable, aiReportsTable } from "@workspace/db";
+import {
+  aiInterviewsTable,
+  aiReportsTable,
+  mockInterviewAssignmentsTable,
+} from "@workspace/db";
 import { requireAuth, type AuthRequest } from "../middlewares/auth";
 import { getUserCareerTrack } from "../lib/track-access";
 import { createAuditLog } from "../lib/audit";
@@ -168,6 +172,19 @@ router.post("/ai/interview/:id/finish", requireAuth, async (req: AuthRequest, re
     .set({ status: "completed", evaluation, overallScore: Math.round(evaluation.overall), completedAt: new Date() })
     .where(eq(aiInterviewsTable.id, id))
     .returning();
+
+  // If this attempt belongs to a mentor-assigned mock interview, reflect the
+  // result back onto the assignment so the mentor dashboard sees completion.
+  if (interview.assignmentId) {
+    await db
+      .update(mockInterviewAssignmentsTable)
+      .set({
+        status: "completed",
+        score: Math.round(evaluation.overall),
+        completedAt: new Date(),
+      })
+      .where(eq(mockInterviewAssignmentsTable.id, interview.assignmentId));
+  }
 
   try {
     await db.insert(aiReportsTable).values({

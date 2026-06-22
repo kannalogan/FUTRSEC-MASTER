@@ -79,6 +79,10 @@ import {
   mentorTaskAssignmentsTable,
 } from "./mentor";
 import {
+  mockInterviewTemplatesTable,
+  mockInterviewAssignmentsTable,
+} from "./mock-interview";
+import {
   studentTpoMapTable,
   eventsTable,
   eventRegistrationsTable,
@@ -637,6 +641,35 @@ export const aiReportsRelations = relations(aiReportsTable, ({ one }) => ({
     references: [usersTable.id],
   }),
 }));
+
+export const mockInterviewTemplatesRelations = relations(
+  mockInterviewTemplatesTable,
+  ({ one, many }) => ({
+    creator: one(usersTable, {
+      fields: [mockInterviewTemplatesTable.createdBy],
+      references: [usersTable.id],
+    }),
+    assignments: many(mockInterviewAssignmentsTable),
+  })
+);
+
+export const mockInterviewAssignmentsRelations = relations(
+  mockInterviewAssignmentsTable,
+  ({ one }) => ({
+    template: one(mockInterviewTemplatesTable, {
+      fields: [mockInterviewAssignmentsTable.templateId],
+      references: [mockInterviewTemplatesTable.id],
+    }),
+    student: one(usersTable, {
+      fields: [mockInterviewAssignmentsTable.studentId],
+      references: [usersTable.id],
+    }),
+    interview: one(aiInterviewsTable, {
+      fields: [mockInterviewAssignmentsTable.interviewId],
+      references: [aiInterviewsTable.id],
+    }),
+  })
+);
 
 export const aiResumeAnalysisRelations = relations(
   aiResumeAnalysisTable,

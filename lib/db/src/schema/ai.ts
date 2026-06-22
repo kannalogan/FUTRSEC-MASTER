@@ -17,6 +17,10 @@ export const aiInterviewsTable = pgTable("ai_interviews", {
   interviewType: text("interview_type").notNull().default("text"),
   difficulty: text("difficulty").notNull().default("intermediate"),
   totalQuestions: integer("total_questions").notNull().default(10),
+  // Mentor-driven mock interview linkage (nullable — student self-serve has none).
+  templateId: integer("template_id"),
+  assignmentId: integer("assignment_id"),
+  assignedBy: integer("assigned_by"),
   questions: jsonb("questions"),
   answers: jsonb("answers"),
   evaluation: jsonb("evaluation"),
