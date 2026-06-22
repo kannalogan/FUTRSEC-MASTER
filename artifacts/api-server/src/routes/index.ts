@@ -43,6 +43,8 @@ import labBuilderRouter from "./lab-builder";
 import placementDrivesRouter from "./placement-drives";
 import retentionRouter from "./retention";
 import supportRouter from "./support";
+import storageRouter from "./storage";
+import certificatesPdfRouter from "./certificates-pdf";
 
 const router: IRouter = Router();
 
@@ -90,5 +92,7 @@ router.use(labBuilderRouter);
 router.use(placementDrivesRouter);
 router.use("/admin/retention", retentionRouter);
 router.use("/support", supportRouter);
+router.use(storageRouter);
+router.use(certificatesPdfRouter);
 
 export default router;

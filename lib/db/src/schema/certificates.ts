@@ -51,8 +51,13 @@ export const certificatesTable = pgTable("certificates", {
   durationText: text("duration_text"),
   achievementLabel: text("achievement_label"),
   issuedDate: date("issued_date", { mode: "string" }).notNull(),
+  // Optional expiry; when in the past the certificate is treated as expired.
+  expiresDate: date("expires_date", { mode: "string" }),
   verifyToken: text("verify_token").notNull().unique(),
+  // issued | revoked | expired
   status: text("status").notNull().default("issued"),
+  // Object path of the generated PDF in storage (set on first generation).
+  pdfObjectPath: text("pdf_object_path"),
   metadata: jsonb("metadata"),
   issuedBy: integer("issued_by"),
   createdAt: timestamp("created_at", { withTimezone: true })

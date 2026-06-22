@@ -15,7 +15,7 @@ import {
   CreditCard, Receipt, Bell, Lock, Settings, HelpCircle, HeadphonesIcon,
   ChevronDown, ChevronRight, LogOut, X,
   Gauge, Layers, BarChart3, AlertTriangle, Megaphone, ListChecks, UserCog,
-  ShieldCheck, CalendarCheck, LifeBuoy, Ticket
+  ShieldCheck, CalendarCheck, LifeBuoy, Ticket, HardDrive
 } from "lucide-react";
 
 type NavItem = {
@@ -243,6 +243,7 @@ const ADMIN_NAV: NavSection[] = [
     title: "SYSTEM",
     items: [
       { label: "Support Tickets", href: "/admin/support", icon: Ticket },
+      { label: "File Storage", href: "/admin/storage", icon: HardDrive },
       { label: "Data Retention", href: "/admin/retention", icon: ShieldCheck },
       { label: "Platform Settings", href: "/admin/settings", icon: Settings },
     ],

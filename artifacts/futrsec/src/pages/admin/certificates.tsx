@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { apiFetch } from "@/lib/api";
+import { apiFetch, downloadFile } from "@/lib/api";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
@@ -23,7 +24,35 @@ import { PageHeader, CardSkeleton, EmptyState } from "@/components/page-shell";
 import { useToast } from "@/hooks/use-toast";
 import {
   Award, Plus, BadgeCheck, Link2, Ban, ShieldCheck, ShieldX, Search, Pencil,
+  Download, FileDown, FileStack, BarChart3, Loader2, Clock,
 } from "lucide-react";
+
+const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
+
+async function downloadBulkZip(certificateIds: number[]): Promise<void> {
+  const token = localStorage.getItem("futrsec_token");
+  const res = await fetch(`${BASE}/api/admin/certificates/bulk-download`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    body: JSON.stringify({ certificateIds }),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ error: res.statusText }));
+    throw new Error(err?.error ?? `HTTP ${res.status}`);
+  }
+  const blob = await res.blob();
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `certificates-${Date.now()}.zip`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+}
 
 const TRACK_LABELS: Record<string, string> = {
   soc: "SOC Analyst",
@@ -101,12 +130,16 @@ export default function AdminCertificatesPage() {
         <TabsList className="mb-6">
           <TabsTrigger value="issued">Issued</TabsTrigger>
           <TabsTrigger value="templates">Templates</TabsTrigger>
+          <TabsTrigger value="analytics">Analytics</TabsTrigger>
         </TabsList>
         <TabsContent value="issued">
           <IssuedTab />
         </TabsContent>
         <TabsContent value="templates">
           <TemplatesTab />
+        </TabsContent>
+        <TabsContent value="analytics">
+          <AnalyticsTab />
         </TabsContent>
       </Tabs>
     </div>
@@ -136,6 +169,66 @@ function IssuedTab() {
 
   const [issueOpen, setIssueOpen] = useState(false);
   const [revokeTarget, setRevokeTarget] = useState<Certificate | null>(null);
+  const [selected, setSelected] = useState<Set<number>>(new Set());
+  const [bulkBusy, setBulkBusy] = useState<"generate" | "download" | null>(null);
+  const [pdfBusyId, setPdfBusyId] = useState<number | null>(null);
+
+  const allSelected = certificates.length > 0 && selected.size === certificates.length;
+  const toggleAll = () => {
+    setSelected(allSelected ? new Set() : new Set(certificates.map((c) => c.id)));
+  };
+  const toggleOne = (id: number) => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const downloadPdf = async (c: Certificate) => {
+    setPdfBusyId(c.id);
+    try {
+      await downloadFile(`/api/certificates/${c.id}/pdf`, `${c.certificateCode}.pdf`);
+    } catch (e) {
+      toast({ title: e instanceof Error ? e.message : "Download failed", variant: "destructive" });
+    } finally {
+      setPdfBusyId(null);
+    }
+  };
+
+  const bulkGenerate = async () => {
+    if (selected.size === 0) return;
+    setBulkBusy("generate");
+    try {
+      const res = await apiFetch<{ generated: number; failed: number }>(
+        "/api/admin/certificates/bulk-generate",
+        { method: "POST", body: JSON.stringify({ certificateIds: [...selected] }) },
+      );
+      toast({
+        title: `Generated ${res.generated} PDF${res.generated === 1 ? "" : "s"}`,
+        description: res.failed > 0 ? `${res.failed} failed` : undefined,
+      });
+      queryClient.invalidateQueries({ queryKey: [listKey] });
+    } catch (e) {
+      toast({ title: e instanceof Error ? e.message : "Bulk generate failed", variant: "destructive" });
+    } finally {
+      setBulkBusy(null);
+    }
+  };
+
+  const bulkDownload = async () => {
+    if (selected.size === 0) return;
+    setBulkBusy("download");
+    try {
+      await downloadBulkZip([...selected]);
+      toast({ title: `Downloading ${selected.size} certificate${selected.size === 1 ? "" : "s"}` });
+    } catch (e) {
+      toast({ title: e instanceof Error ? e.message : "Bulk download failed", variant: "destructive" });
+    } finally {
+      setBulkBusy(null);
+    }
+  };
 
   const copyVerify = async (token: string) => {
     const url = publicVerifyUrl(token);
@@ -160,7 +253,30 @@ function IssuedTab() {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-end">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-2">
+          {selected.size > 0 && (
+            <>
+              <span className="text-sm text-muted-foreground">{selected.size} selected</span>
+              <Button variant="outline" size="sm" onClick={bulkGenerate} disabled={bulkBusy !== null}>
+                {bulkBusy === "generate" ? (
+                  <Loader2 className="h-4 w-4 mr-1.5 animate-spin" />
+                ) : (
+                  <FileStack className="h-4 w-4 mr-1.5" />
+                )}
+                Generate PDFs
+              </Button>
+              <Button variant="outline" size="sm" onClick={bulkDownload} disabled={bulkBusy !== null}>
+                {bulkBusy === "download" ? (
+                  <Loader2 className="h-4 w-4 mr-1.5 animate-spin" />
+                ) : (
+                  <FileDown className="h-4 w-4 mr-1.5" />
+                )}
+                Download ZIP
+              </Button>
+            </>
+          )}
+        </div>
         <Button onClick={() => setIssueOpen(true)}>
           <Plus className="h-4 w-4 mr-1.5" /> Issue Certificate
         </Button>
@@ -187,6 +303,13 @@ function IssuedTab() {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead className="w-10">
+                    <Checkbox
+                      checked={allSelected}
+                      onCheckedChange={toggleAll}
+                      aria-label="Select all"
+                    />
+                  </TableHead>
                   <TableHead>Code</TableHead>
                   <TableHead>Holder</TableHead>
                   <TableHead>Title</TableHead>
@@ -199,6 +322,13 @@ function IssuedTab() {
               <TableBody>
                 {certificates.map((c) => (
                   <TableRow key={c.id}>
+                    <TableCell>
+                      <Checkbox
+                        checked={selected.has(c.id)}
+                        onCheckedChange={() => toggleOne(c.id)}
+                        aria-label={`Select ${c.certificateCode}`}
+                      />
+                    </TableCell>
                     <TableCell className="font-mono text-xs">{c.certificateCode}</TableCell>
                     <TableCell>
                       <div className="font-medium">{c.holderName ?? "—"}</div>
@@ -209,13 +339,36 @@ function IssuedTab() {
                       <Badge variant="outline">{certTypeLabel(c.type)}</Badge>
                     </TableCell>
                     <TableCell>
-                      <Badge variant={c.status === "issued" ? "secondary" : "outline"}>
-                        {c.status === "issued" ? "Issued" : c.status === "revoked" ? "Revoked" : c.status}
+                      <Badge
+                        variant={c.status === "issued" ? "secondary" : "outline"}
+                        className={
+                          c.status === "revoked"
+                            ? "bg-destructive/15 text-destructive border-destructive/30"
+                            : c.status === "expired"
+                              ? "bg-amber-500/15 text-amber-600 border-amber-500/30 gap-1"
+                              : ""
+                        }
+                      >
+                        {c.status === "expired" && <Clock className="h-3 w-3" />}
+                        {c.status === "issued" ? "Issued" : c.status === "revoked" ? "Revoked" : c.status === "expired" ? "Expired" : c.status}
                       </Badge>
                     </TableCell>
                     <TableCell className="text-muted-foreground text-sm">{c.issuedDate ?? "—"}</TableCell>
                     <TableCell className="text-right">
                       <div className="flex gap-1 justify-end">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          disabled={pdfBusyId === c.id}
+                          onClick={() => downloadPdf(c)}
+                        >
+                          {pdfBusyId === c.id ? (
+                            <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                          ) : (
+                            <Download className="h-4 w-4 mr-1" />
+                          )}
+                          PDF
+                        </Button>
                         <Button size="sm" variant="outline" onClick={() => copyVerify(c.verifyToken)}>
                           <Link2 className="h-4 w-4 mr-1" /> Verify link
                         </Button>
@@ -806,6 +959,121 @@ function TemplatesTab() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+    </div>
+  );
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+// Analytics tab
+// ────────────────────────────────────────────────────────────────────────────
+
+interface AnalyticsResp {
+  total: number;
+  generatedPdfs: number;
+  expiredByDate: number;
+  byStatus: { status: string; count: number }[];
+  byType: { type: string; count: number }[];
+  byTrack: { careerTrack: string | null; count: number }[];
+}
+
+function AnalyticsTab() {
+  const { data, isLoading } = useQuery({
+    queryKey: ["/api/admin/certificates/analytics"],
+    queryFn: () => apiFetch<AnalyticsResp>("/api/admin/certificates/analytics"),
+  });
+
+  if (isLoading) return <CardSkeleton rows={4} />;
+  if (!data) return <EmptyState icon={BarChart3} title="No analytics" description="No certificate data yet." />;
+
+  const stats = [
+    { label: "Total Certificates", value: data.total, icon: Award },
+    { label: "PDFs Generated", value: data.generatedPdfs, icon: FileStack },
+    { label: "Expired (by date)", value: data.expiredByDate, icon: Clock },
+  ];
+
+  const statusColor: Record<string, string> = {
+    issued: "bg-emerald-500/15 text-emerald-600 border-emerald-500/30",
+    revoked: "bg-destructive/15 text-destructive border-destructive/30",
+    expired: "bg-amber-500/15 text-amber-600 border-amber-500/30",
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="grid gap-4 grid-cols-1 sm:grid-cols-3">
+        {stats.map((s) => (
+          <Card key={s.label}>
+            <CardContent className="p-5 flex items-center gap-4">
+              <div className="h-11 w-11 rounded-xl bg-primary/10 flex items-center justify-center">
+                <s.icon className="h-5 w-5 text-primary" />
+              </div>
+              <div>
+                <div className="text-2xl font-bold font-heading">{s.value}</div>
+                <div className="text-xs text-muted-foreground">{s.label}</div>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      <div className="grid gap-4 grid-cols-1 md:grid-cols-3">
+        <Card>
+          <CardContent className="p-5">
+            <h3 className="text-sm font-semibold mb-3">By Status</h3>
+            <div className="space-y-2">
+              {data.byStatus.length === 0 ? (
+                <p className="text-sm text-muted-foreground">No data</p>
+              ) : (
+                data.byStatus.map((s) => (
+                  <div key={s.status} className="flex items-center justify-between">
+                    <Badge variant="outline" className={`capitalize ${statusColor[s.status] ?? ""}`}>
+                      {s.status}
+                    </Badge>
+                    <span className="text-sm font-medium">{s.count}</span>
+                  </div>
+                ))
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-5">
+            <h3 className="text-sm font-semibold mb-3">By Type</h3>
+            <div className="space-y-2">
+              {data.byType.length === 0 ? (
+                <p className="text-sm text-muted-foreground">No data</p>
+              ) : (
+                data.byType.map((t) => (
+                  <div key={t.type} className="flex items-center justify-between">
+                    <span className="text-sm text-muted-foreground">{certTypeLabel(t.type)}</span>
+                    <span className="text-sm font-medium">{t.count}</span>
+                  </div>
+                ))
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-5">
+            <h3 className="text-sm font-semibold mb-3">By Track</h3>
+            <div className="space-y-2">
+              {data.byTrack.length === 0 ? (
+                <p className="text-sm text-muted-foreground">No data</p>
+              ) : (
+                data.byTrack.map((t) => (
+                  <div key={t.careerTrack ?? "none"} className="flex items-center justify-between">
+                    <span className="text-sm text-muted-foreground">
+                      {t.careerTrack ? (TRACK_LABELS[t.careerTrack] ?? t.careerTrack) : "No track"}
+                    </span>
+                    <span className="text-sm font-medium">{t.count}</span>
+                  </div>
+                ))
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }

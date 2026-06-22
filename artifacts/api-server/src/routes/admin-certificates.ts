@@ -421,6 +421,7 @@ router.get(
         type: certificatesTable.type,
         careerTrack: certificatesTable.careerTrack,
         issuedDate: certificatesTable.issuedDate,
+        expiresDate: certificatesTable.expiresDate,
         status: certificatesTable.status,
         holderName: usersTable.fullName,
       })
@@ -429,8 +430,31 @@ router.get(
       .where(eq(certificatesTable.verifyToken, token))
       .limit(1);
 
-    if (!row || row.status !== "issued") {
+    if (!row) {
       res.json({ valid: false });
+      return;
+    }
+
+    // A certificate verifies as valid only if it is issued AND not past its
+    // expiry date. Revoked or time-expired certificates report their reason.
+    if (row.status !== "issued") {
+      res.json({ valid: false, reason: row.status });
+      return;
+    }
+    if (row.expiresDate && new Date(row.expiresDate).getTime() < Date.now()) {
+      res.json({
+        valid: false,
+        reason: "expired",
+        certificate: {
+          code: row.certificateCode,
+          holderName: row.holderName,
+          title: row.title,
+          type: row.type,
+          careerTrack: row.careerTrack,
+          issuedDate: row.issuedDate,
+          expiresDate: row.expiresDate,
+        },
+      });
       return;
     }
 
@@ -443,6 +467,7 @@ router.get(
         type: row.type,
         careerTrack: row.careerTrack,
         issuedDate: row.issuedDate,
+        expiresDate: row.expiresDate,
       },
     });
     return;

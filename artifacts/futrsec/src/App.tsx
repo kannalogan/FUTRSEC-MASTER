@@ -133,6 +133,7 @@ import AdminCoursesPage from "@/pages/admin/courses";
 import AdminLabsPage from "@/pages/admin/labs";
 import AdminAssessmentsPage from "@/pages/admin/assessments";
 import AdminCertificatesPage from "@/pages/admin/certificates";
+import AdminStoragePage from "@/pages/admin/storage";
 import AdminJobPostingsPage from "@/pages/admin/job-postings";
 import AdminAiConfigPage from "@/pages/admin/ai-config";
 import AdminSettingsPage from "@/pages/admin/settings";
@@ -345,6 +346,7 @@ function Router() {
       <Route path="/admin/ai-usage"><AdminRoute component={AdminAiUsagePage} /></Route>
       <Route path="/admin/consent-logs"><AdminRoute component={AdminConsentLogsPage} /></Route>
       <Route path="/admin/retention"><AdminRoute component={AdminRetentionPage} /></Route>
+      <Route path="/admin/storage"><AdminRoute component={AdminStoragePage} /></Route>
       <Route path="/admin/audit-logs"><AdminRoute component={AdminAuditLogsPage} /></Route>
       <Route path="/admin/coupons"><AdminRoute component={AdminCouponsPage} /></Route>
       <Route path="/admin/analytics"><AdminRoute component={AdminAnalyticsPage} /></Route>

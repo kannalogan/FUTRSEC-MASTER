@@ -7,6 +7,7 @@ import { ShieldCheck, ShieldX, Loader2 } from "lucide-react";
 
 type VerifyResponse = {
   valid: boolean;
+  reason?: string;
   certificate?: {
     code: string;
     holderName: string | null;
@@ -14,6 +15,7 @@ type VerifyResponse = {
     type: string;
     careerTrack: string | null;
     issuedDate: string;
+    expiresDate?: string | null;
   };
 };
 
@@ -76,6 +78,27 @@ export default function VerifyCertificatePage() {
                   <Field label="Issued Date" value={data.certificate.issuedDate} />
                 </div>
               </div>
+            ) : data?.reason === "expired" ? (
+              <div className="flex flex-col items-center py-8 text-center">
+                <div className="h-16 w-16 rounded-2xl bg-amber-500/10 flex items-center justify-center mb-4">
+                  <ShieldX className="h-8 w-8 text-amber-600" />
+                </div>
+                <h1 className="text-lg font-heading font-bold mb-1">Certificate Expired</h1>
+                <p className="text-sm text-muted-foreground mb-4">
+                  This certificate is authentic but is no longer valid as of its expiry date.
+                </p>
+                {data.certificate && (
+                  <div className="w-full space-y-3 text-left">
+                    <Field label="Certificate Code" value={data.certificate.code} mono />
+                    <Field label="Issued To" value={data.certificate.holderName ?? "—"} />
+                    <Field label="Title" value={data.certificate.title} />
+                    <Field label="Issued Date" value={data.certificate.issuedDate} />
+                    {data.certificate.expiresDate && (
+                      <Field label="Expired Date" value={data.certificate.expiresDate} />
+                    )}
+                  </div>
+                )}
+              </div>
             ) : (
               <div className="flex flex-col items-center py-8 text-center">
                 <div className="h-16 w-16 rounded-2xl bg-red-500/10 flex items-center justify-center mb-4">
@@ -83,7 +106,9 @@ export default function VerifyCertificatePage() {
                 </div>
                 <h1 className="text-lg font-heading font-bold mb-1">Not Verified</h1>
                 <p className="text-sm text-muted-foreground">
-                  This certificate could not be verified. It may have been revoked or the link is invalid.
+                  {data?.reason === "revoked"
+                    ? "This certificate has been revoked and is no longer valid."
+                    : "This certificate could not be verified. The link may be invalid."}
                 </p>
               </div>
             )}

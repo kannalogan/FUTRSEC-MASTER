@@ -24,3 +24,7 @@
 - [Conflict-safe toggles](toggle-like-conflict-safe.md) — like/follow toggles on a unique (entity,user) index must use insert-onConflictDoNothing-else-delete, never read-then-insert (500 race).
 - [Job-match determinism](job-match-determinism.md) — match score/breakdown always from deterministic heuristicMatch; LLM pass may only reword reasons, never the score; both job endpoints share lib/ai/student-match.ts loader+engine.
 - [API rate limit & CSRF posture](api-security-rate-limit-csrf.md) — express-rate-limit behind Replit proxy needs trust proxy:1; CSRF intentionally omitted (stateless bearer auth, no cookies).
+- [Certificate effective status](cert-effective-status.md) — verify/list/render must compute expiry (issued AND not past expiresDate), never trust stored status; verify returns {valid,reason}.
+- [Storage quota owner](storage-quota-owner.md) — quota ledger + object ACL follow file owner not actor; admin-on-behalf version upload once charged actor and bypassed owner quota.
+- [Generated-PDF caching](generated-pdf-caching.md) — reuse stored cert PDF on download via streamObject; regenerate only on demand and delete superseded object (per-upload paths orphan otherwise).
+- [pdfkit + esbuild bundling](pdfkit-esbuild-bundling.md) — pdfkit/fontkit must be esbuild `external` in api-server build.mjs or PDF routes 500.
