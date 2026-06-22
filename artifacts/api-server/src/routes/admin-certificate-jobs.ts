@@ -11,13 +11,21 @@ import {
 } from "@workspace/db";
 import { requireAuth, requireRole, type AuthRequest } from "../middlewares/auth";
 import { createAuditLog } from "../lib/audit";
-import { addCertBulkJob } from "../lib/queues";
 import { getRedisClient, isRedisAvailable } from "../lib/redis";
 import { getOrGeneratePdf } from "../lib/certificates/generate";
 import {
   revokeCertificate,
   renewCertificate,
 } from "../lib/certificates/issuance";
+import {
+  shardAndEnqueue,
+  getCertShardSize,
+} from "../lib/certificates/bulk-enqueue";
+import {
+  recomputeParent,
+  computeRates,
+} from "../lib/certificates/job-progress";
+import { listWorkers } from "../lib/certificates/worker-registry";
 
 const router = Router();
 const adminGuards = [requireAuth, requireRole("admin")];
@@ -72,6 +80,8 @@ router.post(
       return;
     }
 
+    // Parent row aggregates all shards; it is the id admins act on (pause /
+    // resume / cancel / retry) and the only row surfaced in the jobs list.
     const [job] = await db
       .insert(certificateGenerationJobsTable)
       .values({
@@ -79,17 +89,16 @@ router.post(
         total: existingIds.length,
         certificateIds: existingIds,
         createdBy: req.user!.userId,
+        isShard: false,
+        shardCount: 1,
       })
       .returning();
 
-    const enqueued = await addCertBulkJob({
-      dbJobId: job.id,
-      certificateIds: existingIds,
-    });
-    if (!enqueued) {
+    const plan = await shardAndEnqueue(job.id, existingIds, req.user!.userId);
+    if (plan.enqueued === 0) {
       await db
         .update(certificateGenerationJobsTable)
-        .set({ status: "failed", error: "Failed to enqueue (Redis unavailable)" })
+        .set({ status: "failed", error: "Failed to enqueue any shard (Redis unavailable)" })
         .where(eq(certificateGenerationJobsTable.id, job.id));
       res.status(503).json({ error: "Failed to enqueue job" });
       return;
@@ -102,10 +111,22 @@ router.post(
       entityId: job.id,
       ipAddress: ip(req),
       userAgent: req.headers["user-agent"],
-      metadata: { total: existingIds.length, requested: ids.length },
+      metadata: {
+        total: existingIds.length,
+        requested: ids.length,
+        shardCount: plan.shardCount,
+        shardsEnqueued: plan.enqueued,
+        partitions: plan.partitions,
+        shardSize: plan.shardSize,
+      },
     });
 
-    res.status(202).json({ jobId: job.id, total: existingIds.length });
+    res.status(202).json({
+      jobId: job.id,
+      total: existingIds.length,
+      shardCount: plan.shardCount,
+      shardsEnqueued: plan.enqueued,
+    });
   },
 );
 
@@ -117,10 +138,14 @@ router.get(
   "/admin/certificates/jobs",
   ...adminGuards,
   async (_req: AuthRequest, res): Promise<void> => {
+    // Only PARENT rows are surfaced in the list / stats; shard rows are an
+    // internal unit of work aggregated into their parent.
+    const notShard = eq(certificateGenerationJobsTable.isShard, false);
     const [jobs, statsRows] = await Promise.all([
       db
         .select()
         .from(certificateGenerationJobsTable)
+        .where(notShard)
         .orderBy(desc(certificateGenerationJobsTable.createdAt))
         .limit(100),
       db
@@ -130,6 +155,7 @@ router.get(
           totalCerts: sql<number>`coalesce(sum(${certificateGenerationJobsTable.total}),0)::int`,
         })
         .from(certificateGenerationJobsTable)
+        .where(notShard)
         .groupBy(certificateGenerationJobsTable.status),
     ]);
 
@@ -138,7 +164,9 @@ router.get(
         avgMs: sql<number>`coalesce(avg(${certificateGenerationJobsTable.avgMsPerCert}),0)::int`,
       })
       .from(certificateGenerationJobsTable)
-      .where(eq(certificateGenerationJobsTable.status, "completed"));
+      .where(
+        and(notShard, eq(certificateGenerationJobsTable.status, "completed")),
+      );
 
     const byStatus: Record<string, number> = {};
     let totalCertificates = 0;
@@ -186,7 +214,36 @@ router.get(
       res.status(404).json({ error: "Job not found" });
       return;
     }
-    res.json({ job });
+
+    // Load this parent's shards (ordered by index) and recompute a fresh live
+    // aggregate so the dashboard sees up-to-date throughput / ETA.
+    const shards = await db
+      .select()
+      .from(certificateGenerationJobsTable)
+      .where(eq(certificateGenerationJobsTable.parentJobId, id))
+      .orderBy(certificateGenerationJobsTable.shardIndex);
+
+    const agg = await recomputeParent(id);
+    const live = agg
+      ? {
+          status: agg.status,
+          total: agg.total,
+          processed: agg.processed,
+          succeeded: agg.succeeded,
+          failed: agg.failed,
+          shardCount: agg.shardCount,
+          completedShards: agg.completedShards,
+          failedShards: agg.failedShards,
+          runningShards: agg.runningShards,
+          cancelledShards: agg.cancelledShards,
+          avgMsPerCert: agg.avgMsPerCert,
+          durationMs: agg.durationMs,
+          throughputPerSec: agg.throughputPerSec,
+          etaSeconds: agg.etaSeconds,
+        }
+      : null;
+
+    res.json({ job, shards, aggregate: live });
   },
 );
 
@@ -305,9 +362,25 @@ router.post(
       res.status(404).json({ error: "Job not found" });
       return;
     }
-    const failedIds = Array.isArray(job.failedIds)
+
+    // Aggregate failed ids across all shards (the parent's own failedIds is set
+    // when the run reaches a terminal state, but shards are the source of truth).
+    const shards = await db
+      .select({ failedIds: certificateGenerationJobsTable.failedIds })
+      .from(certificateGenerationJobsTable)
+      .where(eq(certificateGenerationJobsTable.parentJobId, id));
+    const failedSet = new Set<number>();
+    for (const id2 of Array.isArray(job.failedIds)
       ? (job.failedIds as number[])
-      : [];
+      : []) {
+      failedSet.add(id2);
+    }
+    for (const s of shards) {
+      if (Array.isArray(s.failedIds)) {
+        for (const fid of s.failedIds as number[]) failedSet.add(fid);
+      }
+    }
+    const failedIds = [...failedSet];
     if (failedIds.length === 0) {
       res.status(400).json({ error: "Job has no failed certificates to retry" });
       return;
@@ -317,6 +390,7 @@ router.post(
       return;
     }
 
+    // Re-drive as a fresh parent + shards so the retry scales the same way.
     const [newJob] = await db
       .insert(certificateGenerationJobsTable)
       .values({
@@ -324,14 +398,13 @@ router.post(
         total: failedIds.length,
         certificateIds: failedIds,
         createdBy: req.user!.userId,
+        isShard: false,
+        shardCount: 1,
       })
       .returning();
 
-    const enqueued = await addCertBulkJob({
-      dbJobId: newJob.id,
-      certificateIds: failedIds,
-    });
-    if (!enqueued) {
+    const plan = await shardAndEnqueue(newJob.id, failedIds, req.user!.userId);
+    if (plan.enqueued === 0) {
       await db
         .update(certificateGenerationJobsTable)
         .set({ status: "failed", error: "Failed to enqueue retry" })
@@ -346,10 +419,18 @@ router.post(
       entityType: "certificate_generation_job",
       entityId: newJob.id,
       ipAddress: ip(req),
-      metadata: { retriedFrom: id, count: failedIds.length },
+      metadata: {
+        retriedFrom: id,
+        count: failedIds.length,
+        shardCount: plan.shardCount,
+      },
     });
 
-    res.status(202).json({ jobId: newJob.id, total: failedIds.length });
+    res.status(202).json({
+      jobId: newJob.id,
+      total: failedIds.length,
+      shardCount: plan.shardCount,
+    });
   },
 );
 
@@ -425,6 +506,39 @@ router.get(
     });
 
     await archive.finalize();
+  },
+);
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Worker fleet status (live heartbeats from the Redis worker registry)
+// ─────────────────────────────────────────────────────────────────────────────
+
+router.get(
+  "/admin/certificates/workers",
+  ...adminGuards,
+  async (_req: AuthRequest, res): Promise<void> => {
+    const workers = await listWorkers();
+    const alive = workers.filter((w) => w.alive);
+    const busy = alive.filter((w) => w.status === "busy");
+    res.json({
+      workers,
+      stats: {
+        total: workers.length,
+        alive: alive.length,
+        dead: workers.length - alive.length,
+        busy: busy.length,
+        idle: alive.length - busy.length,
+        utilization: alive.length ? busy.length / alive.length : 0,
+        processedTotal: workers.reduce((s, w) => s + w.processed, 0),
+      },
+      config: {
+        shardSize: getCertShardSize(),
+        partitions: Number(process.env.CERT_QUEUE_PARTITIONS ?? 1),
+        replicasPerPartition: Number(process.env.CERT_WORKER_REPLICAS ?? 4),
+        workerConcurrency: Number(process.env.CERT_WORKER_CONCURRENCY ?? 2),
+        bulkConcurrency: Number(process.env.CERT_BULK_CONCURRENCY ?? 20),
+      },
+    });
   },
 );
 

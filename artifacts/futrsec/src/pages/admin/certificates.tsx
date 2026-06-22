@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, Fragment } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiFetch, downloadFile } from "@/lib/api";
 import { Card, CardContent } from "@/components/ui/card";
@@ -29,6 +29,7 @@ import {
   Download, FileDown, FileStack, BarChart3, Loader2, Clock,
   Play, Pause, XCircle, RotateCcw, Settings2, Activity, CheckCircle2,
   AlertTriangle, Gauge, Wifi, WifiOff, Layers,
+  ChevronDown, ChevronRight, Cpu, Server, Zap, Timer,
 } from "lucide-react";
 
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
@@ -1107,6 +1108,7 @@ interface GenerationJob {
   avgMsPerCert: number | null;
   durationMs: number | null;
   error: string | null;
+  shardCount: number;
   startedAt: string | null;
   completedAt: string | null;
   createdAt: string;
@@ -1127,14 +1129,92 @@ interface JobsResp {
   stats: JobsStats;
 }
 interface ProgressMsg {
+  kind?: "parent" | "shard";
   type?: string;
   dbJobId?: number;
+  parentJobId?: number | null;
+  shardIndex?: number | null;
   status?: string;
   total?: number;
   processed?: number;
   succeeded?: number;
   failed?: number;
   avgMsPerCert?: number | null;
+  throughputPerSec?: number | null;
+  etaSeconds?: number | null;
+  completedShards?: number;
+  failedShards?: number;
+  runningShards?: number;
+}
+
+interface ShardRow {
+  id: number;
+  shardIndex: number | null;
+  partition: number;
+  status: string;
+  total: number;
+  processed: number;
+  succeeded: number;
+  failed: number;
+  avgMsPerCert: number | null;
+}
+interface JobDetailResp {
+  job: GenerationJob;
+  shards: ShardRow[];
+  aggregate: {
+    status: string;
+    total: number;
+    processed: number;
+    succeeded: number;
+    failed: number;
+    shardCount: number;
+    completedShards: number;
+    failedShards: number;
+    runningShards: number;
+    avgMsPerCert: number | null;
+    durationMs: number | null;
+    throughputPerSec: number | null;
+    etaSeconds: number | null;
+  } | null;
+}
+
+interface WorkerRow {
+  workerId: string;
+  partition: number;
+  replica: number;
+  status: "idle" | "busy";
+  currentJobId: number | null;
+  processed: number;
+  alive: boolean;
+}
+interface WorkersResp {
+  workers: WorkerRow[];
+  stats: {
+    total: number;
+    alive: number;
+    dead: number;
+    busy: number;
+    idle: number;
+    utilization: number;
+    processedTotal: number;
+  };
+  config: {
+    shardSize: number;
+    partitions: number;
+    replicasPerPartition: number;
+    workerConcurrency: number;
+    bulkConcurrency: number;
+  };
+}
+
+function fmtEta(s: number | null | undefined): string {
+  if (s == null || s < 0) return "—";
+  if (s === 0) return "done";
+  if (s < 60) return `${s}s`;
+  const m = Math.floor(s / 60);
+  if (m < 60) return `${m}m ${s % 60}s`;
+  const h = Math.floor(m / 60);
+  return `${h}h ${m % 60}m`;
 }
 
 const JOB_STATUS_STYLE: Record<string, string> = {
@@ -1159,6 +1239,190 @@ function fmtDuration(ms: number | null | undefined): string {
   return `${m}m ${s % 60}s`;
 }
 
+// Per-job shard breakdown — live shard progress for a single parent job.
+function ShardDetail({
+  jobId,
+  shardLive,
+}: {
+  jobId: number;
+  shardLive: Record<number, ProgressMsg>;
+}) {
+  const { data, isLoading } = useQuery({
+    queryKey: ["/api/admin/certificates/jobs", jobId, "detail"],
+    queryFn: () =>
+      apiFetch<JobDetailResp>(`/api/admin/certificates/jobs/${jobId}`),
+    refetchInterval: 4000,
+  });
+
+  if (isLoading) {
+    return (
+      <div className="p-4 text-sm text-muted-foreground flex items-center gap-2">
+        <Loader2 className="h-4 w-4 animate-spin" /> Loading shards…
+      </div>
+    );
+  }
+  const shards = data?.shards ?? [];
+  if (shards.length === 0) {
+    return (
+      <div className="p-4 text-sm text-muted-foreground">
+        No shard rows for this job.
+      </div>
+    );
+  }
+
+  return (
+    <div className="p-4">
+      <div className="text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wide">
+        Shards ({shards.length})
+      </div>
+      <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+        {shards.map((s) => {
+          const l = shardLive[s.id];
+          const processed = l?.processed ?? s.processed;
+          const total = l?.total ?? s.total;
+          const failed = l?.failed ?? s.failed;
+          const status = l?.status ?? s.status;
+          const pct = total > 0 ? Math.round((processed / total) * 100) : 0;
+          return (
+            <div key={s.id} className="rounded-lg border bg-background p-3 space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-mono">
+                  shard #{s.shardIndex ?? 0}{" "}
+                  <span className="text-muted-foreground">p{s.partition}</span>
+                </span>
+                <Badge
+                  variant="outline"
+                  className={`capitalize text-[10px] ${JOB_STATUS_STYLE[status] ?? ""}`}
+                >
+                  {status}
+                </Badge>
+              </div>
+              <Progress value={pct} className="h-1.5" />
+              <div className="flex items-center justify-between text-[11px] text-muted-foreground">
+                <span>
+                  {processed}/{total} ({pct}%)
+                </span>
+                {failed > 0 && (
+                  <span className="text-destructive">{failed} failed</span>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// Worker fleet panel — live heartbeats + utilization from the worker registry.
+function WorkerFleetPanel() {
+  const { data } = useQuery({
+    queryKey: ["/api/admin/certificates/workers"],
+    queryFn: () => apiFetch<WorkersResp>("/api/admin/certificates/workers"),
+    refetchInterval: 4000,
+  });
+  const workers = data?.workers ?? [];
+  const stats = data?.stats;
+  const config = data?.config;
+
+  const cards = [
+    { label: "Workers Alive", value: `${stats?.alive ?? 0}/${stats?.total ?? 0}`, icon: Server },
+    { label: "Busy", value: stats?.busy ?? 0, icon: Cpu },
+    {
+      label: "Utilization",
+      value: `${Math.round((stats?.utilization ?? 0) * 100)}%`,
+      icon: Activity,
+    },
+    { label: "Processed", value: stats?.processedTotal ?? 0, icon: Zap },
+  ];
+
+  return (
+    <Card>
+      <CardContent className="p-5 space-y-4">
+        <div className="flex items-center justify-between flex-wrap gap-2">
+          <div className="flex items-center gap-2">
+            <Cpu className="h-4 w-4 text-primary" />
+            <h3 className="text-sm font-semibold">Worker Fleet</h3>
+          </div>
+          {config && (
+            <div className="flex items-center gap-2 flex-wrap text-[11px] text-muted-foreground">
+              <Badge variant="secondary" className="font-normal">
+                {config.partitions} partition{config.partitions === 1 ? "" : "s"}
+              </Badge>
+              <Badge variant="secondary" className="font-normal">
+                {config.replicasPerPartition} replicas/partition
+              </Badge>
+              <Badge variant="secondary" className="font-normal">
+                concurrency {config.workerConcurrency}
+              </Badge>
+              <Badge variant="secondary" className="font-normal">
+                shard size {config.shardSize}
+              </Badge>
+            </div>
+          )}
+        </div>
+
+        <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
+          {cards.map((c) => (
+            <div key={c.label} className="rounded-lg border p-3 flex items-center gap-3">
+              <div className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                <c.icon className="h-4 w-4 text-primary" />
+              </div>
+              <div className="min-w-0">
+                <div className="text-lg font-bold font-heading truncate">{c.value}</div>
+                <div className="text-[11px] text-muted-foreground">{c.label}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {workers.length === 0 ? (
+          <p className="text-xs text-muted-foreground">
+            No workers registered. The queue (Redis) may be unavailable.
+          </p>
+        ) : (
+          <div className="flex flex-wrap gap-2">
+            {workers.map((w) => (
+              <div
+                key={w.workerId}
+                className={`flex items-center gap-2 rounded-lg border px-2.5 py-1.5 text-[11px] ${
+                  !w.alive
+                    ? "opacity-50 border-destructive/30"
+                    : w.status === "busy"
+                      ? "border-blue-500/30 bg-blue-500/5"
+                      : ""
+                }`}
+                title={w.workerId}
+              >
+                <span
+                  className={`h-2 w-2 rounded-full ${
+                    !w.alive
+                      ? "bg-destructive"
+                      : w.status === "busy"
+                        ? "bg-blue-500 animate-pulse"
+                        : "bg-emerald-500"
+                  }`}
+                />
+                <span className="font-mono">
+                  p{w.partition}/r{w.replica}
+                </span>
+                <span className="text-muted-foreground">
+                  {!w.alive
+                    ? "down"
+                    : w.currentJobId != null
+                      ? `job #${w.currentJobId}`
+                      : "idle"}
+                </span>
+                <span className="text-muted-foreground">· {w.processed}</span>
+              </div>
+            ))}
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
 function BulkJobsTab() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -1171,9 +1435,12 @@ function BulkJobsTab() {
     refetchInterval: 8000,
   });
 
-  // Live progress overrides keyed by job id, applied on top of the query data.
+  // Live progress overrides keyed by parent job id, applied on top of the query
+  // data. Shard-level frames are kept separately for the expanded detail view.
   const [live, setLive] = useState<Record<number, ProgressMsg>>({});
+  const [shardLive, setShardLive] = useState<Record<number, ProgressMsg>>({});
   const [wsConnected, setWsConnected] = useState(false);
+  const [expanded, setExpanded] = useState<number | null>(null);
   const wsRef = useRef<WebSocket | null>(null);
 
   useEffect(() => {
@@ -1198,8 +1465,14 @@ function BulkJobsTab() {
         try {
           const msg = JSON.parse(ev.data) as ProgressMsg;
           if (msg.type === "connected" || msg.dbJobId == null) return;
+          if (msg.kind === "shard") {
+            // Shard frame: dbJobId is the shard's own id; keep it for the
+            // expanded shard view only (parent rows use parent frames).
+            setShardLive((prev) => ({ ...prev, [msg.dbJobId!]: msg }));
+            return;
+          }
+          // Parent frame (or legacy single-job frame): dbJobId is the parent id.
           setLive((prev) => ({ ...prev, [msg.dbJobId!]: msg }));
-          // Terminal states should refresh the authoritative list + stats.
           if (
             msg.status === "completed" ||
             msg.status === "failed" ||
@@ -1224,8 +1497,14 @@ function BulkJobsTab() {
   const jobs = data?.jobs ?? [];
   const stats = data?.stats;
 
-  // Merge live progress into the persisted rows.
-  const mergedJobs: GenerationJob[] = jobs.map((j) => {
+  // Merge live progress into the persisted rows (parent-level frames only).
+  const mergedJobs: (GenerationJob & {
+    throughputPerSec?: number | null;
+    etaSeconds?: number | null;
+    completedShards?: number;
+    failedShards?: number;
+    runningShards?: number;
+  })[] = jobs.map((j) => {
     const l = live[j.id];
     if (!l) return j;
     return {
@@ -1235,6 +1514,11 @@ function BulkJobsTab() {
       succeeded: l.succeeded ?? j.succeeded,
       failed: l.failed ?? j.failed,
       avgMsPerCert: l.avgMsPerCert ?? j.avgMsPerCert,
+      throughputPerSec: l.throughputPerSec,
+      etaSeconds: l.etaSeconds,
+      completedShards: l.completedShards,
+      failedShards: l.failedShards,
+      runningShards: l.runningShards,
     };
   });
 
@@ -1276,11 +1560,23 @@ function BulkJobsTab() {
     }
   };
 
+  // Aggregate live throughput across all currently-running parent jobs.
+  const liveThroughput = mergedJobs.reduce(
+    (sum, j) =>
+      j.status === "running" ? sum + (j.throughputPerSec ?? 0) : sum,
+    0,
+  );
+
   const statCards = [
     { label: "Total Jobs", value: stats?.total ?? 0, icon: Layers },
     { label: "Running", value: stats?.running ?? 0, icon: Activity },
     { label: "Completed", value: stats?.completed ?? 0, icon: CheckCircle2 },
     { label: "Failed", value: stats?.failed ?? 0, icon: AlertTriangle },
+    {
+      label: "Throughput",
+      value: liveThroughput > 0 ? `${Math.round(liveThroughput * 10) / 10}/s` : "—",
+      icon: Zap,
+    },
     { label: "Avg / Cert", value: fmtMs(stats?.avgMsPerCert), icon: Gauge },
   ];
 
@@ -1304,7 +1600,7 @@ function BulkJobsTab() {
         </Badge>
       </div>
 
-      <div className="grid gap-4 grid-cols-2 sm:grid-cols-3 lg:grid-cols-5">
+      <div className="grid gap-4 grid-cols-2 sm:grid-cols-3 lg:grid-cols-6">
         {statCards.map((s) => (
           <Card key={s.label}>
             <CardContent className="p-4 flex items-center gap-3">
@@ -1320,6 +1616,8 @@ function BulkJobsTab() {
         ))}
       </div>
 
+      <WorkerFleetPanel />
+
       {isLoading ? (
         <CardSkeleton rows={5} />
       ) : mergedJobs.length === 0 ? (
@@ -1334,13 +1632,15 @@ function BulkJobsTab() {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead className="w-[40px]" />
                   <TableHead>Job</TableHead>
                   <TableHead>Status</TableHead>
-                  <TableHead className="w-[260px]">Progress</TableHead>
-                  <TableHead>Succeeded</TableHead>
+                  <TableHead className="w-[220px]">Progress</TableHead>
+                  <TableHead>Shards</TableHead>
+                  <TableHead>Throughput</TableHead>
+                  <TableHead>ETA</TableHead>
                   <TableHead>Failed</TableHead>
                   <TableHead>Avg/Cert</TableHead>
-                  <TableHead>Duration</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -1350,8 +1650,26 @@ function BulkJobsTab() {
                     j.total > 0 ? Math.round((j.processed / j.total) * 100) : 0;
                   const active = j.status === "running" || j.status === "queued";
                   const hasFailed = (j.failedIds?.length ?? j.failed) > 0;
+                  const isOpen = expanded === j.id;
+                  const completedShards = j.completedShards;
                   return (
-                    <TableRow key={j.id}>
+                    <Fragment key={j.id}>
+                    <TableRow>
+                      <TableCell>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="h-7 w-7 p-0"
+                          onClick={() => setExpanded(isOpen ? null : j.id)}
+                          aria-label={isOpen ? "Collapse shards" : "Expand shards"}
+                        >
+                          {isOpen ? (
+                            <ChevronDown className="h-4 w-4" />
+                          ) : (
+                            <ChevronRight className="h-4 w-4" />
+                          )}
+                        </Button>
+                      </TableCell>
                       <TableCell className="font-mono text-xs">#{j.id}</TableCell>
                       <TableCell>
                         <Badge
@@ -1369,10 +1687,28 @@ function BulkJobsTab() {
                           </div>
                         </div>
                       </TableCell>
-                      <TableCell className="text-emerald-600 font-medium">{j.succeeded}</TableCell>
+                      <TableCell className="text-sm">
+                        <span className="font-medium">
+                          {completedShards != null
+                            ? `${completedShards}/${j.shardCount}`
+                            : j.shardCount}
+                        </span>
+                        {(j.failedShards ?? 0) > 0 && (
+                          <span className="text-destructive ml-1">
+                            ({j.failedShards} failed)
+                          </span>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-muted-foreground text-sm">
+                        {j.throughputPerSec != null
+                          ? `${j.throughputPerSec}/s`
+                          : "—"}
+                      </TableCell>
+                      <TableCell className="text-muted-foreground text-sm">
+                        {active ? fmtEta(j.etaSeconds) : fmtDuration(j.durationMs)}
+                      </TableCell>
                       <TableCell className={j.failed > 0 ? "text-destructive font-medium" : ""}>{j.failed}</TableCell>
                       <TableCell className="text-muted-foreground text-sm">{fmtMs(j.avgMsPerCert)}</TableCell>
-                      <TableCell className="text-muted-foreground text-sm">{fmtDuration(j.durationMs)}</TableCell>
                       <TableCell className="text-right">
                         <div className="flex gap-1 justify-end">
                           {j.status === "running" && (
@@ -1403,6 +1739,14 @@ function BulkJobsTab() {
                         </div>
                       </TableCell>
                     </TableRow>
+                    {isOpen && (
+                      <TableRow>
+                        <TableCell colSpan={10} className="bg-muted/30 p-0">
+                          <ShardDetail jobId={j.id} shardLive={shardLive} />
+                        </TableCell>
+                      </TableRow>
+                    )}
+                    </Fragment>
                   );
                 })}
               </TableBody>

@@ -20,7 +20,46 @@ export const QUEUE_NAMES = {
 
 export type QueueName = (typeof QUEUE_NAMES)[keyof typeof QUEUE_NAMES];
 
+// Number of partition queues bulk certificate shards are distributed across.
+// Each partition is an independent BullMQ queue; in a multi-machine deployment
+// each partition's workers can run on a separate host. Default 1 (single queue).
+const CERT_QUEUE_PARTITIONS = Math.max(
+  1,
+  Number(process.env.CERT_QUEUE_PARTITIONS ?? 1),
+);
+
+export function getCertQueuePartitions(): number {
+  return CERT_QUEUE_PARTITIONS;
+}
+
+// Partition 0 maps to the base queue name for back-compat (single-cert
+// auto-issue jobs use it too); partitions >0 get a suffixed queue name.
+export function certGenQueueName(partition: number): string {
+  return partition <= 0
+    ? QUEUE_NAMES.CERTIFICATE_GENERATION
+    : `${QUEUE_NAMES.CERTIFICATE_GENERATION}_p${partition}`;
+}
+
 let queues: Partial<Record<QueueName, Queue>> = {};
+const certPartitionQueues = new Map<string, Queue>();
+
+function getCertPartitionQueue(partition: number): Queue {
+  if (partition <= 0) return getQueue(QUEUE_NAMES.CERTIFICATE_GENERATION);
+  const name = certGenQueueName(partition);
+  let q = certPartitionQueues.get(name);
+  if (!q) {
+    q = new Queue(name, {
+      connection: redisConnectionOptions,
+      defaultJobOptions: {
+        removeOnComplete: { count: 100 },
+        removeOnFail: { count: 200 },
+      },
+    });
+    certPartitionQueues.set(name, q);
+    logger.info({ queue: name }, "BullMQ cert partition queue initialized");
+  }
+  return q;
+}
 
 export function getQueue(name: QueueName): Queue {
   if (!queues[name]) {
@@ -180,6 +219,31 @@ export async function addCertBulkJob(data: {
   });
 }
 
+// Enqueue one shard of a sharded bulk run onto its partition queue. attempts>1
+// + stalled-job recovery means a worker crash mid-shard re-delivers the shard
+// (re-rendering existing certs is idempotent — no duplicate certificate rows).
+export async function addCertShardJob(data: {
+  dbJobId: number;
+  parentJobId: number;
+  shardIndex: number;
+  certificateIds: number[];
+  partition: number;
+}): Promise<Job | null> {
+  try {
+    const queue = getCertPartitionQueue(data.partition);
+    return (await queue.add("bulk", data, {
+      attempts: 3,
+      backoff: { type: "exponential", delay: 5000 },
+    })) as Job;
+  } catch (err) {
+    logger.warn(
+      { err: (err as Error).message, shardIndex: data.shardIndex },
+      "Cert shard not queued — Redis may be unavailable",
+    );
+    return null;
+  }
+}
+
 // Park an exhausted job + its failed certificate ids in the dead-letter queue.
 export async function addCertDlqJob(data: {
   dbJobId?: number;
@@ -192,13 +256,24 @@ export async function addCertDlqJob(data: {
 }
 
 export function createWorker(
-  queueName: QueueName,
+  queueName: QueueName | string,
   processor: (job: Job) => Promise<void>,
-  opts: { concurrency?: number } = {}
+  opts: {
+    concurrency?: number;
+    stalledInterval?: number;
+    maxStalledCount?: number;
+  } = {}
 ): Worker {
   const worker = new Worker(queueName, processor, {
     connection: redisConnectionOptions,
     concurrency: opts.concurrency ?? 5,
+    // Stalled-job recovery: if a worker dies mid-job (process killed), BullMQ
+    // re-delivers the job to another worker after it stalls. Re-rendering an
+    // already-issued certificate is idempotent, so this is safe.
+    ...(opts.stalledInterval ? { stalledInterval: opts.stalledInterval } : {}),
+    ...(opts.maxStalledCount != null
+      ? { maxStalledCount: opts.maxStalledCount }
+      : {}),
   });
 
   worker.on("completed", (job) => {

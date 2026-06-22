@@ -8,6 +8,7 @@ import {
   date,
   jsonb,
   uniqueIndex,
+  index,
 } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
@@ -134,6 +135,16 @@ export const certificateGenerationJobsTable = pgTable(
     avgMsPerCert: integer("avg_ms_per_cert"),
     durationMs: integer("duration_ms"),
     error: text("error"),
+    // Sharding: a large bulk run is split into a PARENT row (is_shard=false,
+    // shard_count=N) plus N SHARD rows (is_shard=true, parent_job_id=parent,
+    // shard_index 0..N-1). Shards are the unit of work distributed across
+    // workers/partitions; the parent aggregates their progress. partition is the
+    // queue partition a shard was routed to (shard_index % CERT_QUEUE_PARTITIONS).
+    parentJobId: integer("parent_job_id"),
+    isShard: boolean("is_shard").notNull().default(false),
+    shardIndex: integer("shard_index"),
+    shardCount: integer("shard_count").notNull().default(1),
+    partition: integer("partition").notNull().default(0),
     createdBy: integer("created_by").notNull(),
     startedAt: timestamp("started_at", { withTimezone: true }),
     completedAt: timestamp("completed_at", { withTimezone: true }),
@@ -145,6 +156,7 @@ export const certificateGenerationJobsTable = pgTable(
       .defaultNow()
       .$onUpdate(() => new Date()),
   },
+  (t) => [index("cert_gen_jobs_parent_idx").on(t.parentJobId)],
 );
 
 export const insertCertificateTemplateSchema = createInsertSchema(

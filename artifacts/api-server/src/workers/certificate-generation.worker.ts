@@ -5,11 +5,16 @@ import { logger } from "../lib/logger";
 import { getRedisClient, isRedisAvailable } from "../lib/redis";
 import { addCertDlqJob } from "../lib/queues";
 import { generatePdfForId } from "../lib/certificates/generate";
+import {
+  recomputeParent,
+  publishProgress,
+  computeRates,
+} from "../lib/certificates/job-progress";
 
-// How many certificates within a single bulk job are processed in parallel.
+// How many certificates within a single shard are processed in parallel.
 // Per-cert cost is dominated by network I/O (object-storage upload + ACL + DB),
 // so overlapping them is the main throughput lever; tune via env if needed.
-const INNER_CONCURRENCY = Number(process.env.CERT_BULK_CONCURRENCY ?? 40);
+const INNER_CONCURRENCY = Number(process.env.CERT_BULK_CONCURRENCY ?? 20);
 // Per-certificate render attempts before it is counted as failed.
 const PER_CERT_ATTEMPTS = 3;
 
@@ -18,9 +23,6 @@ function cancelKey(dbJobId: number) {
 }
 function pauseKey(dbJobId: number) {
   return `cert:job:${dbJobId}:pause`;
-}
-function progressChannel(dbJobId: number) {
-  return `cert:job:${dbJobId}:progress`;
 }
 
 async function flagSet(key: string): Promise<boolean> {
@@ -33,26 +35,13 @@ async function flagSet(key: string): Promise<boolean> {
   }
 }
 
-interface ProgressSnapshot {
-  dbJobId: number;
-  status: string;
-  total: number;
-  processed: number;
-  succeeded: number;
-  failed: number;
-  avgMsPerCert: number | null;
+// A shard observes BOTH its own flag and its parent's flag, so an admin can
+// pause/cancel the whole run by flagging only the parent id.
+async function cancelled(dbJobId: number, parentJobId: number): Promise<boolean> {
+  return (await flagSet(cancelKey(parentJobId))) || (await flagSet(cancelKey(dbJobId)));
 }
-
-async function publishProgress(snap: ProgressSnapshot): Promise<void> {
-  if (!isRedisAvailable()) return;
-  try {
-    await getRedisClient().publish(
-      progressChannel(snap.dbJobId),
-      JSON.stringify(snap),
-    );
-  } catch {
-    // Pub/sub is best-effort; DB row remains the source of truth.
-  }
+async function paused(dbJobId: number, parentJobId: number): Promise<boolean> {
+  return (await flagSet(pauseKey(parentJobId))) || (await flagSet(pauseKey(dbJobId)));
 }
 
 async function renderWithRetry(certId: number): Promise<boolean> {
@@ -74,11 +63,58 @@ async function renderWithRetry(certId: number): Promise<boolean> {
   return false;
 }
 
-async function processBulk(job: Job): Promise<void> {
-  const { dbJobId, certificateIds } = job.data as {
+export interface WorkerMeta {
+  workerId: string;
+  partition: number;
+  replica: number;
+  onProgress?: (delta: number, currentJobId: number | null) => void;
+}
+
+async function publishShard(
+  dbJobId: number,
+  parentJobId: number,
+  shardIndex: number,
+  status: string,
+  total: number,
+  processed: number,
+  succeeded: number,
+  failed: number,
+  startedAt: number,
+): Promise<void> {
+  const { throughputPerSec, etaSeconds } = computeRates(
+    processed,
+    total,
+    new Date(startedAt),
+    null,
+  );
+  await publishProgress({
+    kind: "shard",
+    dbJobId,
+    parentJobId,
+    shardIndex,
+    shardCount: 0,
+    status,
+    total,
+    processed,
+    succeeded,
+    failed,
+    avgMsPerCert: processed
+      ? Math.round((Date.now() - startedAt) / processed)
+      : null,
+    throughputPerSec,
+    etaSeconds,
+  });
+}
+
+async function processShard(job: Job, meta?: WorkerMeta): Promise<void> {
+  const { dbJobId, certificateIds, parentJobId, shardIndex } = job.data as {
     dbJobId: number;
     certificateIds: number[];
+    parentJobId: number;
+    shardIndex: number;
   };
+  // Standalone (legacy) jobs without a parent aggregate onto themselves.
+  const parent = parentJobId ?? dbJobId;
   const total = certificateIds.length;
   const startedAt = Date.now();
 
@@ -86,6 +122,7 @@ async function processBulk(job: Job): Promise<void> {
     .update(certificateGenerationJobsTable)
     .set({ status: "running", startedAt: new Date(), total, bullJobId: job.id })
     .where(eq(certificateGenerationJobsTable.id, dbJobId));
+  meta?.onProgress?.(0, dbJobId);
 
   let processed = 0;
   let succeeded = 0;
@@ -102,52 +139,51 @@ async function processBulk(job: Job): Promise<void> {
         succeeded,
         failed,
         failedIds,
-        certificateIds: succeededIds,
         completedAt: new Date(),
         durationMs: Date.now() - startedAt,
       })
       .where(eq(certificateGenerationJobsTable.id, dbJobId));
-    await publishProgress({
+    await publishShard(
       dbJobId,
-      status: "cancelled",
+      parent,
+      shardIndex ?? 0,
+      "cancelled",
       total,
       processed,
       succeeded,
       failed,
-      avgMsPerCert: processed
-        ? Math.round((Date.now() - startedAt) / processed)
-        : null,
-    });
+      startedAt,
+    );
+    await recomputeParent(parent);
   };
 
   for (let i = 0; i < certificateIds.length; i += INNER_CONCURRENCY) {
-    // Cancellation: stop immediately and mark cancelled.
-    if (await flagSet(cancelKey(dbJobId))) {
+    if (await cancelled(dbJobId, parent)) {
       await finalizeCancelled();
       return;
     }
 
-    // Pause: wait until unpaused or cancelled.
-    while (await flagSet(pauseKey(dbJobId))) {
-      if (await flagSet(cancelKey(dbJobId))) break;
+    while (await paused(dbJobId, parent)) {
+      if (await cancelled(dbJobId, parent)) break;
       await db
         .update(certificateGenerationJobsTable)
         .set({ status: "paused", processed, succeeded, failed })
         .where(eq(certificateGenerationJobsTable.id, dbJobId));
-      await publishProgress({
+      await publishShard(
         dbJobId,
-        status: "paused",
+        parent,
+        shardIndex ?? 0,
+        "paused",
         total,
         processed,
         succeeded,
         failed,
-        avgMsPerCert: processed ? Math.round((Date.now() - startedAt) / processed) : null,
-      });
+        startedAt,
+      );
+      await recomputeParent(parent);
       await new Promise((r) => setTimeout(r, 1000));
     }
-    // Re-check cancel after a pause so a cancel issued while paused stops work
-    // immediately instead of processing one more chunk.
-    if (await flagSet(cancelKey(dbJobId))) {
+    if (await cancelled(dbJobId, parent)) {
       await finalizeCancelled();
       return;
     }
@@ -177,15 +213,19 @@ async function processBulk(job: Job): Promise<void> {
       .set({ status: "running", processed, succeeded, failed, avgMsPerCert })
       .where(eq(certificateGenerationJobsTable.id, dbJobId));
     await job.updateProgress(Math.round((processed / total) * 100));
-    await publishProgress({
+    meta?.onProgress?.(chunk.length, dbJobId);
+    await publishShard(
       dbJobId,
-      status: "running",
+      parent,
+      shardIndex ?? 0,
+      "running",
       total,
       processed,
       succeeded,
       failed,
-      avgMsPerCert,
-    });
+      startedAt,
+    );
+    await recomputeParent(parent);
   }
 
   const durationMs = Date.now() - startedAt;
@@ -206,15 +246,18 @@ async function processBulk(job: Job): Promise<void> {
     })
     .where(eq(certificateGenerationJobsTable.id, dbJobId));
 
-  await publishProgress({
+  await publishShard(
     dbJobId,
-    status: finalStatus,
+    parent,
+    shardIndex ?? 0,
+    finalStatus,
     total,
     processed,
     succeeded,
     failed,
-    avgMsPerCert: processed ? Math.round(durationMs / processed) : 0,
-  });
+    startedAt,
+  );
+  await recomputeParent(parent);
 
   // Park failures in the dead-letter queue for later inspection / re-drive.
   if (failedIds.length > 0) {
@@ -226,18 +269,29 @@ async function processBulk(job: Job): Promise<void> {
   }
 }
 
-export async function processCertificateGenerationJob(job: Job): Promise<void> {
-  if (job.name === "single") {
-    const { certificateId } = job.data as { certificateId: number };
-    await generatePdfForId(certificateId);
-    return;
-  }
-  if (job.name === "bulk") {
-    await processBulk(job);
-    return;
-  }
-  logger.warn({ name: job.name }, "unknown certificate generation job name");
+/**
+ * Build a queue processor bound to a specific worker replica's identity so it
+ * can report heartbeats/utilization. Each replica gets its own closure.
+ */
+export function createCertGenerationProcessor(
+  meta?: WorkerMeta,
+): (job: Job) => Promise<void> {
+  return async (job: Job): Promise<void> => {
+    if (job.name === "single") {
+      const { certificateId } = job.data as { certificateId: number };
+      await generatePdfForId(certificateId);
+      return;
+    }
+    if (job.name === "bulk") {
+      await processShard(job, meta);
+      return;
+    }
+    logger.warn({ name: job.name }, "unknown certificate generation job name");
+  };
 }
+
+// Back-compat default processor (no heartbeat identity).
+export const processCertificateGenerationJob = createCertGenerationProcessor();
 
 // Dead-letter consumer: only records the parked batch. No re-processing here —
 // re-drive is an explicit admin action (POST jobs/:id/retry).

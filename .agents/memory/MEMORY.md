@@ -32,3 +32,4 @@
 - [Storage quota owner](storage-quota-owner.md) — quota ledger + object ACL follow file owner not actor; admin-on-behalf version upload once charged actor and bypassed owner quota.
 - [Generated-PDF caching](generated-pdf-caching.md) — reuse stored cert PDF on download via streamObject; regenerate only on demand and delete superseded object (per-upload paths orphan otherwise).
 - [pdfkit + esbuild bundling](pdfkit-esbuild-bundling.md) — pdfkit/fontkit must be esbuild `external` in api-server build.mjs or PDF routes 500.
+- [Cert distributed sharding](cert-sharding-distributed.md) — parent+shards aggregation invariants: no silent enqueue loss, monotonic terminal guard, activeJobs heartbeat, host-scoped worker IDs, kill-recovery idempotency.
