@@ -1,0 +1,328 @@
+PHASE NEXT – ENTERPRISE & GLOBAL SCALE
+
+Build the remaining enterprise-grade ecosystem.
+
+==================================================
+1. COMMUNITY PLATFORM
+==================================================
+
+Build:
+
+- Discussion Forum
+- Public / Private Communities
+- Track-wise Communities
+    - SOC Community
+    - VAPT Community
+    - GRC Community
+
+Features:
+
+Create Post
+Edit Post
+Delete Post
+Pin Post
+Like
+Comment
+Reply
+Bookmark
+Share
+Mentions (@user)
+Hashtags
+Polls
+Attachments
+Search
+Trending Topics
+
+Moderation:
+
+Report Post
+Hide Post
+Ban User
+Content Filters
+Admin Moderation Queue
+
+Everything:
+
+DB connected
+Notifications
+Audit Logs
+RBAC
+
+==================================================
+2. CERTIFICATE ENGINE
+==================================================
+
+Build:
+
+Certificate Templates
+
+Fields:
+
+Student Name
+Track
+Course
+Completion Date
+Certificate ID
+QR Code
+Verification URL
+
+Features:
+
+Auto Generate PDF
+
+Certificate Verification Page
+
+Download
+
+Share to LinkedIn
+
+Bulk Generate
+
+Certificate Analytics
+
+Everything DB connected.
+
+==================================================
+3. ADVANCED ANALYTICS
+==================================================
+
+Student:
+
+Learning Hours
+
+Skill Growth
+
+FTS Trend
+
+Placement Probability
+
+Assessment Analytics
+
+Lab Analytics
+
+Mentor:
+
+Student Risk Heatmap
+
+Cohort Performance
+
+Assignment Analytics
+
+TPO:
+
+Placement Rate
+
+Company Analytics
+
+Department Analytics
+
+Employer:
+
+Hiring Funnel
+
+Interview Funnel
+
+Offer Conversion
+
+Admin:
+
+Platform Analytics
+
+Revenue
+
+Active Users
+
+Track Distribution
+
+AI Usage
+
+All charts must be real DB queries.
+
+==================================================
+4. SEARCH ENGINE
+
+Global Search
+
+Search:
+
+Students
+
+Mentors
+
+Courses
+
+Labs
+
+Jobs
+
+Internships
+
+Certificates
+
+Posts
+
+Assessments
+
+Filters:
+
+Track
+
+Status
+
+Difficulty
+
+Date
+
+Pagination
+
+Server-side search.
+
+==================================================
+5. NOTIFICATION CENTER
+
+Channels:
+
+In-App
+
+Email
+
+Future-ready:
+
+WhatsApp
+
+SMS
+
+Push Notifications
+
+Events:
+
+Assessment Assigned
+
+Lab Assigned
+
+Mock Interview
+
+Job Match
+
+Campus Drive
+
+Placement
+
+Certificate Generated
+
+Support Ticket Updates
+
+Community Mentions
+
+Unread Counter
+
+Notification History
+
+Preferences
+
+DB connected.
+
+==================================================
+6. FILE STORAGE SYSTEM
+
+Support:
+
+PDF
+
+Images
+
+Videos
+
+PCAP
+
+ZIP
+
+DOCX
+
+CSV
+
+Features:
+
+Upload
+
+Preview
+
+Download
+
+Versioning
+
+Virus Scan
+
+Storage Quota
+
+Everything auditable.
+
+==================================================
+7. PERFORMANCE & SCALE
+
+Target:
+
+100K Students
+
+10K Concurrent Users
+
+1000+ Colleges
+
+1000+ Companies
+
+Requirements:
+
+Caching
+
+Background Jobs
+
+Redis
+
+Queue Workers
+
+Lazy Loading
+
+Pagination
+
+Optimized DB queries
+
+CDN ready
+
+==================================================
+FINAL RULE
+
+No placeholders
+
+No fake analytics
+
+No mock data
+
+No empty screens
+
+Every feature:
+
+DB
+API
+RBAC
+Notifications
+Audit Logs
+Analytics
+Dark Mode
+Light Mode
+Mobile Responsive
+
+Generate final implementation report.
+
+Target:
+
+Feature Completeness = 100%
+
+Security = 10/10
+
+UI/UX = 10/10
+
+Scalability = 10/10
+
+Enterprise Ready = YES
+
+Global Ready = YES

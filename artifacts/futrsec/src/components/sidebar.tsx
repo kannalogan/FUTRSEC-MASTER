@@ -15,7 +15,7 @@ import {
   CreditCard, Receipt, Bell, Lock, Settings, HelpCircle, HeadphonesIcon,
   ChevronDown, ChevronRight, LogOut, X,
   Gauge, Layers, BarChart3, AlertTriangle, Megaphone, ListChecks, UserCog,
-  ShieldCheck, CalendarCheck
+  ShieldCheck, CalendarCheck, LifeBuoy, Ticket
 } from "lucide-react";
 
 type NavItem = {
@@ -144,6 +144,7 @@ const MENTOR_NAV: NavSection[] = [
       { label: "Lab Builder", href: "/mentor/lab-builder", icon: FlaskConical },
       { label: "Audit Logs", href: "/mentor/audit-logs", icon: History },
       { label: "Reports", href: "/mentor/reports", icon: FileText },
+      { label: "Support", href: "/support", icon: LifeBuoy },
       { label: "Settings", href: "/mentor/settings", icon: Settings },
     ],
   },
@@ -161,6 +162,7 @@ const TPO_NAV: NavSection[] = [
       { label: "Reports", href: "/tpo/reports", icon: FileText },
       { label: "Campus Drives", href: "/campus/tpo", icon: Building },
       { label: "Events", href: "/tpo/events", icon: Calendar },
+      { label: "Support", href: "/support", icon: LifeBuoy },
       { label: "Settings", href: "/tpo/settings", icon: Settings },
     ],
   },
@@ -176,6 +178,7 @@ const EMPLOYER_NAV: NavSection[] = [
       { label: "Interviews", href: "/employer/interviews", icon: MessageSquare },
       { label: "Offers", href: "/employer/offers", icon: Gift },
       { label: "Hiring Analytics", href: "/employer/analytics", icon: BarChart3 },
+      { label: "Support", href: "/support", icon: LifeBuoy },
       { label: "Settings", href: "/employer/settings", icon: Settings },
     ],
   },
@@ -239,6 +242,7 @@ const ADMIN_NAV: NavSection[] = [
   {
     title: "SYSTEM",
     items: [
+      { label: "Support Tickets", href: "/admin/support", icon: Ticket },
       { label: "Data Retention", href: "/admin/retention", icon: ShieldCheck },
       { label: "Platform Settings", href: "/admin/settings", icon: Settings },
     ],

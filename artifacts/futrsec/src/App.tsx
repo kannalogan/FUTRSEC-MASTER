@@ -71,6 +71,8 @@ import NotificationsPage from "@/pages/notifications/index";
 import SettingsPage from "@/pages/settings/index";
 import HelpPage from "@/pages/help/index";
 import SupportPage from "@/pages/support/index";
+import SupportTicketDetail from "@/pages/support/detail";
+import AdminSupportQueue from "@/pages/support/admin";
 import AdminStudentsPage from "@/pages/admin/students";
 import AdminMentorsPage from "@/pages/admin/mentors";
 import MentorOverview from "@/pages/mentor/overview";
@@ -201,6 +203,15 @@ function EmployerRoute({ component }: { component: React.ComponentType<any> }) {
   return <RoleRoute allow="employer" component={component} />;
 }
 
+// Any authenticated user (any role) may view the page. Used for cross-role
+// features like Support that every role shares.
+function AuthedRoute({ component: Component }: { component: React.ComponentType<any> }) {
+  const { token, user, isLoading } = useAuth();
+  if (isLoading) return <LoadingSpinner />;
+  if (!token || !user) return <Redirect to="/login" />;
+  return <Layout><Component /></Layout>;
+}
+
 function OnboardingRoute({ component: Component }: { component: React.ComponentType<any> }) {
   const { token, isLoading } = useAuth();
   if (isLoading) return <LoadingSpinner />;
@@ -304,7 +315,8 @@ function Router() {
       <Route path="/notifications"><StudentRoute component={NotificationsPage} /></Route>
       <Route path="/settings"><StudentRoute component={SettingsPage} /></Route>
       <Route path="/help"><StudentRoute component={HelpPage} /></Route>
-      <Route path="/support"><StudentRoute component={SupportPage} /></Route>
+      <Route path="/support"><AuthedRoute component={SupportPage} /></Route>
+      <Route path="/support/:uid"><AuthedRoute component={SupportTicketDetail} /></Route>
 
       {/* Privacy / DPDP */}
       <Route path="/privacy"><StudentRoute component={PrivacyCenter} /></Route>
@@ -337,6 +349,7 @@ function Router() {
       <Route path="/admin/coupons"><AdminRoute component={AdminCouponsPage} /></Route>
       <Route path="/admin/analytics"><AdminRoute component={AdminAnalyticsPage} /></Route>
       <Route path="/campus/admin"><AdminRoute component={CampusAdminPage} /></Route>
+      <Route path="/admin/support"><AdminRoute component={AdminSupportQueue} /></Route>
 
       {/* TPO */}
       <Route path="/tpo"><TpoRoute component={TpoOverviewPage} /></Route>

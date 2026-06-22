@@ -12,6 +12,7 @@ import {
   tracksTable,
 } from "@workspace/db";
 import { requireAuth, type AuthRequest } from "../middlewares/auth";
+import { createAuditLog } from "../lib/audit";
 
 const router = Router();
 
@@ -101,6 +102,21 @@ router.put("/profile/me", requireAuth, async (req: AuthRequest, res): Promise<vo
     db.query.usersTable.findFirst({ where: eq(usersTable.id, userId) }),
     db.query.studentProfilesTable.findFirst({ where: eq(studentProfilesTable.userId, userId) }),
   ]);
+
+  await createAuditLog({
+    userId,
+    action: "profile.update",
+    entityType: "user",
+    entityId: userId,
+    ipAddress: req.ip,
+    userAgent: req.get("user-agent") ?? undefined,
+    metadata: {
+      fields: Object.keys({
+        ...(fullName !== undefined ? { fullName } : {}),
+        ...profileUpdate,
+      }),
+    },
+  });
 
   res.json({ user, profile: profile ?? null });
 });

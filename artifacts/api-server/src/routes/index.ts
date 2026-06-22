@@ -42,6 +42,7 @@ import analyticsRouter from "./analytics";
 import labBuilderRouter from "./lab-builder";
 import placementDrivesRouter from "./placement-drives";
 import retentionRouter from "./retention";
+import supportRouter from "./support";
 
 const router: IRouter = Router();
 
@@ -88,5 +89,6 @@ router.use(employerRouter);
 router.use(labBuilderRouter);
 router.use(placementDrivesRouter);
 router.use("/admin/retention", retentionRouter);
+router.use("/support", supportRouter);
 
 export default router;

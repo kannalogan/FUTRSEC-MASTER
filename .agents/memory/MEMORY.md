@@ -22,4 +22,5 @@
 - [Post-login routing](post-login-routing.md) — role landing paths centralized in auth-routing.ts; student missing onboardingStep means start onboarding, only "complete" goes to dashboard
 - [Bulk RBAC guard pitfall](bulk-rbac-guard-pitfall.md) — don't blanket-apply requireRole across a route file; some routes (e.g. discussion moderate in learning.ts) are mentor/admin-only and have internal role checks.
 - [Conflict-safe toggles](toggle-like-conflict-safe.md) — like/follow toggles on a unique (entity,user) index must use insert-onConflictDoNothing-else-delete, never read-then-insert (500 race).
+- [Job-match determinism](job-match-determinism.md) — match score/breakdown always from deterministic heuristicMatch; LLM pass may only reword reasons, never the score; both job endpoints share lib/ai/student-match.ts loader+engine.
 - [API rate limit & CSRF posture](api-security-rate-limit-csrf.md) — express-rate-limit behind Replit proxy needs trust proxy:1; CSRF intentionally omitted (stateless bearer auth, no cookies).

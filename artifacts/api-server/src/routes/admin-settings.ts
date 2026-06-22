@@ -3,6 +3,7 @@ import { eq } from "drizzle-orm";
 import { z } from "zod/v4";
 import { db } from "@workspace/db";
 import { platformSettingsTable } from "@workspace/db";
+import { createAuditLog } from "../lib/audit";
 import {
   requireAuth,
   requireRole,
@@ -76,6 +77,15 @@ router.put(
       .where(eq(platformSettingsTable.id, 1))
       .returning();
 
+    await createAuditLog({
+      userId: req.user?.userId,
+      action: "admin.settings.update",
+      entityType: "platform_settings",
+      entityId: 1,
+      ipAddress: req.ip,
+      userAgent: req.get("user-agent") ?? undefined,
+      metadata: { fields: Object.keys(parsed.data) },
+    });
     req.log.info({ settingsId: 1 }, "Platform settings updated");
     res.json({ settings: updated });
     return;

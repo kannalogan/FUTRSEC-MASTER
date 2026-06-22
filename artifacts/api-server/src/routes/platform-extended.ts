@@ -29,14 +29,15 @@ import {
   ftsScoresTable,
   broadcastNotesTable,
   userPreferencesTable,
-  aiSkillGapReportsTable,
   communityPostsTable,
   communityPostLikesTable,
-  supportTicketsTable,
 } from "@workspace/db";
 import { requireAuth, type AuthRequest } from "../middlewares/auth";
 import { getUserCareerTrack, getUserTrackIdentifiers, jobMatchesTrack } from "../lib/track-access";
 import { createAuditLog } from "../lib/audit";
+import { heuristicMatch } from "../lib/ai/job-match";
+import { loadStudentBundle, toJobMatchInput } from "../lib/ai/student-match";
+import { randomUUID } from "crypto";
 
 const router = Router();
 
@@ -96,6 +97,15 @@ router.post("/assignments/:id/submit", requireAuth, async (req: AuthRequest, res
     submissionUrl: submissionUrl ?? null,
     status: "submitted",
   }).returning();
+  await createAuditLog({
+    userId: req.user.userId,
+    action: "assignment.submit",
+    entityType: "assignment_submission",
+    entityId: sub!.id,
+    ipAddress: req.ip,
+    userAgent: req.get("user-agent") ?? undefined,
+    metadata: { assignmentId },
+  });
   res.json(sub);
 });
 
@@ -265,7 +275,7 @@ router.get("/sandbox", requireAuth, async (req: AuthRequest, res): Promise<void>
 router.post("/sandbox", requireAuth, async (req: AuthRequest, res): Promise<void> => {
   if (!req.user) { res.status(401).json({ error: "Unauthorized" }); return; }
   const { labId } = req.body ?? {};
-  const token = `sbx_${Math.random().toString(36).slice(2)}${Date.now().toString(36)}`;
+  const token = `sbx_${randomUUID().replace(/-/g, "")}`;
   const [session] = await db.insert(sandboxSessionsTable).values({
     userId: req.user.userId,
     labId: labId ?? null,
@@ -273,6 +283,15 @@ router.post("/sandbox", requireAuth, async (req: AuthRequest, res): Promise<void
     status: "starting",
     expiresAt: new Date(Date.now() + 2 * 60 * 60 * 1000),
   }).returning();
+  await createAuditLog({
+    userId: req.user.userId,
+    action: "sandbox.start",
+    entityType: "sandbox_session",
+    entityId: session!.id,
+    ipAddress: req.ip,
+    userAgent: req.get("user-agent") ?? undefined,
+    metadata: { labId: labId ?? null },
+  });
   res.json(session);
 });
 
@@ -282,6 +301,16 @@ router.post("/sandbox/:id/terminate", requireAuth, async (req: AuthRequest, res)
     .set({ status: "terminated", terminatedAt: new Date() })
     .where(and(eq(sandboxSessionsTable.id, Number(req.params["id"])), eq(sandboxSessionsTable.userId, req.user.userId)))
     .returning();
+  if (updated) {
+    await createAuditLog({
+      userId: req.user.userId,
+      action: "sandbox.terminate",
+      entityType: "sandbox_session",
+      entityId: updated.id,
+      ipAddress: req.ip,
+      userAgent: req.get("user-agent") ?? undefined,
+    });
+  }
   res.json(updated ?? null);
 });
 
@@ -347,12 +376,21 @@ router.get("/bookmarks", requireAuth, async (req: AuthRequest, res): Promise<voi
 
 router.delete("/bookmarks/:id", requireAuth, async (req: AuthRequest, res): Promise<void> => {
   if (!req.user) { res.status(401).json({ error: "Unauthorized" }); return; }
+  const bookmarkId = Number(req.params["id"]);
   await db.delete(lessonBookmarksTable).where(
     and(
-      eq(lessonBookmarksTable.id, Number(req.params["id"])),
+      eq(lessonBookmarksTable.id, bookmarkId),
       eq(lessonBookmarksTable.userId, req.user.userId),
     ),
   );
+  await createAuditLog({
+    userId: req.user.userId,
+    action: "bookmark.delete",
+    entityType: "lesson_bookmark",
+    entityId: bookmarkId,
+    ipAddress: req.ip,
+    userAgent: req.get("user-agent") ?? undefined,
+  });
   res.json({ success: true });
 });
 
@@ -528,22 +566,23 @@ router.get("/achievements", requireAuth, async (req: AuthRequest, res): Promise<
 router.get("/ai/job-matches", requireAuth, async (req: AuthRequest, res): Promise<void> => {
   if (!req.user) { res.status(401).json({ error: "Unauthorized" }); return; }
   const userId = req.user.userId;
-  const jobs = await db.select().from(jobsTable)
-    .where(eq(jobsTable.status, "active")).orderBy(desc(jobsTable.createdAt)).limit(20);
+  const bundle = await loadStudentBundle(userId);
+  if (!bundle) { res.status(404).json({ error: "User not found" }); return; }
+
+  const allActive = await db.select().from(jobsTable)
+    .where(eq(jobsTable.status, "active")).orderBy(desc(jobsTable.createdAt)).limit(100);
+
+  // Track isolation (deny-by-default): show only postings the student's track
+  // allows. Untracked students see jobs with no track requirement.
+  const trackIds = await getUserTrackIdentifiers(userId);
+  const jobs = allActive.filter(j =>
+    j.requiredTracks.length === 0 ||
+    (trackIds ? jobMatchesTrack(j.requiredTracks, trackIds) : false),
+  );
   if (jobs.length === 0) { res.json([]); return; }
 
-  const trackIds = await getUserTrackIdentifiers(userId);
   const jobIds = jobs.map(j => j.id);
-  const [skillRows, latestGap] = await Promise.all([
-    db.select().from(jobSkillsTable).where(inArray(jobSkillsTable.jobId, jobIds)),
-    db.query.aiSkillGapReportsTable.findFirst({
-      where: eq(aiSkillGapReportsTable.userId, userId),
-      orderBy: desc(aiSkillGapReportsTable.generatedAt),
-    }),
-  ]);
-  const userSkills = new Set(
-    (latestGap?.currentSkills ?? []).map(s => s.toLowerCase().trim()),
-  );
+  const skillRows = await db.select().from(jobSkillsTable).where(inArray(jobSkillsTable.jobId, jobIds));
   const skillsByJob = new Map<number, string[]>();
   for (const r of skillRows) {
     const arr = skillsByJob.get(r.jobId) ?? [];
@@ -551,36 +590,18 @@ router.get("/ai/job-matches", requireAuth, async (req: AuthRequest, res): Promis
     skillsByJob.set(r.jobId, arr);
   }
 
+  // Single source of truth: the deterministic 7-component engine in lib/ai.
   const matches = jobs.map(j => {
-    const reasons: string[] = [];
-    let score = 30; // baseline for an active, applicable posting
-
-    const trackOk = trackIds ? jobMatchesTrack(j.requiredTracks, trackIds) : false;
-    if (trackOk) { score += 35; reasons.push("Aligned with your career track"); }
-
     const jobSkills = skillsByJob.get(j.id) ?? [];
-    let matched: string[] = [];
-    let missing: string[] = [];
-    if (jobSkills.length > 0) {
-      matched = jobSkills.filter(s => userSkills.has(s.toLowerCase().trim()));
-      missing = jobSkills.filter(s => !userSkills.has(s.toLowerCase().trim()));
-      score += Math.round((matched.length / jobSkills.length) * 35);
-      if (matched.length > 0) {
-        reasons.push(`Matches ${matched.length}/${jobSkills.length} required skills: ${matched.slice(0, 4).join(", ")}`);
-      }
-      if (missing.length > 0) {
-        reasons.push(`Skill gap to close: ${missing.slice(0, 4).join(", ")}`);
-      }
-    }
-    if (j.isRemote) { score += 5; reasons.push("Remote-friendly"); }
-    if (reasons.length === 0) reasons.push("Open posting — apply to broaden your options");
-
+    const m = heuristicMatch(bundle.matchCtx, toJobMatchInput(j, jobSkills));
     return {
       ...j,
-      matchScore: Math.max(0, Math.min(100, score)),
-      matchedSkills: matched,
-      missingSkills: missing,
-      reasons,
+      matchScore: m.matchScore,
+      matchedSkills: m.factors.matchedSkills,
+      missingSkills: m.missingSkills,
+      reasons: m.reasons,
+      recommendations: m.recommendations,
+      matchBreakdown: m.breakdown,
     };
   });
   matches.sort((a, b) => b.matchScore - a.matchScore);
@@ -735,57 +756,21 @@ router.put("/settings/theme", requireAuth, async (req: AuthRequest, res): Promis
     return;
   }
   await writeTheme(req.user!.userId, theme);
+  await createAuditLog({
+    userId: req.user!.userId,
+    action: "settings.theme.update",
+    entityType: "user_preferences",
+    entityId: req.user!.userId,
+    ipAddress: req.ip,
+    userAgent: req.get("user-agent") ?? undefined,
+    metadata: { theme },
+  });
   res.json({ success: true, theme });
 });
 
 // ── Support ───────────────────────────────────────────────────────────────────
-const supportTicketSchema = z.object({
-  subject: z.string().trim().min(3).max(200),
-  message: z.string().trim().min(10).max(5000),
-  category: z.string().trim().max(50).optional(),
-});
-
-router.post("/support/ticket", requireAuth, async (req: AuthRequest, res): Promise<void> => {
-  const userId = req.user!.userId;
-  const parsed = supportTicketSchema.safeParse(req.body ?? {});
-  if (!parsed.success) {
-    res.status(400).json({ error: "Invalid ticket", details: parsed.error.issues });
-    return;
-  }
-  const { subject, message, category } = parsed.data;
-  const [ticket] = await db
-    .insert(supportTicketsTable)
-    .values({ userId, subject, message, category: category ?? "general" })
-    .returning();
-  await createAuditLog({
-    userId,
-    action: "support.ticket.create",
-    entityType: "support_ticket",
-    entityId: ticket!.id,
-    ipAddress: req.ip,
-    userAgent: req.get("user-agent") ?? undefined,
-    metadata: { category: ticket!.category },
-  });
-  res.status(201).json({
-    ticketId: `TKT-${ticket!.id}`,
-    id: ticket!.id,
-    subject: ticket!.subject,
-    category: ticket!.category,
-    status: ticket!.status,
-    createdAt: ticket!.createdAt,
-    message: "Support ticket submitted. Our team will respond within 24 hours.",
-  });
-});
-
-router.get("/support/tickets", requireAuth, async (req: AuthRequest, res): Promise<void> => {
-  const tickets = await db
-    .select()
-    .from(supportTicketsTable)
-    .where(eq(supportTicketsTable.userId, req.user!.userId))
-    .orderBy(desc(supportTicketsTable.createdAt))
-    .limit(50);
-  res.json(tickets);
-});
+// Full support ticketing (create/list/detail/reply/assign/status/stats) lives in
+// routes/support.ts mounted at /api/support. Only static FAQs remain here.
 router.get("/support/faqs", async (_req, res): Promise<void> => {
   res.json([
     { id: 1, q: "How do I start a lab?", a: "Navigate to Labs from the sidebar and click any lab card.", category: "labs" },
@@ -956,6 +941,15 @@ router.post("/community/posts/:id/like", requireAuth, async (req: AuthRequest, r
     .update(communityPostsTable)
     .set({ likeCount })
     .where(eq(communityPostsTable.id, postId));
+
+  await createAuditLog({
+    userId,
+    action: liked ? "community.post.like" : "community.post.unlike",
+    entityType: "community_post",
+    entityId: postId,
+    ipAddress: req.ip,
+    userAgent: req.get("user-agent") ?? undefined,
+  });
 
   res.json({ liked, likes: likeCount });
 });

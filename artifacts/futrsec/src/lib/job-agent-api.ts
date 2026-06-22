@@ -34,12 +34,23 @@ export interface JobBase {
   updatedAt: string;
 }
 
+export interface MatchComponent {
+  score: number;
+  weight: number;
+  contribution: number;
+}
+
+export type MatchBreakdown = Record<string, MatchComponent>;
+
 export interface RecommendedJob extends JobBase {
   skills: string[];
   employer: JobEmployer | null;
   matchScore: number;
   matchReasons: string[];
   matchFactors: unknown;
+  matchBreakdown: MatchBreakdown;
+  missingSkills: string[];
+  recommendations: string[];
   applied: boolean;
   saved: boolean;
 }

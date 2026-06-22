@@ -21,146 +21,26 @@ import {
   jobMatchesTable,
   autoApplySettingsTable,
   subscriptionsTable,
+  aiResumeAnalysisTable,
+  certificatesTable,
 } from "@workspace/db";
 import { requireAuth, requireRole, type AuthRequest } from "../middlewares/auth";
 import { getUserCareerTrack, checkJobTrackAccess, getUserTrackIdentifiers, jobMatchesTrack, type CareerTrack } from "../lib/track-access";
 import {
   computeMatch,
   heuristicMatch,
-  type StudentMatchContext,
-  type JobMatchInput,
   type MatchResult,
 } from "../lib/ai/job-match";
+import {
+  loadStudentBundle,
+  toJobMatchInput,
+  type StudentBundle,
+} from "../lib/ai/student-match";
 import { computePlacementReadiness, type CareerContext } from "../lib/ai/mock-content";
 import { eventBus } from "../lib/events";
 import { createAuditLog } from "../lib/audit";
 
 const router = Router();
-
-const TRACK_SKILLS: Record<CareerTrack, string[]> = {
-  soc: [
-    "SIEM log analysis",
-    "Incident triage",
-    "MITRE ATT&CK",
-    "Network traffic analysis",
-    "Threat intelligence",
-    "Event forensics",
-    "Detection engineering",
-    "SOAR automation",
-  ],
-  vapt: [
-    "Web app pentesting",
-    "OWASP Top 10",
-    "Network scanning",
-    "Burp Suite",
-    "Metasploit",
-    "Privilege escalation",
-    "Active Directory attacks",
-    "API security testing",
-  ],
-  grc: [
-    "ISO 27001",
-    "Risk assessment",
-    "DPDP compliance",
-    "Security policy",
-    "Internal audit",
-    "Business continuity",
-    "Vendor risk",
-    "NIST CSF",
-  ],
-};
-
-interface StudentBundle {
-  userId: number;
-  user: typeof usersTable.$inferSelect;
-  trackSlug: string | null;
-  careerTrack: CareerTrack | null;
-  matchCtx: StudentMatchContext;
-  careerCtx: CareerContext;
-  cp5Complete: boolean;
-}
-
-/**
- * Loads every signal the job agent needs for a student in one shot: track,
- * resume readiness, FTS score, checkpoint progress (and CP5 completion gate),
- * derived current skills, and the career context used for placement readiness.
- */
-async function loadStudentBundle(userId: number): Promise<StudentBundle | null> {
-  const user = await db.query.usersTable.findFirst({ where: eq(usersTable.id, userId) });
-  if (!user) return null;
-
-  const careerTrack = await getUserCareerTrack(userId);
-
-  let trackSlug: string | null = null;
-  if (user.selectedTrackId) {
-    const track = await db.query.tracksTable.findFirst({ where: eq(tracksTable.id, user.selectedTrackId) });
-    trackSlug = track?.slug ?? null;
-  }
-
-  const [profile, fts, labsDone, modulesDone, interviewAgg, appsAgg, checkpoints, progress] =
-    await Promise.all([
-      db.query.studentProfilesTable.findFirst({ where: eq(studentProfilesTable.userId, userId) }),
-      db.query.ftsScoresTable.findFirst({ where: eq(ftsScoresTable.userId, userId) }),
-      db
-        .select({ c: count() })
-        .from(labAttemptsTable)
-        .where(and(eq(labAttemptsTable.userId, userId), eq(labAttemptsTable.status, "completed"))),
-      db
-        .select({ c: count() })
-        .from(moduleEnrollmentsTable)
-        .where(and(eq(moduleEnrollmentsTable.userId, userId), isNotNull(moduleEnrollmentsTable.completedAt))),
-      db
-        .select({ c: count() })
-        .from(aiInterviewsTable)
-        .where(and(eq(aiInterviewsTable.userId, userId), eq(aiInterviewsTable.status, "completed"))),
-      db.select({ c: count() }).from(jobApplicationsTable).where(eq(jobApplicationsTable.studentId, userId)),
-      user.selectedTrackId
-        ? db.select().from(checkpointsTable).where(eq(checkpointsTable.trackId, user.selectedTrackId)).orderBy(checkpointsTable.order)
-        : Promise.resolve([] as (typeof checkpointsTable.$inferSelect)[]),
-      db.select().from(checkpointProgressTable).where(eq(checkpointProgressTable.userId, userId)),
-    ]);
-
-  const completedCpIds = new Set(progress.filter((p) => p.status === "completed").map((p) => p.checkpointId));
-  const totalCps = checkpoints.length;
-  const completedCps = checkpoints.filter((cp) => completedCpIds.has(cp.id)).length;
-  const checkpointCompletion = totalCps > 0 ? Math.round((completedCps / totalCps) * 100) : 0;
-  const cp5 = checkpoints.find((cp) => cp.order === 5);
-  const cp5Complete = cp5 ? completedCpIds.has(cp5.id) : false;
-
-  const labsCompleted = Number(labsDone[0]?.c ?? 0);
-  const modulesCompleted = Number(modulesDone[0]?.c ?? 0);
-  const interviewsTaken = Number(interviewAgg[0]?.c ?? 0);
-  const applications = Number(appsAgg[0]?.c ?? 0);
-  const ftsScore = fts?.totalScore != null ? Math.round(fts.totalScore) : 0;
-  const hasResume = Boolean(profile?.resumeUrl);
-
-  const pool = careerTrack ? TRACK_SKILLS[careerTrack] : [];
-  const acquiredCount = Math.min(pool.length, Math.floor((labsCompleted + modulesCompleted) / 2));
-  const skills = pool.slice(0, acquiredCount);
-
-  const matchCtx: StudentMatchContext = {
-    userId,
-    careerTrack,
-    trackSlug,
-    ftsScore,
-    hasResume,
-    checkpointCompletion,
-    skills,
-  };
-
-  const careerCtx: CareerContext = {
-    trackSlug,
-    fullName: user.fullName,
-    ftsScore,
-    labsCompleted,
-    modulesCompleted,
-    interviewsTaken,
-    hasResume,
-    applications,
-  };
-
-  return { userId, user, trackSlug, careerTrack, matchCtx, careerCtx, cp5Complete };
-}
 
 /**
  * Active jobs visible to this student under strict track isolation. A student
@@ -196,29 +76,18 @@ async function loadJobSkills(jobIds: number[]): Promise<Map<number, string[]>> {
   return map;
 }
 
-function toJobMatchInput(job: typeof jobsTable.$inferSelect, skills: string[]): JobMatchInput {
-  return {
-    id: job.id,
-    title: job.title,
-    description: job.description,
-    requiredTracks: job.requiredTracks,
-    skills,
-    minSalary: job.minSalary,
-    maxSalary: job.maxSalary,
-    location: job.location,
-    isRemote: job.isRemote,
-  };
-}
-
 /** Upsert a computed match into the job_matches cache (uniqueness on student+job). */
 async function cacheMatch(studentId: number, jobId: number, match: MatchResult): Promise<void> {
   const existing = await db.query.jobMatchesTable.findFirst({
     where: and(eq(jobMatchesTable.studentId, studentId), eq(jobMatchesTable.jobId, jobId)),
   });
   const values = {
-    matchScore: match.score,
+    matchScore: match.matchScore,
     reasons: match.reasons.join(" • "),
     factors: match.factors,
+    breakdown: match.breakdown,
+    missingSkills: match.missingSkills,
+    recommendations: match.recommendations,
   };
   if (existing) {
     await db.update(jobMatchesTable).set(values).where(eq(jobMatchesTable.id, existing.id));
@@ -347,9 +216,12 @@ router.get(
           ...job,
           skills,
           employer: job.employerId !== null ? employerMap.get(job.employerId) ?? null : null,
-          matchScore: match.score,
+          matchScore: match.matchScore,
           matchReasons: match.reasons,
           matchFactors: match.factors,
+          matchBreakdown: match.breakdown,
+          missingSkills: match.missingSkills,
+          recommendations: match.recommendations,
           applied: appliedSet.has(job.id),
           saved: savedSet.has(job.id),
         };
@@ -594,10 +466,10 @@ router.post(
       const match = heuristicMatch(bundle.matchCtx, toJobMatchInput(job, skills));
       return { job, match };
     });
-    scored.sort((a, b) => b.match.score - a.match.score);
+    scored.sort((a, b) => b.match.matchScore - a.match.matchScore);
 
     const MAX_APPLY = 5;
-    const top = scored.filter((s) => s.match.score >= 40).slice(0, MAX_APPLY);
+    const top = scored.filter((s) => s.match.matchScore >= 40).slice(0, MAX_APPLY);
 
     const applied: Array<{ jobId: number; applicationId: number; matchScore: number; title: string }> = [];
     for (const { job, match } of top) {
@@ -616,7 +488,7 @@ router.post(
         type: "job.matched",
         userId,
         jobId: job.id,
-        matchScore: match.score,
+        matchScore: match.matchScore,
       });
       eventBus.emit("application.advanced", {
         type: "application.advanced",
@@ -625,7 +497,7 @@ router.post(
         status: "applied",
       });
 
-      applied.push({ jobId: job.id, applicationId: application.id, matchScore: match.score, title: job.title });
+      applied.push({ jobId: job.id, applicationId: application.id, matchScore: match.matchScore, title: job.title });
     }
 
     await createAuditLog({

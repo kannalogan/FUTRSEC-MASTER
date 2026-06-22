@@ -17,6 +17,12 @@ export const jobMatchesTable = pgTable("job_matches", {
   matchScore: integer("match_score").notNull().default(0),
   reasons: text("reasons"),
   factors: jsonb("factors"),
+  // Per-component score breakdown (skills/experience/assessment/fts/resume/track/certificate).
+  breakdown: jsonb("breakdown"),
+  // Skills required by the job the student is missing.
+  missingSkills: jsonb("missing_skills"),
+  // Concrete learning recommendations to close the gap.
+  recommendations: jsonb("recommendations"),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .defaultNow(),

@@ -10,6 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import {
   Bot, Sparkles, Bookmark, BookmarkCheck, Send, CheckCircle2, Building,
   MapPin, Wifi, DollarSign, Calendar, Gift, Briefcase, TrendingUp, Settings,
+  AlertCircle, Lightbulb,
 } from "lucide-react";
 import {
   useJobAgentOverview,
@@ -99,12 +100,41 @@ function RecommendedCard({ job }: { job: RecommendedJob }) {
 
           {job.matchReasons?.length > 0 && (
             <ul className="mt-3 space-y-1">
-              {job.matchReasons.slice(0, 2).map((r, i) => (
+              {job.matchReasons.slice(0, 3).map((r, i) => (
                 <li key={i} className="flex items-start gap-1.5 text-[11px] text-muted-foreground">
                   <CheckCircle2 className="h-3 w-3 text-emerald-500 shrink-0 mt-0.5" />{r}
                 </li>
               ))}
             </ul>
+          )}
+
+          {job.missingSkills?.length > 0 && (
+            <div className="mt-3">
+              <div className="flex items-center gap-1 text-[11px] font-medium text-muted-foreground mb-1">
+                <AlertCircle className="h-3 w-3 text-amber-500" />Skills to build
+              </div>
+              <div className="flex flex-wrap gap-1">
+                {job.missingSkills.slice(0, 4).map((s) => (
+                  <span key={s} className="text-[10px] bg-amber-500/10 text-amber-600 dark:text-amber-400 px-2 py-0.5 rounded-full border border-amber-500/20">{s}</span>
+                ))}
+                {job.missingSkills.length > 4 && <span className="text-[10px] text-muted-foreground px-1">+{job.missingSkills.length - 4}</span>}
+              </div>
+            </div>
+          )}
+
+          {job.recommendations?.length > 0 && (
+            <div className="mt-3 rounded-lg bg-muted/40 border border-border/40 p-2.5">
+              <div className="flex items-center gap-1 text-[11px] font-medium text-foreground mb-1">
+                <Lightbulb className="h-3 w-3 text-primary" />Recommendations
+              </div>
+              <ul className="space-y-1">
+                {job.recommendations.slice(0, 3).map((r, i) => (
+                  <li key={i} className="flex items-start gap-1.5 text-[11px] text-muted-foreground">
+                    <span className="text-primary shrink-0 mt-0.5">→</span>{r}
+                  </li>
+                ))}
+              </ul>
+            </div>
           )}
 
           {job.skills?.length > 0 && (

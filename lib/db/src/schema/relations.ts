@@ -36,6 +36,10 @@ import {
   auditLogsTable,
 } from "./dpdp";
 import {
+  supportTicketsTable,
+  supportTicketRepliesTable,
+} from "./support";
+import {
   labsTable,
   labModulesTable,
   labAttemptsTable,
@@ -137,7 +141,45 @@ export const usersRelations = relations(usersTable, ({ one, many }) => ({
   dataDeleteRequests: many(dataDeleteRequestsTable),
   dataCorrectionRequests: many(dataCorrectionRequestsTable),
   auditLogs: many(auditLogsTable),
+  createdSupportTickets: many(supportTicketsTable, {
+    relationName: "ticketCreatedBy",
+  }),
+  assignedSupportTickets: many(supportTicketsTable, {
+    relationName: "ticketAssignedTo",
+  }),
+  supportTicketReplies: many(supportTicketRepliesTable),
 }));
+
+export const supportTicketsRelations = relations(
+  supportTicketsTable,
+  ({ one, many }) => ({
+    createdByUser: one(usersTable, {
+      fields: [supportTicketsTable.createdBy],
+      references: [usersTable.id],
+      relationName: "ticketCreatedBy",
+    }),
+    assignedToUser: one(usersTable, {
+      fields: [supportTicketsTable.assignedTo],
+      references: [usersTable.id],
+      relationName: "ticketAssignedTo",
+    }),
+    replies: many(supportTicketRepliesTable),
+  })
+);
+
+export const supportTicketRepliesRelations = relations(
+  supportTicketRepliesTable,
+  ({ one }) => ({
+    ticket: one(supportTicketsTable, {
+      fields: [supportTicketRepliesTable.ticketId],
+      references: [supportTicketsTable.id],
+    }),
+    author: one(usersTable, {
+      fields: [supportTicketRepliesTable.authorId],
+      references: [usersTable.id],
+    }),
+  })
+);
 
 export const studentProfilesRelations = relations(
   studentProfilesTable,
