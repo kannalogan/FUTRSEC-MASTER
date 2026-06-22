@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { eq, and, inArray, desc, sql } from "drizzle-orm";
 import { db } from "@workspace/db";
+import { eventBus } from "../lib/events";
 import {
   usersTable,
   tracksTable,
@@ -214,6 +215,58 @@ router.post("/learning/lessons/:lessonId/complete", requireAuth, requireRole("st
       progressPercent: pct,
       ...(pct === 100 ? { completedAt: new Date() } : {}),
     }).where(and(eq(moduleEnrollmentsTable.userId, userId), eq(moduleEnrollmentsTable.moduleId, lesson.moduleId)));
+  }
+
+  // Fire course-completion event only on the transition to 100% (idempotency is
+  // enforced downstream by the per-(user,source) certificate guard).
+  const wasComplete = existingEnrollment?.completedAt != null;
+  if (pct === 100 && !wasComplete) {
+    eventBus.emit("course.completed", {
+      type: "course.completed",
+      userId,
+      courseId: lesson.moduleId,
+      courseName: module?.title ?? "Course",
+      careerTrack: null,
+    });
+
+    // Career-roadmap completion: fired only when every published module in the
+    // track is now complete for this learner. Idempotency is enforced
+    // downstream by the per-(user, source) certificate guard.
+    if (module?.trackId) {
+      const trackModules = await db
+        .select({ id: learningModulesTable.id })
+        .from(learningModulesTable)
+        .where(
+          and(
+            eq(learningModulesTable.trackId, module.trackId),
+            eq(learningModulesTable.isPublished, true),
+          ),
+        );
+      if (trackModules.length > 0) {
+        const completedRows = await db
+          .select({ moduleId: moduleEnrollmentsTable.moduleId })
+          .from(moduleEnrollmentsTable)
+          .where(
+            and(
+              eq(moduleEnrollmentsTable.userId, userId),
+              inArray(
+                moduleEnrollmentsTable.moduleId,
+                trackModules.map((m) => m.id),
+              ),
+              eq(moduleEnrollmentsTable.progressPercent, 100),
+            ),
+          );
+        if (completedRows.length === trackModules.length) {
+          eventBus.emit("career_roadmap.completed", {
+            type: "career_roadmap.completed",
+            userId,
+            roadmapId: module.trackId,
+            roadmapName: "Career Roadmap",
+            careerTrack: null,
+          });
+        }
+      }
+    }
   }
 
   res.status(201).json({ progress, alreadyCompleted: false, moduleProgress: pct });

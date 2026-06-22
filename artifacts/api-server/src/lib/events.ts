@@ -11,6 +11,7 @@ import {
   createNotification,
   NOTIFICATION_TYPES as N_TYPES,
 } from "./notifications";
+import { autoIssueForCompletion } from "./certificates/issuance";
 
 export type AppEvent =
   | { type: "assessment.submitted"; userId: number; assessmentId: number; attemptId: number; score: number }
@@ -21,6 +22,11 @@ export type AppEvent =
   | { type: "data_request.created"; userId: number; requestType: string; requestId: number }
   | { type: "track.selected"; userId: number; trackId: number }
   | { type: "lab.completed"; userId: number; labId: number; score: number }
+  | { type: "course.completed"; userId: number; courseId: number; courseName: string; careerTrack?: string | null }
+  | { type: "learning_path.completed"; userId: number; pathId: number; pathName: string; careerTrack?: string | null }
+  | { type: "lab_series.completed"; userId: number; seriesId: number; seriesName: string; careerTrack?: string | null }
+  | { type: "career_roadmap.completed"; userId: number; roadmapId: number; roadmapName: string; careerTrack?: string | null }
+  | { type: "internship.completed"; userId: number; internshipId: number; internshipName: string; careerTrack?: string | null; mentorId?: number | null }
   | { type: "assignment.submitted"; userId: number; assignmentId: number }
   | { type: "subscription.created"; userId: number; plan: string }
   | { type: "subscription.expired"; userId: number; plan: string }
@@ -235,6 +241,99 @@ export function setupEventHandlers(): void {
         title: "Lab Completed!",
         message: `You scored ${score} points. Keep up the great work!`,
         metadata: { labId, score },
+      });
+    });
+  });
+
+  // ── certificate auto-issuance (completion-driven) ─────────────────────────
+  eventBus.on("course.completed", (payload) => {
+    if (payload.type !== "course.completed") return;
+    const { userId, courseId, courseName, careerTrack } = payload;
+    safeAsync("course.completed:auto_issue", async () => {
+      await autoIssueForCompletion({
+        userId,
+        sourceType: "course",
+        sourceId: courseId,
+        defaults: {
+          type: "course_completion",
+          title: `${courseName} — Certificate of Completion`,
+          careerTrack: careerTrack ?? null,
+          courseName,
+        },
+      });
+    });
+  });
+
+  eventBus.on("learning_path.completed", (payload) => {
+    if (payload.type !== "learning_path.completed") return;
+    const { userId, pathId, pathName, careerTrack } = payload;
+    safeAsync("learning_path.completed:auto_issue", async () => {
+      await autoIssueForCompletion({
+        userId,
+        sourceType: "learning_path",
+        sourceId: pathId,
+        defaults: {
+          type: "course_completion",
+          title: `${pathName} — Learning Path Certificate`,
+          careerTrack: careerTrack ?? null,
+          courseName: pathName,
+        },
+      });
+    });
+  });
+
+  eventBus.on("lab_series.completed", (payload) => {
+    if (payload.type !== "lab_series.completed") return;
+    const { userId, seriesId, seriesName, careerTrack } = payload;
+    safeAsync("lab_series.completed:auto_issue", async () => {
+      await autoIssueForCompletion({
+        userId,
+        sourceType: "lab_series",
+        sourceId: seriesId,
+        defaults: {
+          type: "course_completion",
+          title: `${seriesName} — Lab Series Certificate`,
+          careerTrack: careerTrack ?? null,
+          courseName: seriesName,
+        },
+      });
+    });
+  });
+
+  eventBus.on("career_roadmap.completed", (payload) => {
+    if (payload.type !== "career_roadmap.completed") return;
+    const { userId, roadmapId, roadmapName, careerTrack } = payload;
+    safeAsync("career_roadmap.completed:auto_issue", async () => {
+      await autoIssueForCompletion({
+        userId,
+        sourceType: "career_roadmap",
+        sourceId: roadmapId,
+        defaults: {
+          type: "course_completion",
+          title: `${roadmapName} — Career Roadmap Certificate`,
+          careerTrack: careerTrack ?? null,
+          courseName: roadmapName,
+        },
+      });
+    });
+  });
+
+  eventBus.on("internship.completed", (payload) => {
+    if (payload.type !== "internship.completed") return;
+    const { userId, internshipId, internshipName, careerTrack, mentorId } =
+      payload;
+    safeAsync("internship.completed:auto_issue", async () => {
+      await autoIssueForCompletion({
+        userId,
+        sourceType: "internship",
+        sourceId: internshipId,
+        defaults: {
+          type: "internship_completion",
+          title: `${internshipName} — Internship Certificate`,
+          careerTrack: careerTrack ?? null,
+          internshipName,
+          mentorId: mentorId ?? null,
+        },
       });
     });
   });

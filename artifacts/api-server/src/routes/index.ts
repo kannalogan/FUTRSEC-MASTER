@@ -45,6 +45,7 @@ import retentionRouter from "./retention";
 import supportRouter from "./support";
 import storageRouter from "./storage";
 import certificatesPdfRouter from "./certificates-pdf";
+import adminCertificateJobsRouter from "./admin-certificate-jobs";
 
 const router: IRouter = Router();
 
@@ -94,5 +95,6 @@ router.use("/admin/retention", retentionRouter);
 router.use("/support", supportRouter);
 router.use(storageRouter);
 router.use(certificatesPdfRouter);
+router.use(adminCertificateJobsRouter);
 
 export default router;

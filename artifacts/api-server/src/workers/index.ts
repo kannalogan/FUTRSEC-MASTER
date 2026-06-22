@@ -12,7 +12,15 @@ import {
   processRetentionJob,
   seedDefaultRetentionPolicies,
 } from "./retention.worker";
+import {
+  processCertificateGenerationJob,
+  processCertificateDlqJob,
+} from "./certificate-generation.worker";
 import { logger } from "../lib/logger";
+
+const CERT_WORKER_CONCURRENCY = Number(
+  process.env.CERT_WORKER_CONCURRENCY ?? 5,
+);
 
 let started = false;
 
@@ -27,11 +35,17 @@ export function startWorkers(): void {
     createWorker(QUEUE_NAMES.DATA_DELETION, processDataDeletionJob);
     createWorker(QUEUE_NAMES.AI_JOB, processAiJob);
     createWorker(QUEUE_NAMES.RETENTION, processRetentionJob);
+    createWorker(
+      QUEUE_NAMES.CERTIFICATE_GENERATION,
+      processCertificateGenerationJob,
+      { concurrency: CERT_WORKER_CONCURRENCY },
+    );
+    createWorker(QUEUE_NAMES.CERTIFICATE_DLQ, processCertificateDlqJob);
 
     // Register the daily DPDP auto-purge cron (stable jobId dedupes on restart).
     void scheduleRetentionDailyJob();
 
-    logger.info("BullMQ workers started (6 queues)");
+    logger.info("BullMQ workers started (8 queues)");
   } catch (err) {
     logger.warn(
       { err: (err as Error).message },

@@ -222,6 +222,18 @@ router.post(
         placementId: placementCreated.id,
         companyName: placementCreated.companyName ?? undefined,
       });
+
+      // Internship-type placements are a certificate source. Idempotency is
+      // enforced downstream by the per-(user, source) certificate guard.
+      if (job.type === "internship") {
+        eventBus.emit("internship.completed", {
+          type: "internship.completed",
+          userId: app.studentId,
+          internshipId: job.id,
+          internshipName: job.title,
+          careerTrack: null,
+        });
+      }
     }
 
     res.json({

@@ -7,7 +7,9 @@ import {
   boolean,
   date,
   jsonb,
+  uniqueIndex,
 } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 import { careerTrackEnum } from "./users";
@@ -45,6 +47,11 @@ export const certificatesTable = pgTable("certificates", {
   type: text("type").notNull().default("course_completion"),
   title: text("title").notNull(),
   careerTrack: careerTrackEnum("career_track"),
+  // Provenance of an auto-issued certificate. sourceType is one of
+  // course | learning_path | lab_series | career_roadmap | internship | manual.
+  // (userId, sourceType, sourceId) is the idempotency key for auto-issuance.
+  sourceType: text("source_type").notNull().default("manual"),
+  sourceId: integer("source_id"),
   courseName: text("course_name"),
   internshipName: text("internship_name"),
   mentorId: integer("mentor_id"),
@@ -67,7 +74,78 @@ export const certificatesTable = pgTable("certificates", {
     .notNull()
     .defaultNow()
     .$onUpdate(() => new Date()),
-});
+}, (t) => [
+  // DB-enforced idempotency for auto-issued certificates: at most one
+  // certificate per (user, source). Manual certificates (sourceId null) are
+  // exempt via the partial predicate so admins can issue freely.
+  uniqueIndex("certificates_user_source_uq")
+    .on(t.userId, t.sourceType, t.sourceId)
+    .where(sql`${t.sourceType} <> 'manual' and ${t.sourceId} is not null`),
+]);
+
+// Per-source auto-issuance rules. When a learner completes a source entity
+// (course/lab series/learning path/career roadmap/internship), a certificate is
+// auto-issued only if a row here exists with enabled=true.
+export const certificateAutoIssueConfigTable = pgTable(
+  "certificate_auto_issue_config",
+  {
+    id: serial("id").primaryKey(),
+    // course | learning_path | lab_series | career_roadmap | internship
+    sourceType: text("source_type").notNull(),
+    sourceId: integer("source_id").notNull(),
+    enabled: boolean("enabled").notNull().default(true),
+    // Validity window in months from issue date; null = never expires.
+    expiryMonths: integer("expiry_months"),
+    // When true, completing again re-issues (renews) the certificate.
+    allowReissue: boolean("allow_reissue").notNull().default(false),
+    templateId: integer("template_id"),
+    // Optional override for the certificate type label.
+    certificateType: text("certificate_type"),
+    createdBy: integer("created_by"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow()
+      .$onUpdate(() => new Date()),
+  },
+  (t) => [
+    // One config row per source; makes PUT upserts race-safe.
+    uniqueIndex("cert_auto_issue_source_uq").on(t.sourceType, t.sourceId),
+  ],
+);
+
+// Tracks an admin-triggered bulk PDF generation run handled by the BullMQ
+// certificate_generation queue. bullJobId links the DB row to the queue job.
+export const certificateGenerationJobsTable = pgTable(
+  "certificate_generation_jobs",
+  {
+    id: serial("id").primaryKey(),
+    bullJobId: text("bull_job_id"),
+    // queued | running | paused | completed | failed | cancelled
+    status: text("status").notNull().default("queued"),
+    total: integer("total").notNull().default(0),
+    processed: integer("processed").notNull().default(0),
+    succeeded: integer("succeeded").notNull().default(0),
+    failed: integer("failed").notNull().default(0),
+    certificateIds: jsonb("certificate_ids").notNull(),
+    failedIds: jsonb("failed_ids"),
+    avgMsPerCert: integer("avg_ms_per_cert"),
+    durationMs: integer("duration_ms"),
+    error: text("error"),
+    createdBy: integer("created_by").notNull(),
+    startedAt: timestamp("started_at", { withTimezone: true }),
+    completedAt: timestamp("completed_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow()
+      .$onUpdate(() => new Date()),
+  },
+);
 
 export const insertCertificateTemplateSchema = createInsertSchema(
   certificateTemplatesTable,
@@ -75,11 +153,27 @@ export const insertCertificateTemplateSchema = createInsertSchema(
 export const insertCertificateSchema = createInsertSchema(
   certificatesTable,
 ).omit({ id: true, createdAt: true, updatedAt: true });
+export const insertCertificateAutoIssueConfigSchema = createInsertSchema(
+  certificateAutoIssueConfigTable,
+).omit({ id: true, createdAt: true, updatedAt: true });
+export const insertCertificateGenerationJobSchema = createInsertSchema(
+  certificateGenerationJobsTable,
+).omit({ id: true, createdAt: true, updatedAt: true });
 
 export type CertificateTemplate =
   typeof certificateTemplatesTable.$inferSelect;
 export type Certificate = typeof certificatesTable.$inferSelect;
+export type CertificateAutoIssueConfig =
+  typeof certificateAutoIssueConfigTable.$inferSelect;
+export type CertificateGenerationJob =
+  typeof certificateGenerationJobsTable.$inferSelect;
 export type InsertCertificateTemplate = z.infer<
   typeof insertCertificateTemplateSchema
 >;
 export type InsertCertificate = z.infer<typeof insertCertificateSchema>;
+export type InsertCertificateAutoIssueConfig = z.infer<
+  typeof insertCertificateAutoIssueConfigSchema
+>;
+export type InsertCertificateGenerationJob = z.infer<
+  typeof insertCertificateGenerationJobSchema
+>;

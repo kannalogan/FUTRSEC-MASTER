@@ -14,6 +14,8 @@ export const QUEUE_NAMES = {
   DATA_EXPORT: "data_export",
   DATA_DELETION: "data_deletion",
   RETENTION: "retention",
+  CERTIFICATE_GENERATION: "certificate_generation",
+  CERTIFICATE_DLQ: "certificate_dlq",
 } as const;
 
 export type QueueName = (typeof QUEUE_NAMES)[keyof typeof QUEUE_NAMES];
@@ -156,13 +158,47 @@ export async function addBroadcastJob(data: {
   });
 }
 
+// Enqueue a single-certificate PDF generation (used by auto-issuance). Falls
+// back gracefully when Redis is down — the PDF is then generated lazily on the
+// first download via getOrGeneratePdf.
+export async function addCertPdfJob(data: { certificateId: number }) {
+  return safeAddJob(QUEUE_NAMES.CERTIFICATE_GENERATION, "single", data, {
+    attempts: 3,
+    backoff: { type: "exponential", delay: 1500 },
+  });
+}
+
+// Enqueue a tracked bulk generation batch. dbJobId links to
+// certificate_generation_jobs for progress/stats.
+export async function addCertBulkJob(data: {
+  dbJobId: number;
+  certificateIds: number[];
+}) {
+  return safeAddJob(QUEUE_NAMES.CERTIFICATE_GENERATION, "bulk", data, {
+    attempts: 2,
+    backoff: { type: "exponential", delay: 5000 },
+  });
+}
+
+// Park an exhausted job + its failed certificate ids in the dead-letter queue.
+export async function addCertDlqJob(data: {
+  dbJobId?: number;
+  certificateIds: number[];
+  reason: string;
+}) {
+  return safeAddJob(QUEUE_NAMES.CERTIFICATE_DLQ, "dead_letter", data, {
+    attempts: 1,
+  });
+}
+
 export function createWorker(
   queueName: QueueName,
-  processor: (job: Job) => Promise<void>
+  processor: (job: Job) => Promise<void>,
+  opts: { concurrency?: number } = {}
 ): Worker {
   const worker = new Worker(queueName, processor, {
     connection: redisConnectionOptions,
-    concurrency: 5,
+    concurrency: opts.concurrency ?? 5,
   });
 
   worker.on("completed", (job) => {

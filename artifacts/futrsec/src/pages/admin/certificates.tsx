@@ -20,11 +20,15 @@ import {
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
 } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Progress } from "@/components/ui/progress";
 import { PageHeader, CardSkeleton, EmptyState } from "@/components/page-shell";
 import { useToast } from "@/hooks/use-toast";
+import { useEffect, useRef } from "react";
 import {
   Award, Plus, BadgeCheck, Link2, Ban, ShieldCheck, ShieldX, Search, Pencil,
   Download, FileDown, FileStack, BarChart3, Loader2, Clock,
+  Play, Pause, XCircle, RotateCcw, Settings2, Activity, CheckCircle2,
+  AlertTriangle, Gauge, Wifi, WifiOff, Layers,
 } from "lucide-react";
 
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
@@ -129,11 +133,19 @@ export default function AdminCertificatesPage() {
       <Tabs defaultValue="issued">
         <TabsList className="mb-6">
           <TabsTrigger value="issued">Issued</TabsTrigger>
+          <TabsTrigger value="jobs">Bulk Jobs</TabsTrigger>
+          <TabsTrigger value="auto-issue">Auto-Issue</TabsTrigger>
           <TabsTrigger value="templates">Templates</TabsTrigger>
           <TabsTrigger value="analytics">Analytics</TabsTrigger>
         </TabsList>
         <TabsContent value="issued">
           <IssuedTab />
+        </TabsContent>
+        <TabsContent value="jobs">
+          <BulkJobsTab />
+        </TabsContent>
+        <TabsContent value="auto-issue">
+          <AutoIssueTab />
         </TabsContent>
         <TabsContent value="templates">
           <TemplatesTab />
@@ -201,17 +213,18 @@ function IssuedTab() {
     if (selected.size === 0) return;
     setBulkBusy("generate");
     try {
-      const res = await apiFetch<{ generated: number; failed: number }>(
-        "/api/admin/certificates/bulk-generate",
+      const res = await apiFetch<{ jobId: number; total: number }>(
+        "/api/admin/certificates/jobs",
         { method: "POST", body: JSON.stringify({ certificateIds: [...selected] }) },
       );
       toast({
-        title: `Generated ${res.generated} PDF${res.generated === 1 ? "" : "s"}`,
-        description: res.failed > 0 ? `${res.failed} failed` : undefined,
+        title: `Bulk job #${res.jobId} queued`,
+        description: `${res.total} certificate${res.total === 1 ? "" : "s"} — track progress in the Bulk Jobs tab.`,
       });
-      queryClient.invalidateQueries({ queryKey: [listKey] });
+      setSelected(new Set());
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/certificates/jobs"] });
     } catch (e) {
-      toast({ title: e instanceof Error ? e.message : "Bulk generate failed", variant: "destructive" });
+      toast({ title: e instanceof Error ? e.message : "Bulk job failed", variant: "destructive" });
     } finally {
       setBulkBusy(null);
     }
@@ -264,7 +277,7 @@ function IssuedTab() {
                 ) : (
                   <FileStack className="h-4 w-4 mr-1.5" />
                 )}
-                Generate PDFs
+                Bulk job
               </Button>
               <Button variant="outline" size="sm" onClick={bulkDownload} disabled={bulkBusy !== null}>
                 {bulkBusy === "download" ? (
@@ -1074,6 +1087,573 @@ function AnalyticsTab() {
           </CardContent>
         </Card>
       </div>
+    </div>
+  );
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+// Bulk Jobs tab — BullMQ-backed bulk generation with live WebSocket progress
+// ────────────────────────────────────────────────────────────────────────────
+
+interface GenerationJob {
+  id: number;
+  status: string;
+  total: number;
+  processed: number;
+  succeeded: number;
+  failed: number;
+  failedIds: number[] | null;
+  certificateIds: number[];
+  avgMsPerCert: number | null;
+  durationMs: number | null;
+  error: string | null;
+  startedAt: string | null;
+  completedAt: string | null;
+  createdAt: string;
+}
+interface JobsStats {
+  total: number;
+  running: number;
+  queued: number;
+  paused: number;
+  completed: number;
+  failed: number;
+  cancelled: number;
+  totalCertificates: number;
+  avgMsPerCert: number;
+}
+interface JobsResp {
+  jobs: GenerationJob[];
+  stats: JobsStats;
+}
+interface ProgressMsg {
+  type?: string;
+  dbJobId?: number;
+  status?: string;
+  total?: number;
+  processed?: number;
+  succeeded?: number;
+  failed?: number;
+  avgMsPerCert?: number | null;
+}
+
+const JOB_STATUS_STYLE: Record<string, string> = {
+  queued: "bg-muted text-muted-foreground",
+  running: "bg-blue-500/15 text-blue-600 border-blue-500/30",
+  paused: "bg-amber-500/15 text-amber-600 border-amber-500/30",
+  completed: "bg-emerald-500/15 text-emerald-600 border-emerald-500/30",
+  failed: "bg-destructive/15 text-destructive border-destructive/30",
+  cancelled: "bg-muted text-muted-foreground",
+};
+
+function fmtMs(ms: number | null | undefined): string {
+  if (!ms || ms <= 0) return "—";
+  if (ms < 1000) return `${ms}ms`;
+  return `${(ms / 1000).toFixed(2)}s`;
+}
+function fmtDuration(ms: number | null | undefined): string {
+  if (!ms || ms <= 0) return "—";
+  const s = Math.round(ms / 1000);
+  if (s < 60) return `${s}s`;
+  const m = Math.floor(s / 60);
+  return `${m}m ${s % 60}s`;
+}
+
+function BulkJobsTab() {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const listKey = "/api/admin/certificates/jobs";
+
+  const { data, isLoading } = useQuery({
+    queryKey: [listKey],
+    queryFn: () => apiFetch<JobsResp>(listKey),
+    // Poll as a safety net even if the websocket drops.
+    refetchInterval: 8000,
+  });
+
+  // Live progress overrides keyed by job id, applied on top of the query data.
+  const [live, setLive] = useState<Record<number, ProgressMsg>>({});
+  const [wsConnected, setWsConnected] = useState(false);
+  const wsRef = useRef<WebSocket | null>(null);
+
+  useEffect(() => {
+    const token = localStorage.getItem("futrsec_token");
+    if (!token) return;
+    const proto = window.location.protocol === "https:" ? "wss" : "ws";
+    const url = `${proto}://${window.location.host}${BASE}/api/certificates/jobs/stream?token=${encodeURIComponent(token)}`;
+    let closed = false;
+    let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
+
+    const connect = () => {
+      if (closed) return;
+      const ws = new WebSocket(url);
+      wsRef.current = ws;
+      ws.onopen = () => setWsConnected(true);
+      ws.onclose = () => {
+        setWsConnected(false);
+        if (!closed) reconnectTimer = setTimeout(connect, 3000);
+      };
+      ws.onerror = () => ws.close();
+      ws.onmessage = (ev) => {
+        try {
+          const msg = JSON.parse(ev.data) as ProgressMsg;
+          if (msg.type === "connected" || msg.dbJobId == null) return;
+          setLive((prev) => ({ ...prev, [msg.dbJobId!]: msg }));
+          // Terminal states should refresh the authoritative list + stats.
+          if (
+            msg.status === "completed" ||
+            msg.status === "failed" ||
+            msg.status === "cancelled"
+          ) {
+            queryClient.invalidateQueries({ queryKey: [listKey] });
+          }
+        } catch {
+          /* ignore malformed frames */
+        }
+      };
+    };
+    connect();
+
+    return () => {
+      closed = true;
+      if (reconnectTimer) clearTimeout(reconnectTimer);
+      wsRef.current?.close();
+    };
+  }, [queryClient]);
+
+  const jobs = data?.jobs ?? [];
+  const stats = data?.stats;
+
+  // Merge live progress into the persisted rows.
+  const mergedJobs: GenerationJob[] = jobs.map((j) => {
+    const l = live[j.id];
+    if (!l) return j;
+    return {
+      ...j,
+      status: l.status ?? j.status,
+      processed: l.processed ?? j.processed,
+      succeeded: l.succeeded ?? j.succeeded,
+      failed: l.failed ?? j.failed,
+      avgMsPerCert: l.avgMsPerCert ?? j.avgMsPerCert,
+    };
+  });
+
+  const action = async (
+    id: number,
+    verb: "pause" | "resume" | "cancel" | "retry",
+  ) => {
+    try {
+      const res = await apiFetch<{ ok?: boolean; jobId?: number }>(
+        `/api/admin/certificates/jobs/${id}/${verb}`,
+        { method: "POST" },
+      );
+      toast({
+        title:
+          verb === "retry"
+            ? `Retry queued${res.jobId ? ` (job #${res.jobId})` : ""}`
+            : `Job ${verb} requested`,
+      });
+      queryClient.invalidateQueries({ queryKey: [listKey] });
+    } catch (e) {
+      toast({
+        title: e instanceof Error ? e.message : `${verb} failed`,
+        variant: "destructive",
+      });
+    }
+  };
+
+  const downloadJobZip = async (id: number) => {
+    try {
+      await downloadFile(
+        `/api/admin/certificates/jobs/${id}/download`,
+        `cert-job-${id}.zip`,
+      );
+    } catch (e) {
+      toast({
+        title: e instanceof Error ? e.message : "Download failed",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const statCards = [
+    { label: "Total Jobs", value: stats?.total ?? 0, icon: Layers },
+    { label: "Running", value: stats?.running ?? 0, icon: Activity },
+    { label: "Completed", value: stats?.completed ?? 0, icon: CheckCircle2 },
+    { label: "Failed", value: stats?.failed ?? 0, icon: AlertTriangle },
+    { label: "Avg / Cert", value: fmtMs(stats?.avgMsPerCert), icon: Gauge },
+  ];
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <p className="text-sm text-muted-foreground">
+          Bulk PDF generation runs on background workers. Select certificates in
+          the Issued tab to enqueue a job, or retry failed ones here.
+        </p>
+        <Badge
+          variant="outline"
+          className={
+            wsConnected
+              ? "bg-emerald-500/15 text-emerald-600 border-emerald-500/30 gap-1"
+              : "bg-muted text-muted-foreground gap-1"
+          }
+        >
+          {wsConnected ? <Wifi className="h-3 w-3" /> : <WifiOff className="h-3 w-3" />}
+          {wsConnected ? "Live" : "Offline"}
+        </Badge>
+      </div>
+
+      <div className="grid gap-4 grid-cols-2 sm:grid-cols-3 lg:grid-cols-5">
+        {statCards.map((s) => (
+          <Card key={s.label}>
+            <CardContent className="p-4 flex items-center gap-3">
+              <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                <s.icon className="h-5 w-5 text-primary" />
+              </div>
+              <div className="min-w-0">
+                <div className="text-xl font-bold font-heading truncate">{s.value}</div>
+                <div className="text-xs text-muted-foreground">{s.label}</div>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      {isLoading ? (
+        <CardSkeleton rows={5} />
+      ) : mergedJobs.length === 0 ? (
+        <EmptyState
+          icon={FileStack}
+          title="No bulk jobs yet"
+          description="Select certificates in the Issued tab and choose 'Bulk job' to enqueue one."
+        />
+      ) : (
+        <Card>
+          <CardContent className="p-0">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Job</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead className="w-[260px]">Progress</TableHead>
+                  <TableHead>Succeeded</TableHead>
+                  <TableHead>Failed</TableHead>
+                  <TableHead>Avg/Cert</TableHead>
+                  <TableHead>Duration</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {mergedJobs.map((j) => {
+                  const pct =
+                    j.total > 0 ? Math.round((j.processed / j.total) * 100) : 0;
+                  const active = j.status === "running" || j.status === "queued";
+                  const hasFailed = (j.failedIds?.length ?? j.failed) > 0;
+                  return (
+                    <TableRow key={j.id}>
+                      <TableCell className="font-mono text-xs">#{j.id}</TableCell>
+                      <TableCell>
+                        <Badge
+                          variant="outline"
+                          className={`capitalize ${JOB_STATUS_STYLE[j.status] ?? ""}`}
+                        >
+                          {j.status}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <div className="space-y-1">
+                          <Progress value={pct} className="h-2" />
+                          <div className="text-xs text-muted-foreground">
+                            {j.processed} / {j.total} ({pct}%)
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-emerald-600 font-medium">{j.succeeded}</TableCell>
+                      <TableCell className={j.failed > 0 ? "text-destructive font-medium" : ""}>{j.failed}</TableCell>
+                      <TableCell className="text-muted-foreground text-sm">{fmtMs(j.avgMsPerCert)}</TableCell>
+                      <TableCell className="text-muted-foreground text-sm">{fmtDuration(j.durationMs)}</TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex gap-1 justify-end">
+                          {j.status === "running" && (
+                            <Button size="sm" variant="outline" onClick={() => action(j.id, "pause")}>
+                              <Pause className="h-4 w-4" />
+                            </Button>
+                          )}
+                          {j.status === "paused" && (
+                            <Button size="sm" variant="outline" onClick={() => action(j.id, "resume")}>
+                              <Play className="h-4 w-4" />
+                            </Button>
+                          )}
+                          {active && (
+                            <Button size="sm" variant="ghost" onClick={() => action(j.id, "cancel")}>
+                              <XCircle className="h-4 w-4 text-destructive" />
+                            </Button>
+                          )}
+                          {hasFailed && !active && (
+                            <Button size="sm" variant="outline" onClick={() => action(j.id, "retry")}>
+                              <RotateCcw className="h-4 w-4 mr-1" /> Retry
+                            </Button>
+                          )}
+                          {j.succeeded > 0 && (
+                            <Button size="sm" variant="outline" onClick={() => downloadJobZip(j.id)}>
+                              <FileDown className="h-4 w-4 mr-1" /> ZIP
+                            </Button>
+                          )}
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+      )}
+    </div>
+  );
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+// Auto-Issue tab — per-source automatic issuance configuration
+// ────────────────────────────────────────────────────────────────────────────
+
+const SOURCE_TYPES = [
+  { value: "course", label: "Course" },
+  { value: "learning_path", label: "Learning Path" },
+  { value: "lab_series", label: "Lab Series" },
+  { value: "career_roadmap", label: "Career Roadmap" },
+  { value: "internship", label: "Internship" },
+] as const;
+function sourceTypeLabel(t: string): string {
+  return SOURCE_TYPES.find((s) => s.value === t)?.label ?? t;
+}
+
+interface AutoIssueConfig {
+  id: number;
+  sourceType: string;
+  sourceId: number;
+  enabled: boolean;
+  expiryMonths: number | null;
+  allowReissue: boolean;
+  templateId: number | null;
+  certificateType: string | null;
+  updatedAt: string;
+}
+interface AutoIssueResp {
+  configs: AutoIssueConfig[];
+}
+
+const EMPTY_CONFIG = {
+  sourceType: "course",
+  sourceId: "",
+  enabled: true,
+  expiryMonths: "",
+  allowReissue: false,
+  certificateType: "",
+};
+
+function AutoIssueTab() {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const listKey = "/api/admin/certificates/auto-issue-config";
+
+  const { data, isLoading } = useQuery({
+    queryKey: [listKey],
+    queryFn: () => apiFetch<AutoIssueResp>(listKey),
+  });
+  const configs = data?.configs ?? [];
+
+  const [form, setForm] = useState({ ...EMPTY_CONFIG });
+  const set = <K extends keyof typeof form>(k: K, v: (typeof form)[K]) =>
+    setForm((f) => ({ ...f, [k]: v }));
+
+  const upsertMut = useMutation({
+    mutationFn: (body: Record<string, unknown>) =>
+      apiFetch<{ config: AutoIssueConfig }>(listKey, {
+        method: "PUT",
+        body: JSON.stringify(body),
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [listKey] });
+      toast({ title: "Auto-issue configuration saved" });
+      setForm({ ...EMPTY_CONFIG });
+    },
+    onError: (e: Error) => toast({ title: e.message, variant: "destructive" }),
+  });
+
+  const submit = () => {
+    const sourceId = Number(form.sourceId);
+    if (!Number.isInteger(sourceId) || sourceId <= 0) {
+      toast({ title: "Valid source ID is required", variant: "destructive" });
+      return;
+    }
+    const body: Record<string, unknown> = {
+      sourceType: form.sourceType,
+      sourceId,
+      enabled: form.enabled,
+      allowReissue: form.allowReissue,
+    };
+    if (form.expiryMonths !== "" && Number(form.expiryMonths) > 0) {
+      body.expiryMonths = Number(form.expiryMonths);
+    }
+    if (form.certificateType.trim()) {
+      body.certificateType = form.certificateType.trim();
+    }
+    upsertMut.mutate(body);
+  };
+
+  const toggleEnabled = (c: AutoIssueConfig, enabled: boolean) => {
+    upsertMut.mutate({
+      sourceType: c.sourceType,
+      sourceId: c.sourceId,
+      enabled,
+      allowReissue: c.allowReissue,
+      expiryMonths: c.expiryMonths,
+      certificateType: c.certificateType,
+    });
+  };
+
+  return (
+    <div className="space-y-6">
+      <Card>
+        <CardContent className="p-5 space-y-4">
+          <div className="flex items-center gap-2">
+            <Settings2 className="h-4 w-4 text-primary" />
+            <h3 className="text-sm font-semibold">Configure Auto-Issue</h3>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            When enabled for a source, completing it automatically issues a
+            certificate (PDF, QR, email, and dashboard entry) — once per learner,
+            unless re-issue is allowed.
+          </p>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <div>
+              <Label>Source type</Label>
+              <Select value={form.sourceType} onValueChange={(v) => set("sourceType", v)}>
+                <SelectTrigger className="mt-1">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {SOURCE_TYPES.map((s) => (
+                    <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label>Source ID</Label>
+              <Input
+                className="mt-1"
+                type="number"
+                value={form.sourceId}
+                onChange={(e) => set("sourceId", e.target.value)}
+                placeholder="e.g. 12"
+              />
+            </div>
+            <div>
+              <Label>Expiry (months, optional)</Label>
+              <Input
+                className="mt-1"
+                type="number"
+                value={form.expiryMonths}
+                onChange={(e) => set("expiryMonths", e.target.value)}
+                placeholder="never"
+              />
+            </div>
+            <div>
+              <Label>Certificate type (optional)</Label>
+              <Input
+                className="mt-1"
+                value={form.certificateType}
+                onChange={(e) => set("certificateType", e.target.value)}
+                placeholder="course_completion"
+              />
+            </div>
+            <div className="flex items-center justify-between rounded-lg border p-3">
+              <div>
+                <Label className="text-sm">Enabled</Label>
+                <p className="text-xs text-muted-foreground">Issue on completion</p>
+              </div>
+              <Switch checked={form.enabled} onCheckedChange={(v) => set("enabled", v)} />
+            </div>
+            <div className="flex items-center justify-between rounded-lg border p-3">
+              <div>
+                <Label className="text-sm">Allow re-issue</Label>
+                <p className="text-xs text-muted-foreground">Re-create if exists</p>
+              </div>
+              <Switch checked={form.allowReissue} onCheckedChange={(v) => set("allowReissue", v)} />
+            </div>
+          </div>
+          <div className="flex justify-end">
+            <Button onClick={submit} disabled={upsertMut.isPending}>
+              {upsertMut.isPending ? (
+                <Loader2 className="h-4 w-4 mr-1.5 animate-spin" />
+              ) : (
+                <Plus className="h-4 w-4 mr-1.5" />
+              )}
+              Save configuration
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {isLoading ? (
+        <CardSkeleton rows={4} />
+      ) : configs.length === 0 ? (
+        <EmptyState
+          icon={Settings2}
+          title="No auto-issue rules"
+          description="Add a rule above to automatically issue certificates on completion."
+        />
+      ) : (
+        <Card>
+          <CardContent className="p-0">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Source</TableHead>
+                  <TableHead>Source ID</TableHead>
+                  <TableHead>Expiry</TableHead>
+                  <TableHead>Re-issue</TableHead>
+                  <TableHead>Type</TableHead>
+                  <TableHead className="text-right">Enabled</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {configs.map((c) => (
+                  <TableRow key={c.id}>
+                    <TableCell>
+                      <Badge variant="outline">{sourceTypeLabel(c.sourceType)}</Badge>
+                    </TableCell>
+                    <TableCell className="font-mono text-xs">{c.sourceId}</TableCell>
+                    <TableCell className="text-muted-foreground text-sm">
+                      {c.expiryMonths ? `${c.expiryMonths} mo` : "Never"}
+                    </TableCell>
+                    <TableCell>
+                      {c.allowReissue ? (
+                        <Badge variant="secondary">Allowed</Badge>
+                      ) : (
+                        <span className="text-xs text-muted-foreground">No</span>
+                      )}
+                    </TableCell>
+                    <TableCell className="text-muted-foreground text-sm">
+                      {c.certificateType ?? "—"}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Switch
+                        checked={c.enabled}
+                        onCheckedChange={(v) => toggleEnabled(c, v)}
+                        disabled={upsertMut.isPending}
+                      />
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }

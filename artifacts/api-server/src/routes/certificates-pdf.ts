@@ -5,7 +5,6 @@ import { z } from "zod/v4";
 import {
   db,
   certificatesTable,
-  certificateTemplatesTable,
   usersTable,
   type Certificate,
 } from "@workspace/db";
@@ -15,11 +14,14 @@ import {
   type AuthRequest,
 } from "../middlewares/auth";
 import { createAuditLog } from "../lib/audit";
-import { getStorageProvider } from "../lib/storage/provider";
-import { renderCertificatePdf } from "../lib/certificates/pdf";
+import {
+  effectiveStatus,
+  verifyUrlFor,
+  loadCertWithHolder,
+  getOrGeneratePdf,
+} from "../lib/certificates/generate";
 
 const router = Router();
-const storage = getStorageProvider();
 const adminGuards = [requireAuth, requireRole("admin")];
 
 function ip(req: AuthRequest): string | undefined {
@@ -29,124 +31,6 @@ function ip(req: AuthRequest): string | undefined {
 function parseId(raw: string | string[] | undefined): number {
   const v = Array.isArray(raw) ? raw[0] : raw;
   return parseInt(String(v), 10);
-}
-
-function publicBaseUrl(): string {
-  const domains = process.env.REPLIT_DOMAINS;
-  if (domains) {
-    const first = domains.split(",")[0]?.trim();
-    if (first) return `https://${first}`;
-  }
-  return "";
-}
-
-function verifyUrlFor(verifyToken: string): string {
-  return `${publicBaseUrl()}/verify/${verifyToken}`;
-}
-
-/** Compute the effective status, accounting for an elapsed expiry date. */
-function effectiveStatus(c: Pick<Certificate, "status" | "expiresDate">): string {
-  if (c.status === "revoked") return "revoked";
-  if (
-    c.expiresDate &&
-    new Date(c.expiresDate).getTime() < Date.now()
-  ) {
-    return "expired";
-  }
-  return c.status;
-}
-
-interface CertWithHolder {
-  cert: Certificate;
-  holderName: string;
-}
-
-async function loadCertWithHolder(
-  id: number,
-): Promise<CertWithHolder | undefined> {
-  const [row] = await db
-    .select({ cert: certificatesTable, holderName: usersTable.fullName })
-    .from(certificatesTable)
-    .leftJoin(usersTable, eq(usersTable.id, certificatesTable.userId))
-    .where(eq(certificatesTable.id, id))
-    .limit(1);
-  if (!row) return undefined;
-  return { cert: row.cert, holderName: row.holderName ?? "FUTRSEC Learner" };
-}
-
-/**
- * Generate (or regenerate) the PDF for a certificate, store it, and persist the
- * object path. Returns the rendered Buffer and its object path.
- */
-async function generateAndStore(
-  cw: CertWithHolder,
-  opts: { regenerate?: boolean } = {},
-): Promise<{ buffer: Buffer; objectPath: string }> {
-  const { cert, holderName } = cw;
-
-  let template = null;
-  if (cert.templateId) {
-    template =
-      (await db.query.certificateTemplatesTable.findFirst({
-        where: eq(certificateTemplatesTable.id, cert.templateId),
-      })) ?? null;
-  }
-
-  const status = effectiveStatus(cert);
-  const buffer = await renderCertificatePdf({
-    certificate: { ...cert, status },
-    holderName,
-    template,
-    verifyUrl: verifyUrlFor(cert.verifyToken),
-  });
-
-  // Each upload yields a fresh object path. Capture the previous pointer so we
-  // can delete the superseded object after the new one is committed, avoiding
-  // orphaned objects accumulating in the bucket on every regenerate.
-  const previousPath = cert.pdfObjectPath;
-  const objectPath = await storage.uploadBuffer(buffer, "application/pdf");
-  await storage.setAcl(objectPath, {
-    owner: String(cert.userId),
-    visibility: "private",
-  });
-  await db
-    .update(certificatesTable)
-    .set({ pdfObjectPath: objectPath })
-    .where(eq(certificatesTable.id, cert.id));
-
-  if (previousPath && previousPath !== objectPath) {
-    try {
-      await storage.deleteObject(previousPath);
-    } catch {
-      // Best-effort cleanup; a failed delete must not fail the download.
-    }
-  }
-
-  return { buffer, objectPath };
-}
-
-/**
- * Return the certificate PDF bytes, reusing the already-stored object when one
- * exists. Only renders (and uploads) a new PDF when none is cached or the
- * caller explicitly requests regeneration. This keeps repeat downloads cheap
- * and avoids object churn on every access.
- */
-async function getOrGeneratePdf(
-  cw: CertWithHolder,
-  opts: { regenerate?: boolean } = {},
-): Promise<Buffer> {
-  if (!opts.regenerate && cw.cert.pdfObjectPath) {
-    try {
-      const resp = await storage.streamObject(cw.cert.pdfObjectPath);
-      const arr = await resp.arrayBuffer();
-      const buf = Buffer.from(arr);
-      if (buf.length > 0) return buf;
-    } catch {
-      // Cached object missing/unreadable — fall through to regenerate.
-    }
-  }
-  const { buffer } = await generateAndStore(cw, opts);
-  return buffer;
 }
 
 function canAccessCert(cert: Certificate, req: AuthRequest): boolean {
@@ -199,66 +83,12 @@ router.get(
   },
 );
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Bulk generate (admin)
-// ─────────────────────────────────────────────────────────────────────────────
-
+// Bulk generation has moved to the BullMQ-backed queue in
+// routes/admin-certificate-jobs.ts (POST /admin/certificates/jobs). This file
+// retains the synchronous bulk *download* (ZIP) only.
 const bulkSchema = z.object({
   certificateIds: z.array(z.number().int().positive()).min(1).max(500),
 });
-
-router.post(
-  "/admin/certificates/bulk-generate",
-  ...adminGuards,
-  async (req: AuthRequest, res): Promise<void> => {
-    const parsed = bulkSchema.safeParse(req.body);
-    if (!parsed.success) {
-      res
-        .status(400)
-        .json({ error: "Invalid input", details: parsed.error.issues });
-      return;
-    }
-    const ids = parsed.data.certificateIds;
-    const rows = await db
-      .select({ cert: certificatesTable, holderName: usersTable.fullName })
-      .from(certificatesTable)
-      .leftJoin(usersTable, eq(usersTable.id, certificatesTable.userId))
-      .where(inArray(certificatesTable.id, ids));
-
-    const results: { id: number; ok: boolean; error?: string }[] = [];
-    for (const row of rows) {
-      try {
-        await generateAndStore({
-          cert: row.cert,
-          holderName: row.holderName ?? "FUTRSEC Learner",
-        });
-        results.push({ id: row.cert.id, ok: true });
-      } catch (err) {
-        results.push({
-          id: row.cert.id,
-          ok: false,
-          error: err instanceof Error ? err.message : "render failed",
-        });
-      }
-    }
-
-    await createAuditLog({
-      userId: req.user!.userId,
-      action: "admin.certificate.bulk_generate",
-      entityType: "certificate",
-      entityId: undefined,
-      ipAddress: ip(req),
-      userAgent: req.headers["user-agent"],
-      metadata: { requested: ids.length, generated: results.filter((r) => r.ok).length },
-    });
-
-    res.json({
-      generated: results.filter((r) => r.ok).length,
-      failed: results.filter((r) => !r.ok).length,
-      results,
-    });
-  },
-);
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Bulk download as ZIP (admin)

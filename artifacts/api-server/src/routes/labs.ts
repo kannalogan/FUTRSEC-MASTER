@@ -11,6 +11,7 @@ import {
 } from "@workspace/db";
 import { requireAuth, requireRole, type AuthRequest } from "../middlewares/auth";
 import { checkTrackQueryAccess, checkResourceTrackAccess, getUserCareerTrack } from "../lib/track-access";
+import { eventBus } from "../lib/events";
 
 const router = Router();
 
@@ -311,6 +312,23 @@ async function finishLab(req: AuthRequest, res: import("express").Response): Pro
     attemptId: attempt.id, userId, labId,
     reportContent: typeof req.body?.findings === "string" ? req.body.findings : "",
     submittedAt: new Date(),
+  });
+
+  // Lab progress event + certificate auto-issuance for the lab series. The
+  // per-(user,source) guard downstream prevents duplicate certificates on
+  // repeated finish/submit calls.
+  eventBus.emit("lab.completed", {
+    type: "lab.completed",
+    userId,
+    labId,
+    score: totalScore,
+  });
+  eventBus.emit("lab_series.completed", {
+    type: "lab_series.completed",
+    userId,
+    seriesId: labId,
+    seriesName: lab.title,
+    careerTrack: null,
   });
 
   res.json({ attempt: updated, score: totalScore });
