@@ -90,7 +90,7 @@ export default function Login() {
     setPassError("");
     setPassLoading(true);
     try {
-      const data = await apiFetch<{ accessToken: string; user: { role: string; onboardingStep: string } }>(
+      const data = await apiFetch<{ accessToken: string; user: { role: string; onboardingStep: string; approvalStatus: string | null } }>(
         "/api/auth/login/password",
         { method: "POST", body: JSON.stringify({ email, password }) }
       );

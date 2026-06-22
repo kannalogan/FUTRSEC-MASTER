@@ -9,6 +9,7 @@
 - [Route ordering collisions](route-ordering.md) — Express /:param routes swallow sibling static paths; use non-colliding top-level API paths (/internships not /jobs/internships)
 - [Write-route validation](write-route-validation.md) — mutating routes must validate id/existence/track-eligibility/duplicates before insert (broken-access-control guard)
 - [Track-locked RBAC](track-locked-rbac.md) — career_track is the auth source of truth; every track-scoped resource-by-ID route needs a track-access guard (list filters arent enough).
+- [Auth /auth/me cache invalidation](auth-getme-cache-invalidation.md) — clear getMe query cache on every token change (+ staleTime:0); stale cached user traps approved tpo/employer on pending screen across in-session logout/login.
 - [Interview finalize recovery](interview-finalize-recovery.md) — if /finish fails after the last answer, the attempt stays in_progress with all answers present and start returns index:null; client must re-finalize on re-entry so mentor gets the score.
 - [AI generateJSON wrapper](ai-json-wrapper.md) — OpenAI JSON mode returns an object, not a bare array; list validators must accept {key:[...]} or they silently fall back to mock.
 - [E2E auth testing](e2e-auth-testing.md) — OTP-only login blocks the test agent; set a bcrypt password on a dev account, login via /auth/login/password, inject futrsec_token in localStorage.

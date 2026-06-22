@@ -1,0 +1,362 @@
+Build complete 1-Year Cybersecurity Learning Ecosystem.
+
+Tracks:
+
+1. SOC Analyst
+2. VAPT Professional
+3. GRC Specialist
+
+Each track must contain:
+
+✓ Learning Modules
+✓ Video lessons
+✓ Reading materials
+✓ Interactive quizzes
+✓ Assignments
+✓ Practical Labs
+✓ Virtual Machines
+✓ Sandbox environments
+✓ Projects
+✓ CTF challenges
+✓ Assessments
+✓ Mock Interviews
+✓ Career Roadmaps
+✓ Certifications
+✓ Skill Tree
+✓ Leaderboards
+✓ AI Tutor support
+
+====================================================
+
+SOC ANALYST TRACK
+
+Foundation
+
+- Networking Fundamentals
+- TCP/IP
+- OSI Model
+- Linux Basics
+- Windows Basics
+- Virtualization
+- Python Basics
+
+Security Basics
+
+- CIA Triad
+- Threat Landscape
+- Malware
+- Cryptography
+- Security Controls
+
+SOC Core
+
+- Log Analysis
+- SIEM
+- Splunk
+- ELK
+- Microsoft Sentinel
+- QRadar
+- Security Monitoring
+
+Incident Response
+
+- Detection
+- Investigation
+- Containment
+- Recovery
+
+Threat Hunting
+
+- IOC
+- YARA
+- Sigma Rules
+- ATT&CK Framework
+
+Cloud Security
+
+- AWS Security
+- Azure Security
+
+Labs
+
+- Splunk Labs
+- ELK Labs
+- Sentinel Labs
+- Malware Analysis
+- Incident Investigation
+- Phishing Analysis
+- Threat Hunting Labs
+- Windows Forensics
+- Linux Forensics
+
+Projects
+
+- Build SIEM Dashboard
+- SOC Investigation Case Studies
+- Threat Hunting Reports
+
+Mock Interviews
+
+- Beginner
+- Intermediate
+- Advanced
+
+====================================================
+
+VAPT TRACK
+
+Foundation
+
+- Networking
+- Linux
+- Windows
+- Python
+- Bash
+
+Web Security
+
+- HTTP/HTTPS
+- Authentication
+- Sessions
+- JWT
+
+OWASP Top 10
+
+- Broken Access Control
+- SQLi
+- XSS
+- SSRF
+- CSRF
+- XXE
+- File Upload
+- IDOR
+- Command Injection
+
+Tools
+
+- Burp Suite
+- Nmap
+- Nikto
+- Gobuster
+- FFUF
+- Metasploit
+- SQLmap
+- Wireshark
+
+API Security
+
+- REST
+- GraphQL
+- OAuth
+- JWT
+
+Mobile Security
+
+- Android
+- iOS
+- Frida
+- MobSF
+
+Cloud Security
+
+- AWS Pentesting
+- Azure Pentesting
+
+Active Directory
+
+- Enumeration
+- Kerberoasting
+- Lateral Movement
+
+Labs
+
+- DVWA
+- Juice Shop
+- PortSwigger Labs
+- HackTheBox style labs
+- Custom FUTRSEC Labs
+
+Projects
+
+- Full Web VAPT
+- API VAPT
+- AD Pentest
+- Mobile Pentest
+
+CTF
+
+- Easy
+- Medium
+- Hard
+- Expert
+
+Mock Interviews
+
+- Web Pentest
+- API Security
+- AD Pentest
+- Mobile Security
+
+====================================================
+
+GRC TRACK
+
+Foundation
+
+- Information Security
+- Risk Management
+- Governance
+
+Frameworks
+
+- ISO 27001
+- NIST CSF
+- NIST 800-53
+- CIS Controls
+- COBIT
+
+Compliance
+
+- DPDP Act
+- GDPR
+- HIPAA
+- PCI DSS
+- SOC2
+
+Risk
+
+- Risk Register
+- Risk Assessment
+- Risk Treatment
+
+Audit
+
+- Internal Audit
+- External Audit
+
+Business Continuity
+
+- BCP
+- DRP
+
+Vendor Risk
+
+- Third-party risk
+
+Labs
+
+- Risk Register Builder
+- ISO Documentation
+- Audit Simulator
+- Compliance Gap Assessment
+- Policy Builder
+
+Projects
+
+- ISO 27001 Implementation
+- DPDP Compliance
+- Vendor Risk Assessment
+
+Mock Interviews
+
+- ISO Lead Auditor
+- GRC Analyst
+- Compliance Specialist
+
+====================================================
+
+LAB INFRASTRUCTURE
+
+Build:
+
+✓ Virtual Machines
+✓ Kali Linux
+✓ Ubuntu
+✓ Windows Server
+✓ Windows 11
+✓ Metasploitable
+✓ DVWA
+✓ Juice Shop
+✓ Active Directory Lab
+✓ SOC Simulation Lab
+✓ Malware Sandbox
+✓ Cloud Sandbox
+
+Student can:
+
+- Launch VM
+- Stop VM
+- Reset VM
+- Download reports
+- Submit flags
+- Save progress
+
+====================================================
+
+AI FEATURES
+
+AI Explain Tutor
+
+- Explain concepts
+- Generate examples
+- Explain errors
+
+AI Career Coach
+
+- Career roadmap
+- Skill gaps
+
+AI Resume Analyzer
+
+- ATS score
+- Skill analysis
+
+AI Mock Interview
+
+- Voice
+- Text
+- Coding interviews
+
+====================================================
+
+CERTIFICATIONS
+
+SOC
+
+- Splunk
+- Sentinel
+- Security+
+- CySA+
+
+VAPT
+
+- CEH
+- PNPT
+- eJPT
+- OSCP
+
+GRC
+
+- ISO 27001
+- CISA
+- CRISC
+- CISSP
+
+Track completion certificates.
+
+====================================================
+
+Everything must be:
+
+✓ DB connected
+✓ Role based
+✓ Analytics enabled
+✓ Notification enabled
+✓ Export enabled
+✓ Mobile responsive
+✓ Dark mode
+✓ Light mode
+
+No placeholders.
+
+Build as production-ready international cybersecurity learning ecosystem.
