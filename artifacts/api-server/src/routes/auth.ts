@@ -20,6 +20,7 @@ import {
 } from "@workspace/api-zod";
 import { signAccessToken, signRefreshToken, verifyRefreshToken, REFRESH_TOKEN_TTL_DAYS } from "../lib/jwt";
 import { requireAuth, type AuthRequest } from "../middlewares/auth";
+import { authLimiter } from "../lib/rate-limit";
 import { logger } from "../lib/logger";
 import { eventBus } from "../lib/events";
 import { sendEmail, buildOtpEmail } from "../lib/email";
@@ -74,7 +75,7 @@ async function serializeUser(user: typeof usersTable.$inferSelect) {
   };
 }
 
-router.post("/auth/send-otp", async (req: AuthRequest, res): Promise<void> => {
+router.post("/auth/send-otp", authLimiter, async (req: AuthRequest, res): Promise<void> => {
   const parsed = SendOtpBody.safeParse(req.body);
   if (!parsed.success) {
     res.status(400).json({ error: parsed.error.message });
@@ -122,7 +123,7 @@ router.post("/auth/send-otp", async (req: AuthRequest, res): Promise<void> => {
   res.json(responseBody);
 });
 
-router.post("/auth/verify-otp", async (req: AuthRequest, res): Promise<void> => {
+router.post("/auth/verify-otp", authLimiter, async (req: AuthRequest, res): Promise<void> => {
   const parsed = VerifyOtpBody.safeParse(req.body);
   if (!parsed.success) {
     res.status(400).json({ error: parsed.error.message });
@@ -426,7 +427,7 @@ router.post("/auth/select-track", requireAuth, async (req: AuthRequest, res): Pr
 });
 
 // ── Student Registration ────────────────────────────────────────────────────
-router.post("/auth/register/student", async (req: AuthRequest, res): Promise<void> => {
+router.post("/auth/register/student", authLimiter, async (req: AuthRequest, res): Promise<void> => {
   const { firstName, lastName, email, phone, college, graduationYear, password } = req.body ?? {};
 
   if (!firstName || !lastName || !email || !password) {
@@ -484,7 +485,7 @@ router.post("/auth/register/student", async (req: AuthRequest, res): Promise<voi
 });
 
 // ── TPO Registration ────────────────────────────────────────────────────────
-router.post("/auth/register/tpo", async (req: AuthRequest, res): Promise<void> => {
+router.post("/auth/register/tpo", authLimiter, async (req: AuthRequest, res): Promise<void> => {
   const { firstName, lastName, email, phone, institution, designation, password } = req.body ?? {};
 
   if (!firstName || !lastName || !email || !phone || !institution || !designation || !password) {
@@ -548,7 +549,7 @@ router.post("/auth/register/tpo", async (req: AuthRequest, res): Promise<void> =
 });
 
 // ── Employer Registration ───────────────────────────────────────────────────
-router.post("/auth/register/employer", async (req: AuthRequest, res): Promise<void> => {
+router.post("/auth/register/employer", authLimiter, async (req: AuthRequest, res): Promise<void> => {
   const { firstName, lastName, email, phone, companyName, designation, website, linkedinUrl, industry, companySize, password } = req.body ?? {};
 
   if (!firstName || !lastName || !email || !phone || !companyName || !designation || !password) {
@@ -610,7 +611,7 @@ router.post("/auth/register/employer", async (req: AuthRequest, res): Promise<vo
 });
 
 // ── Password Login ──────────────────────────────────────────────────────────
-router.post("/auth/login/password", async (req: AuthRequest, res): Promise<void> => {
+router.post("/auth/login/password", authLimiter, async (req: AuthRequest, res): Promise<void> => {
   const { email, password } = req.body ?? {};
 
   if (!email || !password) {
@@ -651,7 +652,7 @@ router.post("/auth/login/password", async (req: AuthRequest, res): Promise<void>
 });
 
 // ── Forgot Password ─────────────────────────────────────────────────────────
-router.post("/auth/forgot-password", async (req: AuthRequest, res): Promise<void> => {
+router.post("/auth/forgot-password", authLimiter, async (req: AuthRequest, res): Promise<void> => {
   const { email } = req.body ?? {};
   if (!email) { res.status(400).json({ error: "Email is required" }); return; }
 
@@ -681,7 +682,7 @@ router.post("/auth/forgot-password", async (req: AuthRequest, res): Promise<void
 });
 
 // ── Verify Reset OTP ────────────────────────────────────────────────────────
-router.post("/auth/verify-reset-otp", async (req: AuthRequest, res): Promise<void> => {
+router.post("/auth/verify-reset-otp", authLimiter, async (req: AuthRequest, res): Promise<void> => {
   const { email, otp } = req.body ?? {};
   if (!email || !otp) { res.status(400).json({ error: "Email and OTP are required" }); return; }
 
@@ -701,7 +702,7 @@ router.post("/auth/verify-reset-otp", async (req: AuthRequest, res): Promise<voi
 });
 
 // ── Reset Password ──────────────────────────────────────────────────────────
-router.post("/auth/reset-password", async (req: AuthRequest, res): Promise<void> => {
+router.post("/auth/reset-password", authLimiter, async (req: AuthRequest, res): Promise<void> => {
   const { email, otp, newPassword } = req.body ?? {};
   if (!email || !otp || !newPassword) {
     res.status(400).json({ error: "email, otp and newPassword are required" });

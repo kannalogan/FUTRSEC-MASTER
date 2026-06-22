@@ -7,8 +7,13 @@ import { logger } from "./lib/logger";
 import { setupEventHandlers } from "./lib/events";
 import { connectRedis } from "./lib/redis";
 import { startWorkers } from "./workers/index";
+import { globalLimiter } from "./lib/rate-limit";
 
 const app: Express = express();
+
+// Behind the Replit reverse proxy — trust a single hop so rate limiting and
+// req.ip resolve the real client IP from X-Forwarded-For.
+app.set("trust proxy", 1);
 
 app.use(
   helmet({
@@ -64,6 +69,8 @@ app.use(
 
 app.use(express.json({ limit: "1mb" }));
 app.use(express.urlencoded({ extended: true }));
+
+app.use("/api", globalLimiter);
 
 setupEventHandlers();
 
