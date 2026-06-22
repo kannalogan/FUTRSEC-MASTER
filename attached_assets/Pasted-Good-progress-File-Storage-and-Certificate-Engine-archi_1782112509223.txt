@@ -1,0 +1,148 @@
+Good progress.
+
+File Storage and Certificate Engine architecture looks good.
+
+Now perform a REAL production audit.
+
+I don't want capability tables.
+I want end-to-end user verification.
+
+=================================================
+
+FILE STORAGE
+
+Verify:
+
+1. Student uploads:
+   - Resume PDF
+   - Profile Image
+   - Assignment ZIP
+   - PCAP file
+   - Lab report PDF
+
+2. Mentor uploads:
+   - Resources
+   - Assignments
+   - Notes
+
+3. TPO uploads:
+   - Placement documents
+   - Drive schedules
+
+4. Employer uploads:
+   - JD
+   - Company documents
+
+5. Admin uploads:
+   - Certificates
+   - Course assets
+
+For every upload verify:
+
+✓ DB record created
+✓ Object stored
+✓ Preview works
+✓ Download works
+✓ RBAC enforced
+✓ Audit log created
+✓ Soft delete works
+✓ Restore works
+✓ Version history works
+✓ Quota enforced
+
+=================================================
+
+CERTIFICATE ENGINE
+
+Verify:
+
+Student:
+
+✓ Course completion
+✓ Certificate issued automatically
+✓ Certificate visible in dashboard
+✓ PDF downloads correctly
+✓ QR code opens verify page
+✓ LinkedIn share works
+
+Admin:
+
+✓ Bulk generate 100 certificates
+✓ Bulk ZIP download
+✓ Revoke certificate
+✓ Expire certificate
+
+Public:
+
+✓ Verify valid certificate
+✓ Verify revoked certificate
+✓ Verify expired certificate
+✓ Invalid certificate returns proper error
+
+=================================================
+
+PERFORMANCE TEST
+
+Upload:
+
+1 MB
+10 MB
+100 MB
+500 MB
+
+Concurrent uploads:
+
+10 users
+100 users
+500 users
+
+Certificate generation:
+
+100
+1000
+5000 certificates
+
+Measure:
+
+- response time
+- memory usage
+- DB queries
+- failures
+- retry behavior
+
+=================================================
+
+SECURITY TEST
+
+Try:
+
+- Upload executable files
+- Upload fake content-type
+- Upload oversized file
+- Access another user's file
+- Reuse expired signed URL
+- Download revoked certificate
+- Path traversal attacks
+- IDOR attacks
+
+Must fail with proper error.
+
+=================================================
+
+Final report:
+
+Feature
+Flow Tested
+DB Verified
+RBAC Verified
+Audit Verified
+Performance Tested
+Security Tested
+Result
+
+Only after ALL tests pass,
+mark:
+
+Production Ready = YES
+Enterprise Ready = YES
+Global Ready = YES
