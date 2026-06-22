@@ -13,6 +13,7 @@ export const QUEUE_NAMES = {
   REPORT_GENERATION: "report_generation",
   DATA_EXPORT: "data_export",
   DATA_DELETION: "data_deletion",
+  RETENTION: "retention",
 } as const;
 
 export type QueueName = (typeof QUEUE_NAMES)[keyof typeof QUEUE_NAMES];
@@ -96,6 +97,45 @@ export async function addDataDeletionJob(data: {
     attempts: 1,
     delay: 24 * 60 * 60 * 1000,
   });
+}
+
+export async function addRetentionJob(data: {
+  runId?: number;
+  dryRun: boolean;
+  trigger?: "scheduler" | "manual";
+  triggeredBy?: number;
+}) {
+  return safeAddJob(
+    QUEUE_NAMES.RETENTION,
+    "run_retention",
+    { ...data, trigger: data.trigger ?? "manual" },
+    { attempts: 1 }
+  );
+}
+
+// Registers (or refreshes) the daily DPDP auto-purge job. The stable jobId
+// dedupes repeatable schedules so restarts don't pile up duplicate crons.
+export async function scheduleRetentionDailyJob(): Promise<void> {
+  try {
+    const queue = getQueue(QUEUE_NAMES.RETENTION);
+    await queue.add(
+      "run_retention",
+      { dryRun: false, trigger: "scheduler" as const },
+      {
+        jobId: "retention-daily",
+        repeat: { pattern: "0 2 * * *" },
+        attempts: 1,
+        removeOnComplete: { count: 100 },
+        removeOnFail: { count: 200 },
+      }
+    );
+    logger.info("Daily DPDP retention purge scheduled (0 2 * * *)");
+  } catch (err) {
+    logger.warn(
+      { err: (err as Error).message },
+      "Failed to schedule daily retention job — Redis may be unavailable"
+    );
+  }
 }
 
 export async function addAiJob(data: {

@@ -24,6 +24,14 @@ export const labsTable = pgTable("labs", {
   dockerImage: text("docker_image"),
   simulator: jsonb("simulator"),
   isActive: boolean("is_active").notNull().default(true),
+  // Authoring / lifecycle (mentor lab builder). authorRole distinguishes
+  // mentor-authored labs from the original admin-seeded catalog.
+  authorId: integer("author_id"),
+  authorRole: text("author_role"),
+  status: text("status").notNull().default("published"),
+  version: integer("version").notNull().default(1),
+  learningObjectives: text("learning_objectives").array().notNull().default([]),
+  walkthrough: text("walkthrough"),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .defaultNow(),
@@ -43,6 +51,7 @@ export const labModulesTable = pgTable("lab_modules", {
   flagFormat: text("flag_format"),
   flag: text("flag"),
   solutionExplanation: text("solution_explanation"),
+  walkthrough: text("walkthrough"),
   points: integer("points").notNull().default(10),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()

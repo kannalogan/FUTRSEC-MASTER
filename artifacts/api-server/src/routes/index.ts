@@ -39,6 +39,9 @@ import placementRouter from "./placement";
 import campusRouter from "./campus";
 import subscriptionRouter from "./subscription";
 import analyticsRouter from "./analytics";
+import labBuilderRouter from "./lab-builder";
+import placementDrivesRouter from "./placement-drives";
+import retentionRouter from "./retention";
 
 const router: IRouter = Router();
 
@@ -82,5 +85,8 @@ router.use(mentorQuestionBankRouter);
 router.use(adminQuestionBankRouter);
 router.use(tpoRouter);
 router.use(employerRouter);
+router.use(labBuilderRouter);
+router.use(placementDrivesRouter);
+router.use("/admin/retention", retentionRouter);
 
 export default router;

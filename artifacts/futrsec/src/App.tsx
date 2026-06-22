@@ -87,8 +87,15 @@ import MentorQuestionBankPage from "@/pages/mentor/question-bank";
 import MentorMockInterviewsPage from "@/pages/mentor/mock-interviews";
 import MentorMockInterviewResultsPage from "@/pages/mentor/mock-interview-results";
 import StudentAssignedInterviewsPage from "@/pages/student/assigned-interviews";
+import StudentMyInterviewsPage from "@/pages/student/my-interviews";
+import MentorLabBuilderPage from "@/pages/mentor/lab-builder";
+import MentorLabEditorPage from "@/pages/mentor/lab-editor";
 
 import TpoOverviewPage from "@/pages/tpo/overview";
+import TpoDrivesPage from "@/pages/tpo/drives";
+import TpoDriveDetailPage from "@/pages/tpo/drive-detail";
+import TpoDriveCalendarPage from "@/pages/tpo/drive-calendar";
+import TpoDriveAnalyticsPage from "@/pages/tpo/drive-analytics";
 import TpoAnalyticsPage from "@/pages/tpo/analytics";
 import TpoPlacementsPage from "@/pages/tpo/placements";
 import TpoDirectoryPage from "@/pages/tpo/directory";
@@ -114,6 +121,7 @@ import AdminSubscriptionsPage from "@/pages/admin/subscriptions";
 import AdminPaymentsPage from "@/pages/admin/payments";
 import AdminAiUsagePage from "@/pages/admin/ai-usage";
 import AdminConsentLogsPage from "@/pages/admin/consent-logs";
+import AdminRetentionPage from "@/pages/admin/retention";
 import AdminAuditLogsPage from "@/pages/admin/audit-logs";
 import AdminCouponsPage from "@/pages/admin/coupons";
 import AdminAnalyticsPage from "@/pages/admin/analytics";
@@ -260,6 +268,7 @@ function Router() {
       <Route path="/certifications"><StudentRoute component={CertificationsPage} /></Route>
       <Route path="/interviews/history"><StudentRoute component={InterviewHistoryPage} /></Route>
       <Route path="/interviews/assigned"><StudentRoute component={StudentAssignedInterviewsPage} /></Route>
+      <Route path="/interviews/placement"><StudentRoute component={StudentMyInterviewsPage} /></Route>
 
       {/* Profile */}
       <Route path="/profile"><StudentRoute component={ProfilePage} /></Route>
@@ -323,6 +332,7 @@ function Router() {
       <Route path="/admin/payments"><AdminRoute component={AdminPaymentsPage} /></Route>
       <Route path="/admin/ai-usage"><AdminRoute component={AdminAiUsagePage} /></Route>
       <Route path="/admin/consent-logs"><AdminRoute component={AdminConsentLogsPage} /></Route>
+      <Route path="/admin/retention"><AdminRoute component={AdminRetentionPage} /></Route>
       <Route path="/admin/audit-logs"><AdminRoute component={AdminAuditLogsPage} /></Route>
       <Route path="/admin/coupons"><AdminRoute component={AdminCouponsPage} /></Route>
       <Route path="/admin/analytics"><AdminRoute component={AdminAnalyticsPage} /></Route>
@@ -331,6 +341,10 @@ function Router() {
       {/* TPO */}
       <Route path="/tpo"><TpoRoute component={TpoOverviewPage} /></Route>
       <Route path="/tpo/dashboard"><TpoRoute component={TpoOverviewPage} /></Route>
+      <Route path="/tpo/drives"><TpoRoute component={TpoDrivesPage} /></Route>
+      <Route path="/tpo/drives/:id/calendar"><TpoRoute component={TpoDriveCalendarPage} /></Route>
+      <Route path="/tpo/drives/:id/analytics"><TpoRoute component={TpoDriveAnalyticsPage} /></Route>
+      <Route path="/tpo/drives/:id"><TpoRoute component={TpoDriveDetailPage} /></Route>
       <Route path="/tpo/analytics"><TpoRoute component={TpoAnalyticsPage} /></Route>
       <Route path="/tpo/placements"><TpoRoute component={TpoPlacementsPage} /></Route>
       <Route path="/tpo/directory"><TpoRoute component={TpoDirectoryPage} /></Route>
@@ -361,6 +375,8 @@ function Router() {
       <Route path="/mentor/question-bank"><MentorRoute component={MentorQuestionBankPage} /></Route>
       <Route path="/mentor/mock-interviews"><MentorRoute component={MentorMockInterviewsPage} /></Route>
       <Route path="/mentor/mock-interviews/:id"><MentorRoute component={MentorMockInterviewResultsPage} /></Route>
+      <Route path="/mentor/lab-builder"><MentorRoute component={MentorLabBuilderPage} /></Route>
+      <Route path="/mentor/lab-builder/:id"><MentorRoute component={MentorLabEditorPage} /></Route>
       <Route path="/mentor/audit-logs"><MentorRoute component={MentorAuditLogsPage} /></Route>
       <Route path="/mentor/reports"><MentorRoute component={MentorReportsPage} /></Route>
       <Route path="/mentor/settings"><MentorRoute component={MentorSettingsPage} /></Route>

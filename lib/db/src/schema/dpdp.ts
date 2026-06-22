@@ -125,6 +125,26 @@ export const retentionPoliciesTable = pgTable("retention_policies", {
     .$onUpdate(() => new Date()),
 });
 
+// Records each retention purge cycle (scheduled daily job or admin-triggered),
+// including dry-run "preview deletion impact" passes. summary holds per-entity
+// counts so the admin can audit exactly what each run affected.
+export const retentionPurgeRunsTable = pgTable("retention_purge_runs", {
+  id: serial("id").primaryKey(),
+  trigger: text("trigger").notNull().default("scheduler"), // scheduler | manual
+  triggeredBy: integer("triggered_by"),
+  dryRun: boolean("dry_run").notNull().default(false),
+  status: text("status").notNull().default("running"), // running | completed | failed
+  summary: jsonb("summary"),
+  totalDeleted: integer("total_deleted").notNull().default(0),
+  error: text("error"),
+  startedAt: timestamp("started_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+  completedAt: timestamp("completed_at", { withTimezone: true }),
+});
+
+export type RetentionPurgeRun = typeof retentionPurgeRunsTable.$inferSelect;
+
 export const auditLogsTable = pgTable("audit_logs", {
   id: serial("id").primaryKey(),
   userId: integer("user_id"),

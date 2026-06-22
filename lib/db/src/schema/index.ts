@@ -3,6 +3,8 @@ export * from "./learning";
 export * from "./assessments";
 export * from "./dpdp";
 export * from "./labs";
+export * from "./lab-builder";
+export * from "./placement-drives";
 export * from "./jobs";
 export * from "./assignments";
 export * from "./ai";

@@ -14,7 +14,8 @@ import {
   Bot, Mic2, ScanSearch, BrainCircuit, Brain, TrendingUp, Languages,
   CreditCard, Receipt, Bell, Lock, Settings, HelpCircle, HeadphonesIcon,
   ChevronDown, ChevronRight, LogOut, X,
-  Gauge, Layers, BarChart3, AlertTriangle, Megaphone, ListChecks, UserCog
+  Gauge, Layers, BarChart3, AlertTriangle, Megaphone, ListChecks, UserCog,
+  ShieldCheck, CalendarCheck
 } from "lucide-react";
 
 type NavItem = {
@@ -73,6 +74,7 @@ const NAV_SECTIONS: NavSection[] = [
       { label: "Certifications", href: "/certifications", icon: Award },
       { label: "Mock Interviews", href: "/ai/mock-interview", icon: MessageSquare },
       { label: "Assigned Interviews", href: "/interviews/assigned", icon: ClipboardList },
+      { label: "Placement Interviews", href: "/interviews/placement", icon: CalendarCheck },
       { label: "Interview History", href: "/interviews/history", icon: History },
       { label: "Offer Tracker", href: "/jobs/offers", icon: Gift },
     ],
@@ -139,6 +141,7 @@ const MENTOR_NAV: NavSection[] = [
       { label: "Task Builder", href: "/mentor/tasks", icon: ListChecks },
       { label: "Question Bank", href: "/mentor/question-bank", icon: Library },
       { label: "Mock Interviews", href: "/mentor/mock-interviews", icon: Mic2 },
+      { label: "Lab Builder", href: "/mentor/lab-builder", icon: FlaskConical },
       { label: "Audit Logs", href: "/mentor/audit-logs", icon: History },
       { label: "Reports", href: "/mentor/reports", icon: FileText },
       { label: "Settings", href: "/mentor/settings", icon: Settings },
@@ -151,6 +154,7 @@ const TPO_NAV: NavSection[] = [
     title: "TPO",
     items: [
       { label: "Overview", href: "/tpo/dashboard", icon: Gauge },
+      { label: "Placement Drives", href: "/tpo/drives", icon: CalendarCheck },
       { label: "Student Analytics", href: "/tpo/analytics", icon: BarChart3 },
       { label: "Placements", href: "/tpo/placements", icon: Briefcase },
       { label: "Student Directory", href: "/tpo/directory", icon: Users },
@@ -235,6 +239,7 @@ const ADMIN_NAV: NavSection[] = [
   {
     title: "SYSTEM",
     items: [
+      { label: "Data Retention", href: "/admin/retention", icon: ShieldCheck },
       { label: "Platform Settings", href: "/admin/settings", icon: Settings },
     ],
   },
