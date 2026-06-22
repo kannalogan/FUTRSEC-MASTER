@@ -1,5 +1,6 @@
 import { Router } from "express";
-import { eq, desc, count, countDistinct, sum, and, isNotNull } from "drizzle-orm";
+import { eq, desc, count, countDistinct, sum, and, isNotNull, inArray } from "drizzle-orm";
+import { z } from "zod/v4";
 import { db } from "@workspace/db";
 import {
   usersTable,
@@ -15,6 +16,7 @@ import {
   sandboxSessionsTable,
   jobApplicationsTable,
   jobsTable,
+  jobSkillsTable,
   subscriptionsTable,
   paymentsTable,
   lessonProgressTable,
@@ -27,9 +29,14 @@ import {
   ftsScoresTable,
   broadcastNotesTable,
   userPreferencesTable,
+  aiSkillGapReportsTable,
+  communityPostsTable,
+  communityPostLikesTable,
+  supportTicketsTable,
 } from "@workspace/db";
 import { requireAuth, type AuthRequest } from "../middlewares/auth";
-import { getUserCareerTrack } from "../lib/track-access";
+import { getUserCareerTrack, getUserTrackIdentifiers, jobMatchesTrack } from "../lib/track-access";
+import { createAuditLog } from "../lib/audit";
 
 const router = Router();
 
@@ -515,14 +522,69 @@ router.get("/achievements", requireAuth, async (req: AuthRequest, res): Promise<
 });
 
 // ── AI Job Agent ──────────────────────────────────────────────────────────────
-router.get("/ai/job-matches", requireAuth, async (_req: AuthRequest, res): Promise<void> => {
+// Deterministic match score derived from real signals: track alignment + skill
+// overlap between the job's required skills and the student's latest skill-gap
+// profile. No random values.
+router.get("/ai/job-matches", requireAuth, async (req: AuthRequest, res): Promise<void> => {
+  if (!req.user) { res.status(401).json({ error: "Unauthorized" }); return; }
+  const userId = req.user.userId;
   const jobs = await db.select().from(jobsTable)
     .where(eq(jobsTable.status, "active")).orderBy(desc(jobsTable.createdAt)).limit(20);
-  res.json(jobs.map(j => ({
-    ...j,
-    matchScore: Math.floor(65 + Math.random() * 30),
-    reasons: ["Profile matches required skills", "Track alignment", "Location preference"],
-  })));
+  if (jobs.length === 0) { res.json([]); return; }
+
+  const trackIds = await getUserTrackIdentifiers(userId);
+  const jobIds = jobs.map(j => j.id);
+  const [skillRows, latestGap] = await Promise.all([
+    db.select().from(jobSkillsTable).where(inArray(jobSkillsTable.jobId, jobIds)),
+    db.query.aiSkillGapReportsTable.findFirst({
+      where: eq(aiSkillGapReportsTable.userId, userId),
+      orderBy: desc(aiSkillGapReportsTable.generatedAt),
+    }),
+  ]);
+  const userSkills = new Set(
+    (latestGap?.currentSkills ?? []).map(s => s.toLowerCase().trim()),
+  );
+  const skillsByJob = new Map<number, string[]>();
+  for (const r of skillRows) {
+    const arr = skillsByJob.get(r.jobId) ?? [];
+    arr.push(r.skill);
+    skillsByJob.set(r.jobId, arr);
+  }
+
+  const matches = jobs.map(j => {
+    const reasons: string[] = [];
+    let score = 30; // baseline for an active, applicable posting
+
+    const trackOk = trackIds ? jobMatchesTrack(j.requiredTracks, trackIds) : false;
+    if (trackOk) { score += 35; reasons.push("Aligned with your career track"); }
+
+    const jobSkills = skillsByJob.get(j.id) ?? [];
+    let matched: string[] = [];
+    let missing: string[] = [];
+    if (jobSkills.length > 0) {
+      matched = jobSkills.filter(s => userSkills.has(s.toLowerCase().trim()));
+      missing = jobSkills.filter(s => !userSkills.has(s.toLowerCase().trim()));
+      score += Math.round((matched.length / jobSkills.length) * 35);
+      if (matched.length > 0) {
+        reasons.push(`Matches ${matched.length}/${jobSkills.length} required skills: ${matched.slice(0, 4).join(", ")}`);
+      }
+      if (missing.length > 0) {
+        reasons.push(`Skill gap to close: ${missing.slice(0, 4).join(", ")}`);
+      }
+    }
+    if (j.isRemote) { score += 5; reasons.push("Remote-friendly"); }
+    if (reasons.length === 0) reasons.push("Open posting — apply to broaden your options");
+
+    return {
+      ...j,
+      matchScore: Math.max(0, Math.min(100, score)),
+      matchedSkills: matched,
+      missingSkills: missing,
+      reasons,
+    };
+  });
+  matches.sort((a, b) => b.matchScore - a.matchScore);
+  res.json(matches);
 });
 
 // ── Placement Predictor ───────────────────────────────────────────────────────
@@ -576,18 +638,89 @@ async function writeTheme(userId: number, theme: ThemeValue): Promise<void> {
     });
 }
 
+async function readPreferences(userId: number) {
+  const [pref] = await db
+    .select()
+    .from(userPreferencesTable)
+    .where(eq(userPreferencesTable.userId, userId));
+  return {
+    theme: THEME_VALUES.includes(pref?.theme as ThemeValue)
+      ? (pref!.theme as ThemeValue)
+      : "system",
+    notifications: {
+      email: pref?.emailNotifications ?? true,
+      push: pref?.pushNotifications ?? true,
+      marketing: pref?.marketingEmails ?? false,
+      weeklyDigest: pref?.weeklyDigest ?? true,
+    },
+    privacy: {
+      profileVisible: pref?.profileVisible ?? true,
+      showLeaderboard: pref?.showOnLeaderboard ?? true,
+    },
+  };
+}
+
+const settingsSchema = z.object({
+  notifications: z
+    .object({
+      email: z.boolean().optional(),
+      push: z.boolean().optional(),
+      marketing: z.boolean().optional(),
+      weeklyDigest: z.boolean().optional(),
+    })
+    .optional(),
+  privacy: z
+    .object({
+      profileVisible: z.boolean().optional(),
+      showLeaderboard: z.boolean().optional(),
+    })
+    .optional(),
+});
+
 router.get("/settings", requireAuth, async (req: AuthRequest, res): Promise<void> => {
-  const theme = await readTheme(req.user!.userId);
-  res.json({
-    notifications: { email: true, push: true, marketing: false, weeklyDigest: true },
-    privacy: { profileVisible: true, showLeaderboard: true },
-    theme,
-  });
+  res.json(await readPreferences(req.user!.userId));
 });
 router.put("/settings", requireAuth, async (req: AuthRequest, res): Promise<void> => {
+  const userId = req.user!.userId;
   // Theme is persisted via the dedicated /settings/theme endpoint; ignore it here.
   const { theme: _theme, ...rest } = req.body ?? {};
-  res.json({ success: true, ...rest });
+  const parsed = settingsSchema.safeParse(rest);
+  if (!parsed.success) {
+    res.status(400).json({ error: "Invalid settings", details: parsed.error.issues });
+    return;
+  }
+  const { notifications, privacy } = parsed.data;
+  const update: Record<string, unknown> = { updatedAt: new Date() };
+  if (notifications?.email !== undefined) update["emailNotifications"] = notifications.email;
+  if (notifications?.push !== undefined) update["pushNotifications"] = notifications.push;
+  if (notifications?.marketing !== undefined) update["marketingEmails"] = notifications.marketing;
+  if (notifications?.weeklyDigest !== undefined) update["weeklyDigest"] = notifications.weeklyDigest;
+  if (privacy?.profileVisible !== undefined) update["profileVisible"] = privacy.profileVisible;
+  if (privacy?.showLeaderboard !== undefined) update["showOnLeaderboard"] = privacy.showLeaderboard;
+
+  await db
+    .insert(userPreferencesTable)
+    .values({
+      userId,
+      emailNotifications: notifications?.email ?? true,
+      pushNotifications: notifications?.push ?? true,
+      marketingEmails: notifications?.marketing ?? false,
+      weeklyDigest: notifications?.weeklyDigest ?? true,
+      profileVisible: privacy?.profileVisible ?? true,
+      showOnLeaderboard: privacy?.showLeaderboard ?? true,
+    })
+    .onConflictDoUpdate({ target: userPreferencesTable.userId, set: update });
+
+  await createAuditLog({
+    userId,
+    action: "settings.update",
+    entityType: "user_preferences",
+    entityId: userId,
+    ipAddress: req.ip,
+    userAgent: req.get("user-agent") ?? undefined,
+    metadata: { notifications, privacy },
+  });
+  res.json(await readPreferences(userId));
 });
 
 // Theme preference — DB is the source of truth, localStorage is only a cache.
@@ -606,14 +739,52 @@ router.put("/settings/theme", requireAuth, async (req: AuthRequest, res): Promis
 });
 
 // ── Support ───────────────────────────────────────────────────────────────────
+const supportTicketSchema = z.object({
+  subject: z.string().trim().min(3).max(200),
+  message: z.string().trim().min(10).max(5000),
+  category: z.string().trim().max(50).optional(),
+});
+
 router.post("/support/ticket", requireAuth, async (req: AuthRequest, res): Promise<void> => {
-  const { subject, message, category } = req.body ?? {};
-  if (!subject || !message) { res.status(400).json({ error: "subject and message required" }); return; }
-  res.json({
-    ticketId: `TKT-${Date.now()}`, subject, category: category ?? "general",
-    status: "open", createdAt: new Date(),
+  const userId = req.user!.userId;
+  const parsed = supportTicketSchema.safeParse(req.body ?? {});
+  if (!parsed.success) {
+    res.status(400).json({ error: "Invalid ticket", details: parsed.error.issues });
+    return;
+  }
+  const { subject, message, category } = parsed.data;
+  const [ticket] = await db
+    .insert(supportTicketsTable)
+    .values({ userId, subject, message, category: category ?? "general" })
+    .returning();
+  await createAuditLog({
+    userId,
+    action: "support.ticket.create",
+    entityType: "support_ticket",
+    entityId: ticket!.id,
+    ipAddress: req.ip,
+    userAgent: req.get("user-agent") ?? undefined,
+    metadata: { category: ticket!.category },
+  });
+  res.status(201).json({
+    ticketId: `TKT-${ticket!.id}`,
+    id: ticket!.id,
+    subject: ticket!.subject,
+    category: ticket!.category,
+    status: ticket!.status,
+    createdAt: ticket!.createdAt,
     message: "Support ticket submitted. Our team will respond within 24 hours.",
   });
+});
+
+router.get("/support/tickets", requireAuth, async (req: AuthRequest, res): Promise<void> => {
+  const tickets = await db
+    .select()
+    .from(supportTicketsTable)
+    .where(eq(supportTicketsTable.userId, req.user!.userId))
+    .orderBy(desc(supportTicketsTable.createdAt))
+    .limit(50);
+  res.json(tickets);
 });
 router.get("/support/faqs", async (_req, res): Promise<void> => {
   res.json([
@@ -652,16 +823,141 @@ router.get("/career/roadmap", requireAuth, async (req: AuthRequest, res): Promis
 });
 
 // ── Community ─────────────────────────────────────────────────────────────────
-router.get("/community/posts", requireAuth, async (_req: AuthRequest, res): Promise<void> => {
-  res.json({
-    posts: [
-      { id: 1, author: "Priya S.", role: "SOC Analyst", content: "Just completed the Wazuh SIEM lab — the detection engineering module is really thorough!", likes: 24, comments: 6, time: "2h ago", tags: ["SOC", "SIEM"] },
-      { id: 2, author: "Rahul K.", role: "VAPT Student", content: "Passed the CEH exam today! The VAPT labs here really helped with practical prep 🎉", likes: 89, comments: 22, time: "5h ago", tags: ["VAPT", "CEH"] },
-      { id: 3, author: "Anita M.", role: "GRC Specialist", content: "Anyone done the ISO 27001 implementation lab? Looking for study partners.", likes: 12, comments: 15, time: "1d ago", tags: ["GRC", "ISO27001"] },
-      { id: 4, author: "Dev P.", role: "AI Security Eng", content: "The AI Career Coach gave me a 90% match with a CyberArk role in Bangalore. Applied immediately!", likes: 45, comments: 8, time: "2d ago", tags: ["AI", "Placement"] },
-    ],
-    total: 4,
+function relativeTime(date: Date): string {
+  const diff = Date.now() - new Date(date).getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1) return "just now";
+  if (mins < 60) return `${mins}m ago`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `${hrs}h ago`;
+  const days = Math.floor(hrs / 24);
+  if (days < 30) return `${days}d ago`;
+  return new Date(date).toLocaleDateString();
+}
+
+const createPostSchema = z.object({
+  content: z.string().trim().min(1).max(2000),
+  tags: z.array(z.string().trim().min(1).max(40)).max(8).optional(),
+});
+
+router.get("/community/posts", requireAuth, async (req: AuthRequest, res): Promise<void> => {
+  const userId = req.user!.userId;
+  const rows = await db
+    .select({
+      id: communityPostsTable.id,
+      content: communityPostsTable.content,
+      tags: communityPostsTable.tags,
+      likes: communityPostsTable.likeCount,
+      comments: communityPostsTable.commentCount,
+      createdAt: communityPostsTable.createdAt,
+      authorId: communityPostsTable.authorId,
+      author: usersTable.fullName,
+      role: usersTable.role,
+      careerTrack: usersTable.careerTrack,
+    })
+    .from(communityPostsTable)
+    .leftJoin(usersTable, eq(communityPostsTable.authorId, usersTable.id))
+    .orderBy(desc(communityPostsTable.createdAt))
+    .limit(50);
+
+  const likedSet = new Set<number>();
+  if (rows.length > 0) {
+    const liked = await db
+      .select({ postId: communityPostLikesTable.postId })
+      .from(communityPostLikesTable)
+      .where(
+        and(
+          eq(communityPostLikesTable.userId, userId),
+          inArray(communityPostLikesTable.postId, rows.map(r => r.id)),
+        ),
+      );
+    for (const l of liked) likedSet.add(l.postId);
+  }
+
+  const posts = rows.map(r => ({
+    id: r.id,
+    author: r.author ?? "FUTRSEC Member",
+    role: r.careerTrack ? r.careerTrack.toUpperCase() : (r.role ?? "Member"),
+    content: r.content,
+    tags: r.tags ?? [],
+    likes: r.likes,
+    comments: r.comments,
+    time: relativeTime(r.createdAt),
+    liked: likedSet.has(r.id),
+    isOwn: r.authorId === userId,
+  }));
+  res.json({ posts, total: posts.length });
+});
+
+router.post("/community/posts", requireAuth, async (req: AuthRequest, res): Promise<void> => {
+  const userId = req.user!.userId;
+  const parsed = createPostSchema.safeParse(req.body ?? {});
+  if (!parsed.success) {
+    res.status(400).json({ error: "Invalid post", details: parsed.error.issues });
+    return;
+  }
+  const [post] = await db
+    .insert(communityPostsTable)
+    .values({ authorId: userId, content: parsed.data.content, tags: parsed.data.tags ?? [] })
+    .returning();
+  await createAuditLog({
+    userId,
+    action: "community.post.create",
+    entityType: "community_post",
+    entityId: post!.id,
+    ipAddress: req.ip,
+    userAgent: req.get("user-agent") ?? undefined,
   });
+  res.status(201).json(post);
+});
+
+router.post("/community/posts/:id/like", requireAuth, async (req: AuthRequest, res): Promise<void> => {
+  const userId = req.user!.userId;
+  const postId = Number(req.params["id"]);
+  if (!Number.isInteger(postId) || postId <= 0) {
+    res.status(400).json({ error: "Invalid post id" });
+    return;
+  }
+  const post = await db.query.communityPostsTable.findFirst({
+    where: eq(communityPostsTable.id, postId),
+  });
+  if (!post) { res.status(404).json({ error: "Post not found" }); return; }
+
+  // Conflict-safe toggle: try to insert; if the unique (post,user) row already
+  // exists the insert no-ops and we remove the like instead. Avoids the
+  // read-then-write race that could 500 on concurrent/double-click requests.
+  const inserted = await db
+    .insert(communityPostLikesTable)
+    .values({ postId, userId })
+    .onConflictDoNothing()
+    .returning({ id: communityPostLikesTable.id });
+
+  let liked: boolean;
+  if (inserted.length > 0) {
+    liked = true;
+  } else {
+    await db
+      .delete(communityPostLikesTable)
+      .where(
+        and(
+          eq(communityPostLikesTable.postId, postId),
+          eq(communityPostLikesTable.userId, userId),
+        ),
+      );
+    liked = false;
+  }
+
+  const [{ c }] = await db
+    .select({ c: count() })
+    .from(communityPostLikesTable)
+    .where(eq(communityPostLikesTable.postId, postId));
+  const likeCount = Number(c ?? 0);
+  await db
+    .update(communityPostsTable)
+    .set({ likeCount })
+    .where(eq(communityPostsTable.id, postId));
+
+  res.json({ liked, likes: likeCount });
 });
 
 export default router;

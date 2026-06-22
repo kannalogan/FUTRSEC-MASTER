@@ -18,4 +18,6 @@ export * from "./billing";
 export * from "./certificates";
 export * from "./platform";
 export * from "./preferences";
+export * from "./community";
+export * from "./support";
 export * from "./relations";

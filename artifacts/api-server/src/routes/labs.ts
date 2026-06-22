@@ -9,7 +9,7 @@ import {
   labReportsTable,
   labModuleCompletionsTable,
 } from "@workspace/db";
-import { requireAuth, type AuthRequest } from "../middlewares/auth";
+import { requireAuth, requireRole, type AuthRequest } from "../middlewares/auth";
 import { checkTrackQueryAccess, checkResourceTrackAccess, getUserCareerTrack } from "../lib/track-access";
 
 const router = Router();
@@ -166,7 +166,7 @@ router.get("/labs/:labId", requireAuth, async (req: AuthRequest, res): Promise<v
 });
 
 // ── Start an attempt ───────────────────────────────────────────────────────────
-router.post("/labs/:labId/start", requireAuth, async (req: AuthRequest, res): Promise<void> => {
+router.post("/labs/:labId/start", requireAuth, requireRole("student"), async (req: AuthRequest, res): Promise<void> => {
   if (!req.user) { res.status(401).json({ error: "Not authenticated" }); return; }
   const userId = req.user.userId;
   const labId = parseInt(String(req.params.labId), 10);
@@ -191,7 +191,7 @@ router.post("/labs/:labId/start", requireAuth, async (req: AuthRequest, res): Pr
 });
 
 // ── Submit a flag for a module (server-validated) ──────────────────────────────
-router.post("/labs/:labId/modules/:moduleId/flag", requireAuth, async (req: AuthRequest, res): Promise<void> => {
+router.post("/labs/:labId/modules/:moduleId/flag", requireAuth, requireRole("student"), async (req: AuthRequest, res): Promise<void> => {
   if (!req.user) { res.status(401).json({ error: "Not authenticated" }); return; }
   const userId = req.user.userId;
   const labId = parseInt(String(req.params.labId), 10);
@@ -259,7 +259,7 @@ router.post("/labs/:labId/modules/:moduleId/flag", requireAuth, async (req: Auth
 });
 
 // ── Reveal a hint for a module (records hint usage) ─────────────────────────────
-router.post("/labs/:labId/modules/:moduleId/hint", requireAuth, async (req: AuthRequest, res): Promise<void> => {
+router.post("/labs/:labId/modules/:moduleId/hint", requireAuth, requireRole("student"), async (req: AuthRequest, res): Promise<void> => {
   if (!req.user) { res.status(401).json({ error: "Not authenticated" }); return; }
   const userId = req.user.userId;
   const labId = parseInt(String(req.params.labId), 10);
@@ -316,8 +316,8 @@ async function finishLab(req: AuthRequest, res: import("express").Response): Pro
   res.json({ attempt: updated, score: totalScore });
 }
 
-router.post("/labs/:labId/finish", requireAuth, finishLab);
+router.post("/labs/:labId/finish", requireAuth, requireRole("student"), finishLab);
 // Backwards-compatible alias; score is derived server-side, client `score` is ignored.
-router.post("/labs/:labId/submit", requireAuth, finishLab);
+router.post("/labs/:labId/submit", requireAuth, requireRole("student"), finishLab);
 
 export default router;

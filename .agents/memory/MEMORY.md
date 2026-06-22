@@ -20,3 +20,5 @@
 - [Task audience batch derivation](task-audience-batch-derivation.md) — publish-from-draft of batch-targeted tasks must re-load persisted batch IDs (not default to []) and re-validate batch ownership on every mutation.
 - [Theme convention](dark-theme-convention.md) — futrsec has Light(:root)/Dark(.dark)/System theming; no-flicker inline script in index.html; use semantic tokens never bg-white/text-white (except on gradient/accent bg); sidebar navForRole() isolation
 - [Post-login routing](post-login-routing.md) — role landing paths centralized in auth-routing.ts; student missing onboardingStep means start onboarding, only "complete" goes to dashboard
+- [Bulk RBAC guard pitfall](bulk-rbac-guard-pitfall.md) — don't blanket-apply requireRole across a route file; some routes (e.g. discussion moderate in learning.ts) are mentor/admin-only and have internal role checks.
+- [Conflict-safe toggles](toggle-like-conflict-safe.md) — like/follow toggles on a unique (entity,user) index must use insert-onConflictDoNothing-else-delete, never read-then-insert (500 race).

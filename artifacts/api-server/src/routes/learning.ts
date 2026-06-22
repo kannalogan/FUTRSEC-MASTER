@@ -21,7 +21,7 @@ import {
   discussionCommentsTable,
   discussionLikesTable,
 } from "@workspace/db";
-import { requireAuth, type AuthRequest } from "../middlewares/auth";
+import { requireAuth, requireRole, type AuthRequest } from "../middlewares/auth";
 import { checkTrackQueryAccess, checkResourceTrackAccess, type CareerTrack } from "../lib/track-access";
 import OpenAI from "openai";
 
@@ -139,7 +139,7 @@ router.get("/learning/modules/:moduleId", requireAuth, async (req: AuthRequest, 
   res.json({ module, lessons: lessonsWithStatus, progressPercent, completedCount, enrollment: enrollment ?? null });
 });
 
-router.post("/learning/modules/:moduleId/enroll", requireAuth, async (req: AuthRequest, res): Promise<void> => {
+router.post("/learning/modules/:moduleId/enroll", requireAuth, requireRole("student"), async (req: AuthRequest, res): Promise<void> => {
   if (!req.user) { res.status(401).json({ error: "Not authenticated" }); return; }
   const userId = req.user.userId;
   const moduleId = parseInt(String(req.params.moduleId), 10);
@@ -166,7 +166,7 @@ router.post("/learning/modules/:moduleId/enroll", requireAuth, async (req: AuthR
   res.status(201).json({ enrollment, alreadyEnrolled: false });
 });
 
-router.post("/learning/lessons/:lessonId/complete", requireAuth, async (req: AuthRequest, res): Promise<void> => {
+router.post("/learning/lessons/:lessonId/complete", requireAuth, requireRole("student"), async (req: AuthRequest, res): Promise<void> => {
   if (!req.user) { res.status(401).json({ error: "Not authenticated" }); return; }
   const userId = req.user.userId;
   const lessonId = parseInt(String(req.params.lessonId), 10);
@@ -219,7 +219,7 @@ router.post("/learning/lessons/:lessonId/complete", requireAuth, async (req: Aut
   res.status(201).json({ progress, alreadyCompleted: false, moduleProgress: pct });
 });
 
-router.post("/learning/lessons/:lessonId/bookmark", requireAuth, async (req: AuthRequest, res): Promise<void> => {
+router.post("/learning/lessons/:lessonId/bookmark", requireAuth, requireRole("student"), async (req: AuthRequest, res): Promise<void> => {
   if (!req.user) { res.status(401).json({ error: "Not authenticated" }); return; }
   const userId = req.user.userId;
   const lessonId = parseInt(String(req.params.lessonId), 10);
@@ -317,7 +317,7 @@ router.get("/learning/lessons/:lessonId", requireAuth, async (req: AuthRequest, 
 });
 
 // ── Video progress (resume) ────────────────────────────────────────────────
-router.post("/learning/lessons/:lessonId/video-progress", requireAuth, async (req: AuthRequest, res): Promise<void> => {
+router.post("/learning/lessons/:lessonId/video-progress", requireAuth, requireRole("student"), async (req: AuthRequest, res): Promise<void> => {
   if (!req.user) { res.status(401).json({ error: "Not authenticated" }); return; }
   const userId = req.user.userId;
   const loaded = await loadGuardedLesson(req, res, req.params.lessonId);
@@ -343,7 +343,7 @@ router.post("/learning/lessons/:lessonId/video-progress", requireAuth, async (re
 });
 
 // ── Personal notes ─────────────────────────────────────────────────────────
-router.put("/learning/lessons/:lessonId/notes", requireAuth, async (req: AuthRequest, res): Promise<void> => {
+router.put("/learning/lessons/:lessonId/notes", requireAuth, requireRole("student"), async (req: AuthRequest, res): Promise<void> => {
   if (!req.user) { res.status(401).json({ error: "Not authenticated" }); return; }
   const userId = req.user.userId;
   const loaded = await loadGuardedLesson(req, res, req.params.lessonId);
@@ -365,7 +365,7 @@ router.put("/learning/lessons/:lessonId/notes", requireAuth, async (req: AuthReq
 });
 
 // ── Quiz submit (grade + store attempt + XP) ───────────────────────────────
-router.post("/learning/lessons/:lessonId/quiz/submit", requireAuth, async (req: AuthRequest, res): Promise<void> => {
+router.post("/learning/lessons/:lessonId/quiz/submit", requireAuth, requireRole("student"), async (req: AuthRequest, res): Promise<void> => {
   if (!req.user) { res.status(401).json({ error: "Not authenticated" }); return; }
   const userId = req.user.userId;
   const loaded = await loadGuardedLesson(req, res, req.params.lessonId);
@@ -493,7 +493,7 @@ router.get("/learning/lessons/:lessonId/discussion", requireAuth, async (req: Au
   });
 });
 
-router.post("/learning/lessons/:lessonId/discussion", requireAuth, async (req: AuthRequest, res): Promise<void> => {
+router.post("/learning/lessons/:lessonId/discussion", requireAuth, requireRole("student"), async (req: AuthRequest, res): Promise<void> => {
   if (!req.user) { res.status(401).json({ error: "Not authenticated" }); return; }
   const userId = req.user.userId;
   const loaded = await loadGuardedLesson(req, res, req.params.lessonId);
@@ -504,7 +504,7 @@ router.post("/learning/lessons/:lessonId/discussion", requireAuth, async (req: A
   res.status(201).json({ post });
 });
 
-router.post("/learning/discussion/:postId/comments", requireAuth, async (req: AuthRequest, res): Promise<void> => {
+router.post("/learning/discussion/:postId/comments", requireAuth, requireRole("student"), async (req: AuthRequest, res): Promise<void> => {
   if (!req.user) { res.status(401).json({ error: "Not authenticated" }); return; }
   const userId = req.user.userId;
   const postId = parseInt(String(req.params.postId), 10);
@@ -519,7 +519,7 @@ router.post("/learning/discussion/:postId/comments", requireAuth, async (req: Au
   res.status(201).json({ comment });
 });
 
-router.post("/learning/discussion/:postId/like", requireAuth, async (req: AuthRequest, res): Promise<void> => {
+router.post("/learning/discussion/:postId/like", requireAuth, requireRole("student"), async (req: AuthRequest, res): Promise<void> => {
   if (!req.user) { res.status(401).json({ error: "Not authenticated" }); return; }
   const userId = req.user.userId;
   const postId = parseInt(String(req.params.postId), 10);
@@ -544,7 +544,7 @@ router.post("/learning/discussion/:postId/like", requireAuth, async (req: AuthRe
   }
 });
 
-router.post("/learning/discussion/comments/:commentId/like", requireAuth, async (req: AuthRequest, res): Promise<void> => {
+router.post("/learning/discussion/comments/:commentId/like", requireAuth, requireRole("student"), async (req: AuthRequest, res): Promise<void> => {
   if (!req.user) { res.status(401).json({ error: "Not authenticated" }); return; }
   const userId = req.user.userId;
   const commentId = parseInt(String(req.params.commentId), 10);
@@ -572,9 +572,8 @@ router.post("/learning/discussion/comments/:commentId/like", requireAuth, async 
 });
 
 // Mentor/admin: pin a post or mark solved.
-router.patch("/learning/discussion/:postId/moderate", requireAuth, async (req: AuthRequest, res): Promise<void> => {
+router.patch("/learning/discussion/:postId/moderate", requireAuth, requireRole("mentor", "admin"), async (req: AuthRequest, res): Promise<void> => {
   if (!req.user) { res.status(401).json({ error: "Not authenticated" }); return; }
-  if (!["mentor", "admin"].includes(req.user.role)) { res.status(403).json({ error: "Only mentors or admins can moderate discussions" }); return; }
   const postId = parseInt(String(req.params.postId), 10);
   if (isNaN(postId)) { res.status(400).json({ error: "Invalid postId" }); return; }
   const post = await db.query.discussionPostsTable.findFirst({ where: eq(discussionPostsTable.id, postId) });
@@ -633,7 +632,7 @@ router.get("/learning/my-courses", requireAuth, async (req: AuthRequest, res): P
 });
 
 // ── AI Explain (context-aware tutor) ───────────────────────────────────────
-router.post("/learning/lessons/:lessonId/ai-explain", requireAuth, async (req: AuthRequest, res): Promise<void> => {
+router.post("/learning/lessons/:lessonId/ai-explain", requireAuth, requireRole("student"), async (req: AuthRequest, res): Promise<void> => {
   if (!req.user) { res.status(401).json({ error: "Not authenticated" }); return; }
   const loaded = await loadGuardedLesson(req, res, req.params.lessonId);
   if (!loaded) return;

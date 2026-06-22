@@ -6,7 +6,7 @@ import {
   mockInterviewAssignmentsTable,
   aiInterviewsTable,
 } from "@workspace/db";
-import { requireAuth, type AuthRequest } from "../middlewares/auth";
+import { requireAuth, requireRole, type AuthRequest } from "../middlewares/auth";
 import { createAuditLog } from "../lib/audit";
 import { generateJSON, getProviderName } from "../lib/ai";
 import { trackName, mockInterviewQuestions } from "../lib/ai/mock-content";
@@ -82,6 +82,7 @@ router.get(
 router.post(
   "/student/mock-interviews/:assignmentId/start",
   requireAuth,
+  requireRole("student"),
   async (req: AuthRequest, res): Promise<void> => {
     const studentId = req.user!.userId;
     const assignmentId = Number(req.params.assignmentId);
