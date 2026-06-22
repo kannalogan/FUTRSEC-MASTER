@@ -1,0 +1,520 @@
+FUTRSEC PRODUCT STANDARD (NON-NEGOTIABLE)
+
+This is NOT a demo.
+This is NOT a college project.
+This is NOT an LMS.
+
+FUTRSEC is a GLOBAL CYBERSECURITY ECOSYSTEM.
+
+=====================================================
+
+TARGET USERS
+
+Students
+Mentors
+TPOs
+Hiring Companies
+Admins
+
+=====================================================
+
+TRACKS
+
+SOC
+VAPT
+GRC
+
+Student selects ONE track at signup.
+
+Track is immutable.
+
+SOC users see ONLY SOC.
+
+VAPT users see ONLY VAPT.
+
+GRC users see ONLY GRC.
+
+No track switching.
+
+=====================================================
+
+LEARNING ECOSYSTEM
+
+Each track must contain:
+
+✓ 1 Year Roadmap
+✓ Learning Modules
+✓ Videos
+✓ PDFs
+✓ Articles
+✓ Quizzes
+✓ Assignments
+✓ Resources
+✓ Labs
+✓ Virtual Machines
+✓ Sandbox
+✓ CTF Challenges
+✓ Projects
+✓ Assessments
+✓ Mock Interviews
+✓ Certifications
+✓ Career Roadmaps
+✓ AI Tutor
+✓ AI Career Coach
+
+-----------------------------------------------------
+
+SOC
+
+60+ Labs
+
+Topics:
+
+Networking
+Linux
+Windows
+TCP/IP
+SIEM
+Splunk
+QRadar
+ELK
+Wazuh
+Threat Hunting
+Incident Response
+Malware Analysis
+Forensics
+Cloud Security
+SOAR
+MITRE ATT&CK
+YARA
+Sigma Rules
+
+-----------------------------------------------------
+
+VAPT
+
+80+ Labs
+
+Topics:
+
+Networking
+Linux
+OWASP Top 10
+Burp Suite
+Nmap
+Metasploit
+SQLi
+XSS
+SSRF
+CSRF
+API Security
+AD Pentesting
+Cloud Pentesting
+Mobile Security
+Red Teaming
+OSINT
+Bug Bounty
+
+-----------------------------------------------------
+
+GRC
+
+40+ Labs
+
+Topics:
+
+ISO27001
+NIST
+SOC2
+PCI DSS
+HIPAA
+GDPR
+DPDP
+Risk Management
+BCP
+DRP
+Vendor Risk
+Internal Audit
+Governance
+
+=====================================================
+
+AI ECOSYSTEM
+
+AI Explain Tutor
+
+AI Career Coach
+
+AI Resume Analyzer
+
+AI Skill Gap Analyzer
+
+AI English Coach
+
+AI Mock Interview
+
+AI Job Agent
+
+Everything DB connected.
+
+=====================================================
+
+MENTOR
+
+Advanced Mentor Portal.
+
+Features:
+
+Assigned Students
+
+Batches
+
+Question Bank
+
+Assessment Builder
+
+Assignment Builder
+
+Resource Builder
+
+Lab Builder
+
+Broadcast Notes
+
+Mock Interviews
+
+Student Progress
+
+At-Risk Detection
+
+Analytics
+
+Heatmaps
+
+Reports
+
+CSV
+
+Excel
+
+PDF
+
+=====================================================
+
+TPO
+
+Enterprise Grade.
+
+Features:
+
+Student Directory
+
+Resume DB
+
+Eligible Students
+
+Campus Drives
+
+Placement Tracker
+
+Interview Scheduling
+
+Company Coordination
+
+Reports
+
+Analytics
+
+Exports
+
+=====================================================
+
+EMPLOYER
+
+ATS System.
+
+Features:
+
+Company Profile
+
+Jobs
+
+Internships
+
+Candidate Pipeline
+
+Applied
+
+↓
+
+Shortlisted
+
+↓
+
+Interview
+
+↓
+
+Technical
+
+↓
+
+HR
+
+↓
+
+Selected
+
+↓
+
+Offer
+
+↓
+
+Joined
+
+Resume Parser
+
+AI Candidate Ranking
+
+Interview Scheduling
+
+Hiring Analytics
+
+=====================================================
+
+ADMIN
+
+Global Control Center.
+
+Manage:
+
+Students
+
+Mentors
+
+TPOs
+
+Employers
+
+Tracks
+
+Courses
+
+Labs
+
+Assessments
+
+Question Bank
+
+Certificates
+
+Jobs
+
+Internships
+
+AI
+
+Subscriptions
+
+Payments
+
+Coupons
+
+Notifications
+
+Audit Logs
+
+Consent Logs
+
+Analytics
+
+=====================================================
+
+DPDP
+
+Mandatory.
+
+Consent Management
+
+Cookie Preferences
+
+Export My Data
+
+Delete My Data
+
+Audit Logs
+
+Retention Policy
+
+=====================================================
+
+UI / UX
+
+WORLD CLASS ONLY.
+
+Design Inspiration:
+
+Linear
+
+Stripe Dashboard
+
+Notion
+
+Vercel
+
+Framer
+
+Datadog
+
+TryHackMe
+
+Hack The Box
+
+Coursera
+
+LeetCode
+
+-----------------------------------------------------
+
+Requirements:
+
+Large Typography
+
+Hero Sections
+
+Glassmorphism
+
+Gradient Borders
+
+Interactive Charts
+
+Heatmaps
+
+Kanban Boards
+
+Skeleton Loading
+
+Beautiful Empty States
+
+Smooth Animations
+
+Drag & Drop
+
+Keyboard Shortcuts
+
+Dark Mode
+
+Light Mode
+
+System Theme
+
+Every Role:
+
+Unique Dashboard
+
+Unique Navigation
+
+Unique KPIs
+
+Unique Analytics
+
+Never reuse Student UI.
+
+=====================================================
+
+SECURITY
+
+RBAC
+
+Track Isolation
+
+CSRF
+
+XSS
+
+SQL Injection Protection
+
+Rate Limiting
+
+Audit Logs
+
+Secrets in ENV only
+
+DPDP Compliant
+
+=====================================================
+
+QUALITY GATE
+
+A feature is NOT complete unless:
+
+✓ DB schema exists
+
+✓ APIs exist
+
+✓ UI exists
+
+✓ Validation exists
+
+✓ RBAC exists
+
+✓ Notifications work
+
+✓ Audit Logs work
+
+✓ Analytics work
+
+✓ Mobile works
+
+✓ Dark Mode works
+
+✓ Light Mode works
+
+✓ Smoke Tests pass
+
+✓ Typecheck passes
+
+=====================================================
+
+No:
+
+❌ Mock Data
+
+❌ Placeholders
+
+❌ Empty Cards
+
+❌ Static Analytics
+
+❌ Coming Soon
+
+❌ Disconnected Pages
+
+❌ Hardcoded Values
+
+=====================================================
+
+FINAL TARGET
+
+Student      → 100%
+
+Mentor       → 100%
+
+TPO          → 100%
+
+Employer     → 100%
+
+Admin        → 100%
+
+UI/UX        → 10/10
+
+Security     → 10/10
+
+Performance  → 10/10
+
+Scalability  → 10/10
+
+Production   → READY
+
+Build FUTRSEC as a global cybersecurity learning, mentorship, and placement ecosystem.
