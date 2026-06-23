@@ -24,6 +24,7 @@
 - [Conflict-safe toggles](toggle-like-conflict-safe.md) — like/follow toggles on a unique (entity,user) index must use insert-onConflictDoNothing-else-delete, never read-then-insert (500 race).
 - [Job-match determinism](job-match-determinism.md) — match score/breakdown always from deterministic heuristicMatch; LLM pass may only reword reasons, never the score; both job endpoints share lib/ai/student-match.ts loader+engine.
 - [API rate limit & CSRF posture](api-security-rate-limit-csrf.md) — express-rate-limit behind Replit proxy needs trust proxy:1; CSRF intentionally omitted (stateless bearer auth, no cookies).
+- [Assessment ← Question Bank mapping](assessment-bank-mapping.md) — attaching bank questions COPIES text+options into assessment tables (snapshot) + records source_bank_question_id; only approved attachable; from-bank & auto-generate admin routes.
 - [Certificate idempotency](certificate-idempotency.md) — auto-issue dedupe needs DB partial unique index + conflict-safe insert (retry only on code collision); 3 layers required.
 - [Certificate completion sources](certificate-completion-sources.md) — course/lab_series/career_roadmap/internship wired; learning_path intentionally unwired (no entity); roadmap = all track modules done.
 - [Bulk cert perf ceiling](certificate-bulk-perf.md) — bulk gen is object-storage I/O bound (~230ms/cert), one job = one worker; perf targets need job sharding, not more in-job concurrency.
@@ -33,3 +34,4 @@
 - [Generated-PDF caching](generated-pdf-caching.md) — reuse stored cert PDF on download via streamObject; regenerate only on demand and delete superseded object (per-upload paths orphan otherwise).
 - [pdfkit + esbuild bundling](pdfkit-esbuild-bundling.md) — pdfkit/fontkit must be esbuild `external` in api-server build.mjs or PDF routes 500.
 - [Cert distributed sharding](cert-sharding-distributed.md) — parent+shards aggregation invariants: no silent enqueue loss, monotonic terminal guard, activeJobs heartbeat, host-scoped worker IDs, kill-recovery idempotency.
+- [Lesson content authoring](lesson-content-authoring.md) — lesson quiz is always a snapshot copy (choice-types only); from-bank must null sourceAssessmentId + bump usageCount only for inserted IDs; video provider inferred from URL host for legacy rows.

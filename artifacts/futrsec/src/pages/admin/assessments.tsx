@@ -21,7 +21,14 @@ import {
 } from "@/components/ui/select";
 import { PageHeader, CardSkeleton, EmptyState } from "@/components/page-shell";
 import { useToast } from "@/hooks/use-toast";
-import { ClipboardList, Plus, ListChecks, Trash2, Pencil, X } from "lucide-react";
+import {
+  ClipboardList, Plus, ListChecks, Trash2, Pencil, X,
+  Database, Sparkles, Search, Library,
+} from "lucide-react";
+import {
+  useAdminQuestions,
+  QB_TRACKS, QB_TRACK_LABELS, QB_TYPES, QB_TYPE_LABELS, QB_DIFFICULTIES,
+} from "@/lib/question-bank-api";
 
 const TRACK_LABELS: Record<string, string> = {
   soc: "SOC Analyst",
@@ -413,6 +420,250 @@ function buildQuery(trackFilter: string, typeFilter: string): string {
   return q ? `?${q}` : "";
 }
 
+const QB_ALL = "__all__";
+
+function BankPicker({
+  assessmentId,
+  onChanged,
+}: {
+  assessmentId: number;
+  onChanged: () => void;
+}) {
+  const { toast } = useToast();
+  const [track, setTrack] = useState(QB_ALL);
+  const [type, setType] = useState(QB_ALL);
+  const [difficulty, setDifficulty] = useState(QB_ALL);
+  const [search, setSearch] = useState("");
+  const [selected, setSelected] = useState<Set<number>>(new Set());
+
+  // Auto-generate sub-form
+  const [genTrack, setGenTrack] = useState(QB_ALL);
+  const [genType, setGenType] = useState(QB_ALL);
+  const [genDifficulty, setGenDifficulty] = useState(QB_ALL);
+  const [genCount, setGenCount] = useState("10");
+
+  const { data, isLoading } = useAdminQuestions({
+    status: "approved",
+    track: track === QB_ALL ? undefined : track,
+    type: type === QB_ALL ? undefined : type,
+    difficulty: difficulty === QB_ALL ? undefined : difficulty,
+    q: search.trim() || undefined,
+    pageSize: 50,
+  });
+  const questions = data?.items ?? [];
+
+  const toggle = (id: number) =>
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+
+  const fromBankMut = useMutation({
+    mutationFn: (ids: number[]) =>
+      apiFetch<{ attached: number; skipped: number[]; totalQuestions: number }>(
+        `/api/admin/assessments/${assessmentId}/questions/from-bank`,
+        { method: "POST", body: JSON.stringify({ bankQuestionIds: ids }) },
+      ),
+    onSuccess: (r) => {
+      toast({
+        title: `Added ${r.attached} question${r.attached === 1 ? "" : "s"} from the bank`,
+        description:
+          r.skipped.length > 0
+            ? `${r.skipped.length} skipped (not approved).`
+            : undefined,
+      });
+      setSelected(new Set());
+      onChanged();
+    },
+    onError: (e: Error) => toast({ title: e.message, variant: "destructive" }),
+  });
+
+  const autoGenMut = useMutation({
+    mutationFn: (body: Record<string, unknown>) =>
+      apiFetch<{ attached: number; requested: number; poolSize: number; totalQuestions: number }>(
+        `/api/admin/assessments/${assessmentId}/questions/auto-generate`,
+        { method: "POST", body: JSON.stringify(body) },
+      ),
+    onSuccess: (r) => {
+      toast({
+        title: `Auto-generated ${r.attached} question${r.attached === 1 ? "" : "s"}`,
+        description:
+          r.attached < r.requested
+            ? `Only ${r.poolSize} approved question(s) matched the filters.`
+            : undefined,
+      });
+      onChanged();
+    },
+    onError: (e: Error) => toast({ title: e.message, variant: "destructive" }),
+  });
+
+  const runAutoGen = () => {
+    const count = Number(genCount);
+    if (!Number.isInteger(count) || count < 1) {
+      toast({ title: "Enter a valid question count", variant: "destructive" });
+      return;
+    }
+    autoGenMut.mutate({
+      count,
+      careerTrack: genTrack === QB_ALL ? undefined : genTrack,
+      questionType: genType === QB_ALL ? undefined : genType,
+      difficulty: genDifficulty === QB_ALL ? undefined : genDifficulty,
+    });
+  };
+
+  return (
+    <div className="space-y-4 rounded-lg border border-border bg-muted/30 p-4">
+      <div className="flex items-center gap-2">
+        <Database className="h-4 w-4 text-primary" />
+        <h4 className="text-sm font-semibold">Add from Question Bank</h4>
+      </div>
+
+      {/* Filters */}
+      <div className="grid grid-cols-1 gap-2 sm:grid-cols-4">
+        <Select value={track} onValueChange={setTrack}>
+          <SelectTrigger><SelectValue placeholder="Track" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value={QB_ALL}>All tracks</SelectItem>
+            {QB_TRACKS.map((t) => (
+              <SelectItem key={t} value={t}>{QB_TRACK_LABELS[t]}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Select value={difficulty} onValueChange={setDifficulty}>
+          <SelectTrigger><SelectValue placeholder="Difficulty" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value={QB_ALL}>All difficulties</SelectItem>
+            {QB_DIFFICULTIES.map((d) => (
+              <SelectItem key={d} value={d} className="capitalize">{d}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Select value={type} onValueChange={setType}>
+          <SelectTrigger><SelectValue placeholder="Type" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value={QB_ALL}>All types</SelectItem>
+            {QB_TYPES.map((t) => (
+              <SelectItem key={t} value={t}>{QB_TYPE_LABELS[t]}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <div className="relative">
+          <Search className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search…"
+            className="pl-8"
+          />
+        </div>
+      </div>
+
+      {/* Question list */}
+      <div className="max-h-64 space-y-2 overflow-y-auto rounded-md border border-border bg-background p-2">
+        {isLoading ? (
+          <p className="p-3 text-sm text-muted-foreground">Loading questions…</p>
+        ) : questions.length === 0 ? (
+          <p className="p-3 text-sm text-muted-foreground">
+            No approved questions match these filters.
+          </p>
+        ) : (
+          questions.map((q) => (
+            <label
+              key={q.id}
+              className="flex cursor-pointer items-start gap-3 rounded-md p-2 hover:bg-muted/50"
+            >
+              <Checkbox
+                checked={selected.has(q.id)}
+                onCheckedChange={() => toggle(q.id)}
+                className="mt-0.5"
+              />
+              <div className="min-w-0 flex-1">
+                <p className="text-sm">{q.questionText}</p>
+                <div className="mt-1 flex flex-wrap items-center gap-1">
+                  <Badge variant="outline" className="text-[10px] uppercase">{q.careerTrack}</Badge>
+                  <Badge variant="outline" className="text-[10px] capitalize">{q.difficulty}</Badge>
+                  <Badge variant="outline" className="text-[10px]">{QB_TYPE_LABELS[q.questionType] ?? q.questionType}</Badge>
+                  <span className="text-[10px] text-muted-foreground">{q.marks} pt · used {q.usageCount}×</span>
+                </div>
+              </div>
+            </label>
+          ))
+        )}
+      </div>
+
+      <div className="flex items-center justify-between">
+        <span className="text-xs text-muted-foreground">{selected.size} selected</span>
+        <Button
+          size="sm"
+          onClick={() => fromBankMut.mutate([...selected])}
+          disabled={selected.size === 0 || fromBankMut.isPending}
+        >
+          <Plus className="mr-1 h-4 w-4" />
+          {fromBankMut.isPending ? "Adding…" : "Add selected"}
+        </Button>
+      </div>
+
+      <Separator />
+
+      {/* Auto-generate */}
+      <div className="space-y-2">
+        <div className="flex items-center gap-2">
+          <Sparkles className="h-4 w-4 text-primary" />
+          <h5 className="text-sm font-semibold">Auto-generate</h5>
+          <span className="text-xs text-muted-foreground">Randomly pick approved questions</span>
+        </div>
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+          <Select value={genTrack} onValueChange={setGenTrack}>
+            <SelectTrigger><SelectValue placeholder="Track" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value={QB_ALL}>Any track</SelectItem>
+              {QB_TRACKS.map((t) => (
+                <SelectItem key={t} value={t}>{QB_TRACK_LABELS[t]}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select value={genDifficulty} onValueChange={setGenDifficulty}>
+            <SelectTrigger><SelectValue placeholder="Difficulty" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value={QB_ALL}>Any difficulty</SelectItem>
+              {QB_DIFFICULTIES.map((d) => (
+                <SelectItem key={d} value={d} className="capitalize">{d}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select value={genType} onValueChange={setGenType}>
+            <SelectTrigger><SelectValue placeholder="Type" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value={QB_ALL}>Any type</SelectItem>
+              {QB_TYPES.map((t) => (
+                <SelectItem key={t} value={t}>{QB_TYPE_LABELS[t]}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Input
+            type="number"
+            min={1}
+            value={genCount}
+            onChange={(e) => setGenCount(e.target.value)}
+            placeholder="Count"
+          />
+        </div>
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={runAutoGen}
+          disabled={autoGenMut.isPending}
+        >
+          <Library className="mr-1 h-4 w-4" />
+          {autoGenMut.isPending ? "Generating…" : "Auto-generate & add"}
+        </Button>
+      </div>
+    </div>
+  );
+}
+
 function ManageQuestionsDialog({
   assessmentId, onClose, listKey,
 }: {
@@ -601,10 +852,18 @@ function ManageQuestionsDialog({
 
             <Separator />
 
+            {/* Add from question bank (only when not editing an existing question) */}
+            {editingId === null && assessmentId !== null && (
+              <>
+                <BankPicker assessmentId={assessmentId} onChanged={invalidate} />
+                <Separator />
+              </>
+            )}
+
             {/* Add / edit question form */}
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <h4 className="text-sm font-semibold">{editingId !== null ? "Edit Question" : "Add Question"}</h4>
+                <h4 className="text-sm font-semibold">{editingId !== null ? "Edit Question" : "Add Question Manually"}</h4>
                 {editingId !== null && (
                   <Button size="sm" variant="ghost" onClick={resetForm}>
                     <X className="h-4 w-4 mr-1" /> Cancel edit

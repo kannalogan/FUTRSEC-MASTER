@@ -95,6 +95,14 @@ export const lessonVideosTable = pgTable("lesson_videos", {
   videoUrl: text("video_url"),
   durationSeconds: integer("duration_seconds"),
   resolution: text("resolution"),
+  // Authoring metadata. provider drives playback: youtube/vimeo render as an
+  // embed iframe, everything else (bunny/s3/url) plays in a native <video> tag.
+  // Null provider is derived from the URL host at read time (backward compat).
+  title: text("title"),
+  description: text("description"),
+  thumbnailUrl: text("thumbnail_url"),
+  provider: text("provider"),
+  transcript: text("transcript"),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .defaultNow(),
@@ -129,6 +137,11 @@ export const lessonQuizzesTable = pgTable("lesson_quizzes", {
   lessonId: integer("lesson_id").notNull(),
   title: text("title").notNull(),
   passingScore: integer("passing_score").notNull().default(70),
+  // Provenance: when quiz questions were copied from an assessment or the
+  // question bank, sourceType records the origin. Questions are always
+  // snapshotted into lesson_quiz_questions so playback/grading stay stable.
+  sourceType: text("source_type"),
+  sourceAssessmentId: integer("source_assessment_id"),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .defaultNow(),

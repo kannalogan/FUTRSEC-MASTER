@@ -53,6 +53,11 @@ export const assessmentQuestionsTable = pgTable("assessment_questions", {
   explanation: text("explanation"),
   points: integer("points").notNull().default(1),
   order: integer("order").notNull(),
+  // Mapping back to the reusable question bank when this question was sourced
+  // from it. Snapshot semantics: the text/options are copied at attach time so
+  // the assessment stays stable even if the bank entry later changes or is
+  // deleted, while this column preserves provenance + powers usage analytics.
+  sourceBankQuestionId: integer("source_bank_question_id"),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .defaultNow(),

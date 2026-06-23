@@ -19,8 +19,9 @@ import {
 import { PageHeader, CardSkeleton, EmptyState } from "@/components/page-shell";
 import { useToast } from "@/hooks/use-toast";
 import {
-  BookOpen, Plus, Pencil, Layers, Trash2, Archive, Send,
+  BookOpen, Plus, Pencil, Layers, Trash2, Archive, Send, FileStack,
 } from "lucide-react";
+import { LessonContentEditor } from "./lesson-content-editor";
 
 const TRACK_LABELS: Record<string, string> = {
   soc: "SOC Analyst",
@@ -262,6 +263,7 @@ export default function AdminCoursesPage() {
   const [editingLesson, setEditingLesson] = useState<Lesson | null>(null);
   const [lessonForm, setLessonForm] = useState<LessonFormState>(EMPTY_LESSON_FORM);
   const [lessonFormOpen, setLessonFormOpen] = useState(false);
+  const [contentLesson, setContentLesson] = useState<Lesson | null>(null);
 
   const setLF = <K extends keyof LessonFormState>(k: K, v: LessonFormState[K]) =>
     setLessonForm((f) => ({ ...f, [k]: v }));
@@ -586,6 +588,14 @@ export default function AdminCoursesPage() {
                       <TableCell className="text-muted-foreground">{l.durationMinutes ?? "—"}</TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-1.5">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => setContentLesson(l)}
+                          >
+                            <FileStack className="h-3.5 w-3.5 mr-1.5" />
+                            Content
+                          </Button>
                           <Button size="sm" variant="outline" onClick={() => openEditLesson(l)}>
                             <Pencil className="h-3.5 w-3.5" />
                           </Button>
@@ -677,6 +687,12 @@ export default function AdminCoursesPage() {
           </div>
         </DialogContent>
       </Dialog>
+
+      <LessonContentEditor
+        lesson={contentLesson}
+        open={!!contentLesson}
+        onClose={() => setContentLesson(null)}
+      />
     </div>
   );
 }

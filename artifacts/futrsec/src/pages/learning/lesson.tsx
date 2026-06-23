@@ -156,6 +156,21 @@ function VideoPlayer({ lessonId, video, initialProgress }: { lessonId: number; v
           </div>
         )}
       </div>
+      {video.description && (
+        <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-line">
+          {video.description}
+        </p>
+      )}
+      {video.transcript && (
+        <details className="rounded-lg border bg-muted/30 px-4 py-3">
+          <summary className="cursor-pointer text-sm font-medium select-none">
+            Transcript
+          </summary>
+          <p className="mt-2 text-sm text-muted-foreground leading-relaxed whitespace-pre-line">
+            {video.transcript}
+          </p>
+        </details>
+      )}
     </div>
   );
 }

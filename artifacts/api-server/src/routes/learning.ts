@@ -35,6 +35,16 @@ function getOpenAI(): OpenAI | null {
   return _openai;
 }
 
+/** Best-effort video provider inference for rows authored before the provider column existed. */
+function deriveVideoProvider(url: string): string {
+  const u = (url || "").toLowerCase();
+  if (u.includes("youtube.com") || u.includes("youtu.be")) return "youtube";
+  if (u.includes("vimeo.com")) return "vimeo";
+  if (u.includes("bunny") || u.includes("b-cdn.net")) return "bunny";
+  if (u.includes("amazonaws.com") || u.includes("s3.")) return "s3";
+  return "url";
+}
+
 /** Loads a lesson + its module and runs the track guard. Returns the lesson+module on success, or sends an error response and returns null. */
 async function loadGuardedLesson(req: AuthRequest, res: import("express").Response, lessonIdRaw: string | string[]) {
   const lessonId = parseInt(String(lessonIdRaw), 10);
@@ -305,7 +315,22 @@ router.get("/learning/lessons/:lessonId", requireAuth, async (req: AuthRequest, 
   if (!loaded) return;
   const { lesson, module: moduleRow, lessonId } = loaded;
 
-  const [video] = await db.select().from(lessonVideosTable).where(eq(lessonVideosTable.lessonId, lessonId)).limit(1);
+  const [videoRow] = await db.select().from(lessonVideosTable).where(eq(lessonVideosTable.lessonId, lessonId)).limit(1);
+  // Normalize into the shape the player expects: { provider, url, title, ... }.
+  // provider falls back to host inference for rows authored before the column existed.
+  const video = videoRow
+    ? {
+        id: videoRow.id,
+        lessonId: videoRow.lessonId,
+        provider: videoRow.provider ?? deriveVideoProvider(videoRow.videoUrl ?? ""),
+        url: videoRow.videoUrl,
+        title: videoRow.title ?? lesson.title,
+        description: videoRow.description ?? null,
+        thumbnailUrl: videoRow.thumbnailUrl ?? null,
+        transcript: videoRow.transcript ?? null,
+        durationSeconds: videoRow.durationSeconds ?? null,
+      }
+    : null;
   const [article] = await db.select().from(lessonNotesTable).where(eq(lessonNotesTable.lessonId, lessonId)).limit(1);
   const resources = await db.select().from(lessonResourcesTable)
     .where(eq(lessonResourcesTable.lessonId, lessonId)).orderBy(lessonResourcesTable.order);

@@ -7,6 +7,8 @@ import {
   assessmentQuestionsTable,
   assessmentOptionsTable,
   tracksTable,
+  questionBankTable,
+  questionBankOptionsTable,
 } from "@workspace/db";
 import { requireAuth, requireRole, type AuthRequest } from "../middlewares/auth";
 import { createAuditLog } from "../lib/audit";
@@ -726,6 +728,263 @@ router.delete(
     });
 
     res.json({ ok: true, totalQuestions });
+  },
+);
+
+const CAREER_TRACKS = ["soc", "vapt", "grc"] as const;
+const QB_DIFFICULTIES = [
+  "beginner",
+  "intermediate",
+  "advanced",
+  "expert",
+] as const;
+const QB_QUESTION_TYPES = [
+  "mcq",
+  "multi_select",
+  "true_false",
+  "code",
+  "practical",
+  "scenario",
+] as const;
+
+const fromBankSchema = z.object({
+  bankQuestionIds: z.array(z.number().int().positive()).min(1).max(200),
+});
+
+const autoGenerateSchema = z.object({
+  careerTrack: z.enum(CAREER_TRACKS).optional(),
+  difficulty: z.enum(QB_DIFFICULTIES).optional(),
+  questionType: z.enum(QB_QUESTION_TYPES).optional(),
+  count: z.number().int().min(1).max(200),
+});
+
+// Copies a set of APPROVED question-bank entries (with their options) into an
+// assessment as new assessment_questions. Snapshot semantics: text/options are
+// duplicated so the assessment is stable, while source_bank_question_id records
+// provenance and bumps the bank entry's usage_count. Returns how many were
+// attached and which ids were skipped (not found / not approved).
+async function attachBankQuestions(
+  assessmentId: number,
+  bankIds: number[],
+): Promise<{ attached: number; skipped: number[] }> {
+  // De-dupe while preserving caller order.
+  const uniqueIds = [...new Set(bankIds)];
+  const bankRows = await db
+    .select()
+    .from(questionBankTable)
+    .where(inArray(questionBankTable.id, uniqueIds));
+  const byId = new Map(bankRows.map((r) => [r.id, r]));
+
+  const usable = uniqueIds.filter((id) => byId.get(id)?.status === "approved");
+  const skipped = uniqueIds.filter((id) => byId.get(id)?.status !== "approved");
+  if (usable.length === 0) return { attached: 0, skipped };
+
+  const options = await db
+    .select()
+    .from(questionBankOptionsTable)
+    .where(inArray(questionBankOptionsTable.questionId, usable))
+    .orderBy(questionBankOptionsTable.order);
+  const optionsByQuestion = new Map<
+    number,
+    (typeof questionBankOptionsTable.$inferSelect)[]
+  >();
+  for (const o of options) {
+    const list = optionsByQuestion.get(o.questionId) ?? [];
+    list.push(o);
+    optionsByQuestion.set(o.questionId, list);
+  }
+
+  const [maxRow] = await db
+    .select({
+      value: sql<number>`coalesce(max(${assessmentQuestionsTable.order}), -1)`,
+    })
+    .from(assessmentQuestionsTable)
+    .where(eq(assessmentQuestionsTable.assessmentId, assessmentId));
+  let nextOrder = (maxRow?.value ?? -1) + 1;
+
+  await db.transaction(async (tx) => {
+    for (const id of usable) {
+      const bank = byId.get(id)!;
+      const [question] = await tx
+        .insert(assessmentQuestionsTable)
+        .values({
+          assessmentId,
+          questionText: bank.questionText,
+          questionType: bank.questionType,
+          explanation: bank.explanation ?? null,
+          points: bank.marks ?? 1,
+          order: nextOrder++,
+          sourceBankQuestionId: bank.id,
+        })
+        .returning();
+
+      const bankOptions = optionsByQuestion.get(id) ?? [];
+      if (bankOptions.length > 0) {
+        await tx.insert(assessmentOptionsTable).values(
+          bankOptions.map((o, idx) => ({
+            questionId: question.id,
+            optionText: o.optionText,
+            isCorrect: o.isCorrect,
+            order: o.order ?? idx,
+          })),
+        );
+      }
+    }
+    await tx
+      .update(questionBankTable)
+      .set({ usageCount: sql`${questionBankTable.usageCount} + 1` })
+      .where(inArray(questionBankTable.id, usable));
+  });
+
+  return { attached: usable.length, skipped };
+}
+
+// POST /admin/assessments/:id/questions/from-bank — attach selected bank questions
+router.post(
+  "/admin/assessments/:id/questions/from-bank",
+  ...adminGuards,
+  async (req: AuthRequest, res): Promise<void> => {
+    if (!req.user) {
+      res.status(401).json({ error: "Not authenticated" });
+      return;
+    }
+    const id = parseId(req.params.id);
+    if (isNaN(id)) {
+      res.status(400).json({ error: "Invalid assessment id" });
+      return;
+    }
+    const parsed = fromBankSchema.safeParse(req.body);
+    if (!parsed.success) {
+      res
+        .status(400)
+        .json({ error: "Invalid input", details: parsed.error.issues });
+      return;
+    }
+    const assessment = await db.query.assessmentsTable.findFirst({
+      where: eq(assessmentsTable.id, id),
+    });
+    if (!assessment) {
+      res.status(404).json({ error: "Assessment not found" });
+      return;
+    }
+
+    const { attached, skipped } = await attachBankQuestions(
+      id,
+      parsed.data.bankQuestionIds,
+    );
+    if (attached === 0) {
+      res.status(400).json({
+        error:
+          "No questions were attached — selected questions must exist and be approved.",
+        skipped,
+      });
+      return;
+    }
+    const totalQuestions = await refreshTotalQuestions(id);
+
+    await createAuditLog({
+      userId: req.user.userId,
+      action: "admin.assessment.questions_from_bank",
+      entityType: "assessment",
+      entityId: id,
+      ipAddress: ip(req),
+      userAgent: req.headers["user-agent"],
+      metadata: { attached, skipped, source: "manual_select" },
+    });
+
+    res.status(201).json({ attached, skipped, totalQuestions });
+  },
+);
+
+// POST /admin/assessments/:id/questions/auto-generate — random approved questions
+router.post(
+  "/admin/assessments/:id/questions/auto-generate",
+  ...adminGuards,
+  async (req: AuthRequest, res): Promise<void> => {
+    if (!req.user) {
+      res.status(401).json({ error: "Not authenticated" });
+      return;
+    }
+    const id = parseId(req.params.id);
+    if (isNaN(id)) {
+      res.status(400).json({ error: "Invalid assessment id" });
+      return;
+    }
+    const parsed = autoGenerateSchema.safeParse(req.body);
+    if (!parsed.success) {
+      res
+        .status(400)
+        .json({ error: "Invalid input", details: parsed.error.issues });
+      return;
+    }
+    const assessment = await db.query.assessmentsTable.findFirst({
+      where: eq(assessmentsTable.id, id),
+    });
+    if (!assessment) {
+      res.status(404).json({ error: "Assessment not found" });
+      return;
+    }
+    const d = parsed.data;
+
+    const conditions = [eq(questionBankTable.status, "approved")];
+    if (d.careerTrack) {
+      conditions.push(eq(questionBankTable.careerTrack, d.careerTrack));
+    }
+    if (d.difficulty) {
+      conditions.push(eq(questionBankTable.difficulty, d.difficulty));
+    }
+    if (d.questionType) {
+      conditions.push(eq(questionBankTable.questionType, d.questionType));
+    }
+
+    const pool = await db
+      .select({ id: questionBankTable.id })
+      .from(questionBankTable)
+      .where(and(...conditions))
+      .orderBy(sql`random()`)
+      .limit(d.count);
+
+    if (pool.length === 0) {
+      res.status(400).json({
+        error:
+          "No approved questions match the selected filters. Adjust filters or approve more questions.",
+        poolSize: 0,
+      });
+      return;
+    }
+
+    const { attached, skipped } = await attachBankQuestions(
+      id,
+      pool.map((p) => p.id),
+    );
+    const totalQuestions = await refreshTotalQuestions(id);
+
+    await createAuditLog({
+      userId: req.user.userId,
+      action: "admin.assessment.questions_auto_generated",
+      entityType: "assessment",
+      entityId: id,
+      ipAddress: ip(req),
+      userAgent: req.headers["user-agent"],
+      metadata: {
+        attached,
+        requested: d.count,
+        poolSize: pool.length,
+        filters: {
+          careerTrack: d.careerTrack ?? null,
+          difficulty: d.difficulty ?? null,
+          questionType: d.questionType ?? null,
+        },
+      },
+    });
+
+    res.status(201).json({
+      attached,
+      requested: d.count,
+      poolSize: pool.length,
+      skipped,
+      totalQuestions,
+    });
   },
 );
 
