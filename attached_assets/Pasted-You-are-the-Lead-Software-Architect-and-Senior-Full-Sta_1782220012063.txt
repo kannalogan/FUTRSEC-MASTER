@@ -1,0 +1,1286 @@
+You are the Lead Software Architect and Senior Full Stack Engineer for FUTRSEC.
+
+You MUST NOT create demo code.
+
+You MUST NOT create placeholders.
+
+You MUST NOT create mock implementations.
+
+Everything should be production-grade.
+
+Current platform already has:
+
+- Admin Dashboard
+- Mentor Dashboard
+- Student Dashboard
+- Tracks
+- Courses
+- Lessons
+- Labs
+- Assessments
+- Question Bank
+- Certificates
+- Task Builder
+- Placements
+- TPO Management
+
+Many modules exist visually but are incomplete.
+
+Your task:
+
+COMPLETE ALL INCOMPLETE FEATURES.
+
+Do not remove existing features.
+
+Extend existing architecture.
+
+--------------------------------------------------------
+STACK
+--------------------------------------------------------
+
+Frontend
+
+- React
+- NextJS
+- Tailwind
+- Shadcn
+- Framer Motion
+
+Backend
+
+- NodeJS
+- Express
+- PostgreSQL
+- Prisma
+
+Queue
+
+- Redis
+- BullMQ
+
+Storage
+
+- S3 compatible object storage
+
+Auth
+
+- JWT
+- RBAC
+
+Realtime
+
+- Websocket
+
+--------------------------------------------------------
+1. RBAC
+--------------------------------------------------------
+
+Roles:
+
+SUPER_ADMIN
+
+ADMIN
+
+MENTOR
+
+STUDENT
+
+TPO
+
+COMPANY
+
+Permissions:
+
+SUPER_ADMIN
+
+everything
+
+ADMIN
+
+manage tracks
+manage courses
+manage lessons
+manage assessments
+manage question bank
+manage labs
+manage certificates
+manage placements
+manage journeys
+
+MENTOR
+
+manage assigned tracks
+manage assessments
+manage question bank
+manage labs
+manage assignments
+manage journeys
+manage assigned students
+
+STUDENT
+
+view assigned content
+submit assessments
+complete labs
+download certificates
+
+--------------------------------------------------------
+2. JOURNEY ENGINE
+MOST IMPORTANT FEATURE
+--------------------------------------------------------
+
+Create a Journey Engine.
+
+Goal:
+
+Student joins today.
+
+Student should receive
+
+DAY 1
+
+Tomorrow
+
+DAY 2
+
+No fixed dates.
+
+Everything must be based on
+
+student.joined_at
+
+--------------------------------------------------------
+
+Entities
+
+Track
+
+Journey
+
+JourneyDay
+
+StudentJourney
+
+StudentJourneyDay
+
+--------------------------------------------------------
+
+Journey
+
+SOC
+
+Day 1
+
+Course
+
+Assessment
+
+Lab
+
+Task
+
+Resource
+
+Declaration
+
+Mentor Review
+
+
+Day 2
+
+....
+
+Day 180
+
+Mock Interview
+
+Final Assessment
+
+Certificate
+
+Career Readiness
+
+--------------------------------------------------------
+
+Unlock Logic
+
+days_since_joined
+
+today
+
+-
+
+student.joined_at
+
+unlock
+
+if
+
+journey_day.offset
+
+<=
+
+days_since_joined
+
+
+DO NOT STORE
+
+available_date
+
+Use relative offsets.
+
+--------------------------------------------------------
+3. JOURNEY BUILDER
+--------------------------------------------------------
+
+Admin and Mentor should create:
+
+DAY 1
+
+Add
+
+Course
+
+Assessment
+
+Lab
+
+Assignment
+
+Resource
+
+Declaration
+
+DAY 2
+
+Add
+
+Course
+
+Assessment
+
+Lab
+
+Assignment
+
+....
+
+DAY 180
+
+Publish Journey
+
+--------------------------------------------------------
+
+Student receives
+
+only unlocked days
+
+Future days
+
+LOCKED
+
+--------------------------------------------------------
+
+Progress
+
+overall %
+
+completed days
+
+current streak
+
+xp
+
+badges
+
+career readiness score
+
+--------------------------------------------------------
+4. QUESTION BANK GOVERNANCE
+--------------------------------------------------------
+
+Current issue:
+
+Questions exist.
+
+Assessments exist.
+
+No mapping.
+
+Fix.
+
+Question Bank
+
+fields
+
+track
+
+SOC
+
+VAPT
+
+GRC
+
+difficulty
+
+beginner
+
+intermediate
+
+advanced
+
+question_type
+
+MCQ
+
+MSQ
+
+True False
+
+Scenario
+
+Coding
+
+--------------------------------------------------------
+
+Assessment Builder
+
+Select Questions
+
+Checkbox
+
+Add
+
+Remove
+
+Search
+
+Filter
+
+Track
+
+Difficulty
+
+Question Type
+
+--------------------------------------------------------
+
+Support
+
+Manual selection
+
+OR
+
+Auto Generate
+
+--------------------------------------------------------
+
+Auto Generate
+
+track
+
+SOC
+
+difficulty
+
+beginner
+
+question_count
+
+20
+
+System randomly picks.
+
+--------------------------------------------------------
+5. COURSE LESSON BUILDER
+--------------------------------------------------------
+
+Current:
+
+Lesson Type
+
+Video
+
+Article
+
+Quiz
+
+But cannot create.
+
+Enable fully.
+
+--------------------------------------------------------
+
+Video
+
+title
+
+description
+
+youtube url
+
+vimeo url
+
+bunny url
+
+s3 url
+
+thumbnail
+
+duration
+
+transcript
+
+attachments
+
+--------------------------------------------------------
+
+Article
+
+title
+
+rich text editor
+
+images
+
+code blocks
+
+attachments
+
+markdown
+
+--------------------------------------------------------
+
+Quiz
+
+select assessment
+
+OR
+
+create assessment
+
+--------------------------------------------------------
+
+Student flow
+
+Video
+
+↓
+
+Article
+
+↓
+
+Quiz
+
+↓
+
+Next lesson
+
+--------------------------------------------------------
+6. TASK BUILDER
+--------------------------------------------------------
+
+Current:
+
+Assessment
+
+Resource
+
+Assignment
+
+Declaration
+
+exists visually
+
+but not functional.
+
+Make fully functional.
+
+--------------------------------------------------------
+
+Assessment Task
+
+attach assessment
+
+points
+
+deadline
+
+retry policy
+
+--------------------------------------------------------
+
+Resource
+
+title
+
+link
+
+pdf
+
+video
+
+document
+
+--------------------------------------------------------
+
+Assignment
+
+upload files
+
+pdf
+
+doc
+
+zip
+
+png
+
+csv
+
+pcap
+
+--------------------------------------------------------
+
+Declaration
+
+student acknowledgement
+
+checkbox
+
+e-sign
+
+--------------------------------------------------------
+
+Mentor
+
+publish
+
+draft
+
+schedule
+
+archive
+
+--------------------------------------------------------
+7. FILE STORAGE
+--------------------------------------------------------
+
+Support:
+
+pdf
+
+png
+
+jpg
+
+jpeg
+
+csv
+
+docx
+
+zip
+
+pcap
+
+txt
+
+--------------------------------------------------------
+
+Features
+
+preview
+
+download
+
+version history
+
+soft delete
+
+restore
+
+RBAC
+
+audit logs
+
+quota
+
+virus scan hooks
+
+--------------------------------------------------------
+8. ASSESSMENT ENGINE
+--------------------------------------------------------
+
+Support
+
+MCQ
+
+MSQ
+
+True False
+
+Scenario
+
+Coding
+
+--------------------------------------------------------
+
+Assessment states
+
+NOT_STARTED
+
+IN_PROGRESS
+
+COMPLETED
+
+RETRY_AVAILABLE
+
+RETRY_LIMIT_EXCEEDED
+
+--------------------------------------------------------
+
+Retry
+
+server side
+
+max retries
+
+configurable
+
+default
+
+3
+
+--------------------------------------------------------
+
+Logic
+
+NOT_STARTED
+
+show
+
+Start
+
+COMPLETED
+
++
+
+retry remaining
+
+show
+
+Retry
+
+COMPLETED
+
++
+
+retry exhausted
+
+show
+
+Retry Limit Exceeded
+
+--------------------------------------------------------
+
+Store
+
+attempt number
+
+score
+
+answers
+
+warnings
+
+started_at
+
+completed_at
+
+--------------------------------------------------------
+9. ASSESSMENT SECURITY
+--------------------------------------------------------
+
+Disable
+
+text selection
+
+copy
+
+paste
+
+cut
+
+drag
+
+right click
+
+Ctrl C
+
+Ctrl X
+
+Ctrl A
+
+Ctrl S
+
+--------------------------------------------------------
+
+Implement
+
+Page Visibility API
+
+Detect
+
+tab switch
+
+window blur
+
+app switch
+
+--------------------------------------------------------
+
+Warning system
+
+max
+
+3
+
+warnings
+
+--------------------------------------------------------
+
+After
+
+3 warnings
+
+auto submit
+
+OR
+
+terminate
+
+configurable
+
+--------------------------------------------------------
+
+Store warnings
+
+server side.
+
+--------------------------------------------------------
+
+Add watermark
+
+Student Name
+
+Student ID
+
+Timestamp
+
+on assessment screen
+
+--------------------------------------------------------
+
+Note:
+
+Browser restrictions are not foolproof.
+
+Implement best possible client + server protection.
+
+--------------------------------------------------------
+10. LAB ENGINE
+--------------------------------------------------------
+
+Current issue:
+
+Only exact command works.
+
+Fix.
+
+--------------------------------------------------------
+
+Wrong
+
+nmap -sV target
+
+works
+
+nmap target
+
+fails
+
+--------------------------------------------------------
+
+Correct
+
+nmap
+
+nmap -A
+
+nmap -Pn
+
+nmap -sC
+
+nmap -sV
+
+all supported
+
+--------------------------------------------------------
+
+Implement
+
+Command Parser
+
+extract
+
+tool
+
+intent
+
+arguments
+
+--------------------------------------------------------
+
+Validate
+
+objective achieved
+
+NOT
+
+exact string match.
+
+--------------------------------------------------------
+
+Supported tools
+
+nmap
+
+msfconsole
+
+grep
+
+awk
+
+sed
+
+cat
+
+curl
+
+wget
+
+python
+
+yara
+
+volatility
+
+sqlmap
+
+nikto
+
+burp
+
+ffuf
+
+--------------------------------------------------------
+
+Objective based flags
+
+NOT command based flags
+
+--------------------------------------------------------
+11. HINT SYSTEM
+--------------------------------------------------------
+
+Implement
+
+Hint 1
+
+Hint 2
+
+Hint 3
+
+--------------------------------------------------------
+
+Each hint
+
+more guidance
+
+but NEVER
+
+show
+
+answer
+
+flag
+
+full command
+
+--------------------------------------------------------
+
+Hints should guide.
+
+Never reveal solution.
+
+--------------------------------------------------------
+12. PROJECT DASHBOARD FILTER
+--------------------------------------------------------
+
+Current issue
+
+Network selected
+
+Web labs appear
+
+API labs appear
+
+Fix.
+
+--------------------------------------------------------
+
+Categories
+
+ALL
+
+NETWORK
+
+WEB
+
+API
+
+CRYPTO
+
+FORENSICS
+
+MALWARE
+
+OSINT
+
+REVERSE
+
+--------------------------------------------------------
+
+Frontend filter
+
++
+
+Backend validation
+
+--------------------------------------------------------
+13. CERTIFICATE ENGINE
+--------------------------------------------------------
+
+Auto Issue
+
+when
+
+Course completed
+
+OR
+
+Journey completed
+
+OR
+
+Internship hired
+
+--------------------------------------------------------
+
+Certificate
+
+PDF
+
+QR verify
+
+public verification
+
+expiry
+
+renewal
+
+revoke
+
+reissue
+
+LinkedIn share
+
+--------------------------------------------------------
+
+Bulk generation
+
+BullMQ
+
+progress
+
+pause
+
+resume
+
+cancel
+
+retry
+
+DLQ
+
+--------------------------------------------------------
+14. XP BADGE STREAK SYSTEM
+--------------------------------------------------------
+
+Award XP
+
+Course
+
+Assessment
+
+Lab
+
+Assignment
+
+--------------------------------------------------------
+
+Badges
+
+7 days streak
+
+30 days streak
+
+100 XP
+
+500 XP
+
+Top performer
+
+SOC Master
+
+VAPT Master
+
+GRC Master
+
+--------------------------------------------------------
+
+Leaderboard
+
+global
+
+track
+
+batch
+
+college
+
+--------------------------------------------------------
+15. ANALYTICS
+--------------------------------------------------------
+
+Admin
+
+Total Students
+
+Active Students
+
+Completion %
+
+Drop %
+
+Placements
+
+Track wise progress
+
+--------------------------------------------------------
+
+Mentor
+
+Assigned Students
+
+At Risk Students
+
+Pending Reviews
+
+Average Score
+
+Completion Rate
+
+--------------------------------------------------------
+
+Student
+
+XP
+
+Badges
+
+Streak
+
+Completed
+
+Pending
+
+Career Score
+
+--------------------------------------------------------
+16. AUDIT LOG
+--------------------------------------------------------
+
+Track every action
+
+create
+
+edit
+
+delete
+
+publish
+
+archive
+
+download
+
+certificate issue
+
+assessment submit
+
+lab solve
+
+--------------------------------------------------------
+
+Store
+
+who
+
+what
+
+when
+
+ip
+
+user agent
+
+--------------------------------------------------------
+17. PERFORMANCE
+--------------------------------------------------------
+
+Must support
+
+100,000+
+
+students
+
+--------------------------------------------------------
+
+Use
+
+pagination
+
+indexes
+
+caching
+
+BullMQ
+
+lazy loading
+
+virtualized tables
+
+CDN
+
+--------------------------------------------------------
+
+Avoid
+
+N+1 queries
+
+--------------------------------------------------------
+18. FINAL GOAL
+--------------------------------------------------------
+
+FUTRSEC should become
+
+a complete
+
+Cybersecurity Academy Platform
+
+similar to
+
+TryHackMe
+
+HackTheBox Academy
+
+Coursera
+
+LinkedIn Learning
+
+combined together
+
+with
+
+SOC
+
+VAPT
+
+GRC
+
+tracks
+
+Mentor-led learning
+
+Day based journey
+
+Assessment engine
+
+Lab engine
+
+Certificates
+
+Placements
+
+and
+
+Enterprise RBAC.
+
+--------------------------------------------------------
+
+IMPORTANT
+
+DO NOT create mock code.
+
+DO NOT create TODO comments.
+
+DO NOT leave placeholders.
+
+DO NOT skip incomplete modules.
+
+Every module should be fully implemented,
+
+production-ready,
+
+secure,
+
+scalable,
+
+and integrated with existing architecture.
+
+Return:
+
+1. Database schema changes
+
+2. API design
+
+3. Frontend components
+
+4. State management
+
+5. Queue jobs
+
+6. Security rules
+
+7. Migration scripts
+
+8. Full implementation
+
+9. Testing strategy
+
+10. Production deployment checklist
+
+Complete EVERYTHING.
