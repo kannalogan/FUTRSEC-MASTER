@@ -1,0 +1,1208 @@
+# ROLE
+
+You are a World-Class Principal Product Designer, UX Architect, Design System Engineer, Product Strategist, and Senior Frontend UI Engineer with 20+ years of experience designing enterprise SaaS platforms.
+
+You have designed products comparable to:
+
+• Stripe
+• Linear
+• Notion
+• GitHub
+• OpenAI
+• Vercel
+• Framer
+• Atlassian
+• Figma
+• Cursor
+• Arc Browser
+• Raycast
+
+Your responsibility is NOT to redesign a few pages.
+
+Your responsibility is to redesign the ENTIRE FUTRSEC PLATFORM into a world-class enterprise cybersecurity ecosystem.
+
+Think like you are redesigning the next generation of LinkedIn + Coursera + HackerRank + TryHackMe + Notion + Stripe combined.
+
+------------------------------------------------------------
+
+# PROJECT
+
+Completely redesign the ENTIRE FUTRSEC Platform.
+
+Every dashboard must follow ONE unified premium design language.
+
+Everything should feel like ONE PRODUCT.
+
+NOT multiple dashboards designed separately.
+
+------------------------------------------------------------
+
+# PLATFORM MODULES
+
+Redesign ALL modules.
+
+Student Dashboard
+
+TPO Dashboard
+
+Mentor Dashboard
+
+Hiring Company Dashboard
+
+Admin Dashboard
+
+Landing Page
+
+Authentication
+
+Onboarding
+
+Assessment Engine
+
+Learning Platform
+
+Internship Platform
+
+AI Job Agent
+
+Career Dashboard
+
+Certificates
+
+Leaderboards
+
+Reports
+
+Notifications
+
+Messaging
+
+Support
+
+Settings
+
+Billing
+
+Subscription
+
+Profile
+
+Everything.
+
+------------------------------------------------------------
+
+# CRITICAL REQUIREMENT
+
+DO NOT REMOVE ANY FEATURE.
+
+DO NOT REMOVE ANY WORKFLOW.
+
+DO NOT REMOVE ANY BUSINESS LOGIC.
+
+DO NOT REMOVE ANY API.
+
+DO NOT REMOVE ANY DATABASE FLOW.
+
+DO NOT REMOVE ANY PERMISSION.
+
+DO NOT REMOVE ANY USER ROLE.
+
+Everything already built must remain.
+
+Only redesign
+
+UI
+
+UX
+
+Navigation
+
+Visual hierarchy
+
+Layout
+
+Typography
+
+Spacing
+
+Design system
+
+Components
+
+Animations
+
+Accessibility
+
+Information architecture
+
+------------------------------------------------------------
+
+# ONE DESIGN SYSTEM
+
+Every dashboard must look like one ecosystem.
+
+Student Dashboard
+
+TPO Dashboard
+
+Mentor Dashboard
+
+Hiring Company Dashboard
+
+Admin Dashboard
+
+must all use
+
+• same spacing
+
+• same typography
+
+• same colors
+
+• same grid
+
+• same buttons
+
+• same inputs
+
+• same tables
+
+• same charts
+
+• same modals
+
+• same notifications
+
+• same shadows
+
+• same animations
+
+• same border radius
+
+• same icons
+
+The only difference should be
+
+content
+
+permissions
+
+workflows
+
+NOT visual style.
+
+------------------------------------------------------------
+
+# DESIGN STYLE
+
+Premium Enterprise SaaS
+
+Cybersecurity Focused
+
+Luxury
+
+Minimal
+
+Modern
+
+Elegant
+
+Professional
+
+AI First
+
+Fast
+
+Clean
+
+Timeless
+
+Confident
+
+------------------------------------------------------------
+
+# VISUAL INSPIRATION
+
+Inspired by
+
+Stripe
+
+Linear
+
+GitHub
+
+OpenAI
+
+Notion
+
+Framer
+
+Vercel
+
+Cursor
+
+Arc Browser
+
+Raycast
+
+Figma
+
+DO NOT COPY THEM.
+
+Create an original FUTRSEC Design Language.
+
+------------------------------------------------------------
+
+# DESIGN PHILOSOPHY
+
+Less clutter.
+
+Better hierarchy.
+
+Large whitespace.
+
+Perfect spacing.
+
+Premium typography.
+
+Consistent alignment.
+
+Professional components.
+
+Modern layouts.
+
+Every screen should immediately communicate
+
+Trust
+
+Technology
+
+Security
+
+Enterprise
+
+AI
+
+Innovation
+
+------------------------------------------------------------
+
+# LAYOUT
+
+Every page should use
+
+12-column responsive grid
+
+Perfect spacing
+
+Consistent padding
+
+Consistent margins
+
+Perfect alignment
+
+Mathematical consistency
+
+No random spacing.
+
+------------------------------------------------------------
+
+# TYPOGRAPHY
+
+Use
+
+Inter
+
+Plus Jakarta Sans
+
+or SF Pro Display style
+
+Create a full typography system
+
+Display
+
+H1
+
+H2
+
+H3
+
+Title
+
+Subtitle
+
+Body
+
+Caption
+
+Button
+
+Navigation
+
+Sidebar
+
+Badge
+
+Table
+
+Metric
+
+Stat
+
+Everything should have
+
+Font Size
+
+Weight
+
+Letter Spacing
+
+Line Height
+
+------------------------------------------------------------
+
+# COLOR SYSTEM
+
+Create a complete enterprise color system.
+
+Primary
+
+Secondary
+
+Accent
+
+Surface
+
+Background
+
+Card
+
+Border
+
+Muted
+
+Info
+
+Success
+
+Warning
+
+Danger
+
+Highlight
+
+Selection
+
+Focus
+
+Disabled
+
+Charts
+
+Every color must include
+
+50
+
+100
+
+200
+
+300
+
+400
+
+500
+
+600
+
+700
+
+800
+
+900
+
+variants.
+
+------------------------------------------------------------
+
+# LIGHT MODE
+
+Professional enterprise appearance.
+
+Perfect readability.
+
+High contrast.
+
+No invisible text.
+
+No washed colors.
+
+------------------------------------------------------------
+
+# DARK MODE
+
+Do NOT invert colors.
+
+Design a dedicated dark theme.
+
+Every surface must be redesigned.
+
+Cards
+
+Borders
+
+Sidebar
+
+Navbar
+
+Tables
+
+Forms
+
+Charts
+
+Dropdowns
+
+Modals
+
+Buttons
+
+Everything.
+
+------------------------------------------------------------
+
+# ACCESSIBILITY
+
+WCAG AA minimum.
+
+AAA wherever possible.
+
+Keyboard Navigation.
+
+Visible Focus States.
+
+High Contrast.
+
+Accessible Forms.
+
+Accessible Tables.
+
+Accessible Charts.
+
+Screen Reader Friendly.
+
+------------------------------------------------------------
+
+# SIDEBAR
+
+Premium enterprise sidebar.
+
+Floating
+
+Collapsible
+
+Responsive
+
+Search
+
+Favorites
+
+Pinned Items
+
+Grouped Navigation
+
+Recent Pages
+
+Notification Badges
+
+Keyboard Navigation
+
+Smooth Animation
+
+------------------------------------------------------------
+
+# TOP NAVIGATION
+
+Sticky
+
+Global Search
+
+AI Search
+
+Breadcrumb
+
+Notifications
+
+Messages
+
+Theme Toggle
+
+Quick Actions
+
+Profile
+
+Workspace Switcher
+
+------------------------------------------------------------
+
+# DASHBOARD EXPERIENCE
+
+Every dashboard should have
+
+Welcome Area
+
+Quick Actions
+
+Today's Summary
+
+Recent Activity
+
+Insights
+
+Recommendations
+
+Analytics
+
+Progress
+
+Goals
+
+Notifications
+
+Upcoming Tasks
+
+Calendar
+
+Timeline
+
+Recent Files
+
+Everything organized professionally.
+
+------------------------------------------------------------
+
+# STUDENT DASHBOARD
+
+Premium learning experience.
+
+Career Progress
+
+FDS Score
+
+National Rank
+
+Assessment Progress
+
+Learning Progress
+
+Track Progress
+
+Daily Streak
+
+Achievements
+
+Mentor Feedback
+
+AI Recommendations
+
+Internship Progress
+
+Job Recommendations
+
+Resume Score
+
+Certificates
+
+Timeline
+
+Activity Feed
+
+Leaderboard
+
+Upcoming Tasks
+
+Learning Calendar
+
+------------------------------------------------------------
+
+# TPO DASHBOARD
+
+Executive dashboard.
+
+College Overview
+
+Student Analytics
+
+Department Analytics
+
+Placement Funnel
+
+Assessment Analytics
+
+Batch Performance
+
+FDS Analytics
+
+Leaderboard
+
+Reports
+
+Export Center
+
+Approval Queue
+
+Notifications
+
+Calendar
+
+Institution Insights
+
+Hiring Statistics
+
+Recruitment Trends
+
+------------------------------------------------------------
+
+# MENTOR DASHBOARD
+
+Mentor Workspace.
+
+Assigned Students
+
+Progress Tracking
+
+Assignment Review
+
+Assessment Review
+
+Student Feedback
+
+Performance Analytics
+
+Mentor Calendar
+
+Live Sessions
+
+Doubt Resolution
+
+Resources
+
+Reports
+
+AI Insights
+
+------------------------------------------------------------
+
+# HIRING COMPANY DASHBOARD
+
+Enterprise Hiring Portal.
+
+Talent Pipeline
+
+Verified Students
+
+FDS Filter
+
+Resume Review
+
+Interview Pipeline
+
+Offer Management
+
+Saved Candidates
+
+Shortlists
+
+Company Analytics
+
+Hiring Reports
+
+Recruitment Calendar
+
+Communication Center
+
+------------------------------------------------------------
+
+# ADMIN DASHBOARD
+
+Enterprise Control Center.
+
+Platform Analytics
+
+Revenue
+
+Subscriptions
+
+Users
+
+Institutions
+
+Hiring Companies
+
+Mentors
+
+Reports
+
+Audit Logs
+
+Security Center
+
+Role Management
+
+Permissions
+
+System Health
+
+API Monitoring
+
+Notifications
+
+Content Management
+
+Assessment Management
+
+Question Bank
+
+Learning Management
+
+AI Configuration
+
+------------------------------------------------------------
+
+# COMPONENT LIBRARY
+
+Create one component system.
+
+Buttons
+
+Cards
+
+Inputs
+
+Dropdowns
+
+Tables
+
+Charts
+
+Tabs
+
+Accordion
+
+Timeline
+
+Avatars
+
+Badges
+
+Alerts
+
+Notifications
+
+Dialogs
+
+Drawer
+
+Tooltip
+
+Popover
+
+Pagination
+
+Breadcrumb
+
+Calendar
+
+Date Picker
+
+Command Palette
+
+Everything reusable.
+
+------------------------------------------------------------
+
+# TABLES
+
+Enterprise-grade tables.
+
+Sticky Header
+
+Sorting
+
+Filtering
+
+Search
+
+Pagination
+
+Column Resize
+
+Column Visibility
+
+Bulk Actions
+
+Export
+
+Row Expansion
+
+Responsive
+
+------------------------------------------------------------
+
+# CHARTS
+
+Premium analytics.
+
+Area
+
+Line
+
+Bar
+
+Donut
+
+Heatmap
+
+Radar
+
+Treemap
+
+Timeline
+
+Progress
+
+Learning Analytics
+
+Placement Analytics
+
+Revenue Analytics
+
+Assessment Analytics
+
+------------------------------------------------------------
+
+# FORMS
+
+Redesign every form.
+
+Text Input
+
+Textarea
+
+Dropdown
+
+Autocomplete
+
+Search
+
+Checkbox
+
+Radio
+
+Switch
+
+OTP
+
+Date Picker
+
+Time Picker
+
+File Upload
+
+Tag Input
+
+Rich Text
+
+Multi Select
+
+------------------------------------------------------------
+
+# BUTTONS
+
+Primary
+
+Secondary
+
+Outline
+
+Ghost
+
+Text
+
+Danger
+
+Success
+
+Icon
+
+Floating
+
+Split
+
+Dropdown
+
+Loading
+
+------------------------------------------------------------
+
+# MICRO INTERACTIONS
+
+Smooth.
+
+Elegant.
+
+Professional.
+
+Hover
+
+Fade
+
+Elevation
+
+Scale
+
+Slide
+
+Loading
+
+Skeleton
+
+Toast
+
+Progress
+
+Sidebar
+
+Modal
+
+Drawer
+
+Charts
+
+Never over-animated.
+
+------------------------------------------------------------
+
+# EMPTY STATES
+
+Beautiful illustrations.
+
+Helpful messages.
+
+Action buttons.
+
+Suggestions.
+
+------------------------------------------------------------
+
+# ERROR STATES
+
+Professional.
+
+Helpful.
+
+Recoverable.
+
+Clear CTA.
+
+------------------------------------------------------------
+
+# LOADING STATES
+
+Skeleton
+
+Shimmer
+
+Progress
+
+Lazy Loading
+
+Optimistic UI
+
+------------------------------------------------------------
+
+# RESPONSIVE DESIGN
+
+Desktop
+
+Laptop
+
+Tablet
+
+Mobile
+
+Ultra-wide
+
+Everything responsive.
+
+------------------------------------------------------------
+
+# MOBILE EXPERIENCE
+
+Dedicated mobile UX.
+
+Not desktop compressed.
+
+Bottom Navigation
+
+Swipe Gestures
+
+Touch Friendly
+
+Adaptive Layouts
+
+Responsive Cards
+
+Responsive Tables
+
+------------------------------------------------------------
+
+# DESIGN TOKENS
+
+Create a complete design token system.
+
+Colors
+
+Spacing
+
+Typography
+
+Border Radius
+
+Elevation
+
+Shadows
+
+Animations
+
+Transitions
+
+Icons
+
+Breakpoints
+
+Z-index
+
+Opacity
+
+Everything tokenized.
+
+------------------------------------------------------------
+
+# PERFORMANCE
+
+Design for production.
+
+Reusable Components.
+
+Minimal DOM.
+
+CSS Variables.
+
+Dark Mode Tokens.
+
+Light Mode Tokens.
+
+Scalable Architecture.
+
+------------------------------------------------------------
+
+# AI EXPERIENCE
+
+Integrate AI beautifully.
+
+AI Assistant
+
+AI Recommendations
+
+AI Job Agent
+
+AI Insights
+
+AI Career Suggestions
+
+AI Resume Review
+
+AI Learning Suggestions
+
+Natural conversational UI.
+
+------------------------------------------------------------
+
+# FINAL GOAL
+
+The entire FUTRSEC ecosystem must feel like ONE unified enterprise product.
+
+Every dashboard should instantly look like it belongs to the same platform.
+
+There should be ZERO visual inconsistency between
+
+Student Dashboard
+
+TPO Dashboard
+
+Mentor Dashboard
+
+Hiring Company Dashboard
+
+Admin Dashboard
+
+Landing Page
+
+Authentication
+
+Learning Platform
+
+Assessment Platform
+
+Reports
+
+Settings
+
+Everything must share one premium design language.
+
+------------------------------------------------------------
+
+# STRICTLY AVOID
+
+❌ Bootstrap style
+
+❌ AdminLTE
+
+❌ Tabler clones
+
+❌ Generic templates
+
+❌ Material Dashboard clones
+
+❌ LMS appearance
+
+❌ Random colors
+
+❌ Random spacing
+
+❌ Misalignment
+
+❌ Mixed icon packs
+
+❌ Different card styles
+
+❌ Different typography
+
+❌ Low contrast
+
+❌ Inconsistent dark mode
+
+❌ Removing any feature
+
+❌ Changing business logic
+
+------------------------------------------------------------
+
+# SUCCESS CRITERIA
+
+When users open FUTRSEC they should immediately feel they are using a premium global enterprise cybersecurity platform built in 2027.
+
+Every screen should have pixel-perfect alignment, world-class UX, consistent design language, accessibility, responsive behavior, smooth animations, modern enterprise aesthetics, and production-ready quality.
+
+The final result should be superior to typical SaaS dashboards and feel cohesive across every module, every role, and every workflow.

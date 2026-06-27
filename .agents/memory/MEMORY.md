@@ -35,3 +35,4 @@
 - [pdfkit + esbuild bundling](pdfkit-esbuild-bundling.md) — pdfkit/fontkit must be esbuild `external` in api-server build.mjs or PDF routes 500.
 - [Cert distributed sharding](cert-sharding-distributed.md) — parent+shards aggregation invariants: no silent enqueue loss, monotonic terminal guard, activeJobs heartbeat, host-scoped worker IDs, kill-recovery idempotency.
 - [Lesson content authoring](lesson-content-authoring.md) — lesson quiz is always a snapshot copy (choice-types only); from-bank must null sourceAssessmentId + bump usageCount only for inserted IDs; video provider inferred from URL host for legacy rows.
+- [SENTINEL design system](sentinel-design-system.md) — unified redesign language; deepen (don't replace) existing tokens; color ramps in @theme, theme-aware .elevation-1..4/.glow-primary, motion tokens, expanded typography utilities; all in futrsec/src/index.css.
