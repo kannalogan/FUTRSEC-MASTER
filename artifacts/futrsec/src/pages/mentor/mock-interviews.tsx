@@ -30,11 +30,11 @@ import { motion } from "framer-motion";
 
 const STATUS_META: Record<string, { label: string; className: string }> = {
   draft: { label: "Draft", className: "bg-muted text-muted-foreground border-border" },
-  published: { label: "Published", className: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30" },
+  published: { label: "Published", className: "bg-success/10 text-success border-success/30" },
   archived: { label: "Archived", className: "bg-muted/50 text-muted-foreground/70 border-border/50" },
 };
 const DIFF_COLOR: Record<string, string> = {
-  beginner: "text-emerald-600", intermediate: "text-blue-600", advanced: "text-amber-600", expert: "text-destructive",
+  beginner: "text-emerald-600 dark:text-emerald-400", intermediate: "text-blue-600 dark:text-blue-400", advanced: "text-amber-600 dark:text-amber-400", expert: "text-destructive",
 };
 
 function KpiCard({ icon: Icon, label, value, tone }: { icon: React.ComponentType<{ className?: string }>; label: string; value: string | number; tone: string }) {
@@ -113,13 +113,13 @@ export default function MentorMockInterviewsPage() {
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-7">
         <KpiCard icon={ClipboardList} label="Templates" value={analytics?.totalTemplates ?? 0} tone="bg-primary/15 text-primary" />
-        <KpiCard icon={Rocket} label="Published" value={analytics?.publishedTemplates ?? 0} tone="bg-emerald-500/15 text-emerald-600" />
-        <KpiCard icon={Users} label="Assignments" value={analytics?.totalAssignments ?? 0} tone="bg-blue-500/15 text-blue-600" />
+        <KpiCard icon={Rocket} label="Published" value={analytics?.publishedTemplates ?? 0} tone="bg-success/10 text-success" />
+        <KpiCard icon={Users} label="Assignments" value={analytics?.totalAssignments ?? 0} tone="bg-info/10 text-info" />
         <KpiCard
           icon={Target}
           label="Completion Rate"
           value={`${analytics?.completionRate ?? 0}%`}
-          tone="bg-amber-500/15 text-amber-600"
+          tone="bg-warning/10 text-warning"
         />
       </div>
 
@@ -210,7 +210,7 @@ export default function MentorMockInterviewsPage() {
                   {t.stats && t.stats.total > 0 && (
                     <div className="mt-auto pt-2 border-t border-border/50 flex items-center justify-between text-xs">
                       <span className="text-muted-foreground flex items-center gap-1.5">
-                        <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" />
+                        <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
                         {t.stats.completed}/{t.stats.total} done
                       </span>
                       {t.stats.avgScore != null && (

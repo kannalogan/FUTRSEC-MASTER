@@ -71,7 +71,7 @@ export default function CampusTpoPage() {
                     <TableCell className="text-center">{r.registered}</TableCell>
                     <TableCell className="text-center">{r.attended}</TableCell>
                     <TableCell className="text-center">{r.shortlisted}</TableCell>
-                    <TableCell className="text-center text-emerald-600 font-medium">{r.selected}</TableCell>
+                    <TableCell className="text-center text-success font-medium">{r.selected}</TableCell>
                     <TableCell className="text-center text-muted-foreground">{r.rejected}</TableCell>
                     <TableCell className="text-right">
                       <Button size="sm" variant="outline" onClick={() => setViewDrive(r.drive)}>

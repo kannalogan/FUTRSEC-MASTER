@@ -64,12 +64,12 @@ export default function LabReportsPage() {
                         </div>
                       </div>
                       {reviewed ? (
-                        <Badge className="bg-emerald-50 text-emerald-600 border-emerald-200 text-[10px] shrink-0">
+                        <Badge className="bg-success/10 text-success border-success/30 text-[10px] shrink-0">
                           <CheckCircle2 className="h-3 w-3 mr-1" />
                           Reviewed
                         </Badge>
                       ) : (
-                        <Badge className="bg-orange-50 text-orange-600 border-orange-200 text-[10px] shrink-0">
+                        <Badge className="bg-warning/10 text-warning border-warning/30 text-[10px] shrink-0">
                           <Clock className="h-3 w-3 mr-1" />
                           Pending Review
                         </Badge>
@@ -81,7 +81,7 @@ export default function LabReportsPage() {
                     {reviewed && (
                       <div className="mt-3 rounded-lg bg-muted/50 p-3">
                         <div className="flex items-center gap-2 mb-1">
-                          <Award className="h-3.5 w-3.5 text-amber-500" />
+                          <Award className="h-3.5 w-3.5 text-warning" />
                           <span className="text-xs font-semibold text-foreground">
                             Grade: {r.grade ?? "—"}
                           </span>

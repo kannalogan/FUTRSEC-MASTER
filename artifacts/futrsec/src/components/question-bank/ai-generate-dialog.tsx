@@ -112,7 +112,7 @@ export function AIGenerateDialog({ open, onOpenChange, tracks }: Props) {
           </Button>
 
           {provider === "mock" && results.length > 0 && (
-            <p className="text-xs text-amber-600 bg-amber-500/10 border border-amber-500/20 rounded-lg p-2.5 font-medium">No AI provider configured — these are placeholders. Configure a provider for real generation.</p>
+            <p className="text-xs text-warning bg-warning/10 border border-warning/30 rounded-lg p-2.5 font-medium">No AI provider configured — these are placeholders. Configure a provider for real generation.</p>
           )}
 
           {results.length > 0 && (
@@ -126,7 +126,7 @@ export function AIGenerateDialog({ open, onOpenChange, tracks }: Props) {
                       {q.options.length > 0 && (
                         <ul className="mt-2 space-y-1">
                           {q.options.map((o, j) => (
-                            <li key={j} className={`text-xs flex items-center gap-1.5 ${o.isCorrect ? "text-emerald-600 font-medium" : "text-muted-foreground"}`}>
+                            <li key={j} className={`text-xs flex items-center gap-1.5 ${o.isCorrect ? "text-success font-medium" : "text-muted-foreground"}`}>
                               {o.isCorrect ? <Check className="h-3 w-3" /> : <span className="w-3" />} {o.optionText}
                             </li>
                           ))}

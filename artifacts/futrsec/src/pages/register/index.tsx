@@ -9,8 +9,8 @@ const ROLES = [
     title: "Student",
     subtitle: "Cybersecurity student or graduate",
     desc: "Register for learning, assessments, mentorship and job placements.",
-    color: "text-blue-600",
-    bg: "bg-blue-50 border-blue-200 hover:border-blue-400",
+    color: "text-blue-600 dark:text-blue-400",
+    bg: "bg-blue-500/10 border-blue-500/20 hover:border-blue-500/40",
     href: "/register/student",
   },
   {
@@ -19,8 +19,8 @@ const ROLES = [
     title: "Training & Placement Officer",
     subtitle: "College or Institution TPO",
     desc: "Manage student placements and track career outcomes for your institution.",
-    color: "text-purple-600",
-    bg: "bg-purple-50 border-purple-200 hover:border-purple-400",
+    color: "text-purple-600 dark:text-purple-400",
+    bg: "bg-purple-500/10 border-purple-500/20 hover:border-purple-500/40",
     href: "/register/tpo",
   },
   {
@@ -29,8 +29,8 @@ const ROLES = [
     title: "Hiring Company",
     subtitle: "Hire pre-assessed cybersecurity talent",
     desc: "Source verified candidates, manage interviews and hiring pipeline.",
-    color: "text-emerald-600",
-    bg: "bg-emerald-50 border-emerald-200 hover:border-emerald-400",
+    color: "text-emerald-600 dark:text-emerald-400",
+    bg: "bg-emerald-500/10 border-emerald-500/20 hover:border-emerald-500/40",
     href: "/register/employer",
   },
 ];
@@ -41,7 +41,9 @@ export default function RegisterIndex() {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <div className="flex items-center gap-2.5 px-6 py-5 border-b">
-        <Shield className="h-6 w-6 text-primary" />
+        <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-primary to-violet flex items-center justify-center glow-primary">
+          <Shield className="h-5 w-5 text-white" />
+        </div>
         <span className="font-heading font-bold text-xl tracking-tight">FUTRSEC</span>
       </div>
 
@@ -70,7 +72,7 @@ export default function RegisterIndex() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: i * 0.08 }}
                   onClick={() => setLocation(role.href)}
-                  className={`text-left p-6 rounded-xl border-2 transition-all duration-200 ${role.bg} focus:outline-none focus:ring-2 focus:ring-primary`}
+                  className={`hover-lift text-left p-6 rounded-xl border-2 transition-all duration-200 ${role.bg} focus:outline-none focus:ring-2 focus:ring-primary`}
                 >
                   <div className={`w-11 h-11 rounded-lg flex items-center justify-center mb-4 ${role.bg.split(" ")[0]}`}>
                     <Icon className={`h-6 w-6 ${role.color}`} />

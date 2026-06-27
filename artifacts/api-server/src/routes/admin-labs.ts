@@ -5,6 +5,7 @@ import { db } from "@workspace/db";
 import { labsTable, labModulesTable, tracksTable } from "@workspace/db";
 import { requireAuth, requireRole, type AuthRequest } from "../middlewares/auth";
 import { createAuditLog } from "../lib/audit";
+import { CommandSpecSchema, validateSpecRegexes, type CommandSpec } from "../lib/command-validator";
 
 const router = Router();
 
@@ -41,6 +42,8 @@ const updateLabSchema = z.object({
   dockerImage: z.string().max(200).nullable().optional(),
 });
 
+const VALIDATION_TYPES = ["flag", "command"] as const;
+
 const createLabModuleSchema = z.object({
   title: z.string().min(1).max(200),
   order: z.number().int().min(0),
@@ -48,6 +51,8 @@ const createLabModuleSchema = z.object({
   hint: z.string().max(5000).optional(),
   flag: z.string().max(500).optional(),
   flagFormat: z.string().max(200).optional(),
+  validationType: z.enum(VALIDATION_TYPES).optional(),
+  commandSpec: CommandSpecSchema.nullable().optional(),
   solutionExplanation: z.string().max(10000).optional(),
   points: z.number().int().min(0).max(100000).optional(),
 });
@@ -59,6 +64,8 @@ const updateLabModuleSchema = z.object({
   hint: z.string().max(5000).nullable().optional(),
   flag: z.string().max(500).nullable().optional(),
   flagFormat: z.string().max(200).nullable().optional(),
+  validationType: z.enum(VALIDATION_TYPES).optional(),
+  commandSpec: CommandSpecSchema.nullable().optional(),
   solutionExplanation: z.string().max(10000).nullable().optional(),
   points: z.number().int().min(0).max(100000).optional(),
 });
@@ -421,6 +428,15 @@ router.post(
       return;
     }
     const d = parsed.data;
+    const effectiveType = d.validationType ?? "flag";
+    if (effectiveType === "command") {
+      if (!d.commandSpec) {
+        res.status(400).json({ error: "A command-validated module requires a commandSpec." });
+        return;
+      }
+      const regexErr = validateSpecRegexes(d.commandSpec);
+      if (regexErr) { res.status(400).json({ error: regexErr }); return; }
+    }
     const [module] = await db
       .insert(labModulesTable)
       .values({
@@ -431,6 +447,8 @@ router.post(
         hint: d.hint,
         flag: d.flag,
         flagFormat: d.flagFormat,
+        validationType: effectiveType,
+        commandSpec: effectiveType === "command" ? (d.commandSpec ?? null) : null,
         solutionExplanation: d.solutionExplanation,
         points: d.points ?? 10,
       })
@@ -484,6 +502,27 @@ router.patch(
       return;
     }
     const d = parsed.data;
+
+    // Resolve the validation strategy after this patch; keep (type, spec) coherent.
+    // specToPersist === undefined means "leave the commandSpec column untouched".
+    const effectiveType = (d.validationType ?? existing.validationType) as "flag" | "command";
+    let specToPersist: CommandSpec | null | undefined = undefined;
+    if (effectiveType === "command") {
+      const rawSpec = d.commandSpec !== undefined ? d.commandSpec : existing.commandSpec;
+      const specParsed = CommandSpecSchema.safeParse(rawSpec);
+      if (!specParsed.success) {
+        res.status(400).json({ error: "A command-validated module requires a valid commandSpec." });
+        return;
+      }
+      const regexErr = validateSpecRegexes(specParsed.data);
+      if (regexErr) { res.status(400).json({ error: regexErr }); return; }
+      if (d.commandSpec !== undefined || d.validationType === "command") {
+        specToPersist = specParsed.data;
+      }
+    } else if (d.validationType === "flag") {
+      specToPersist = null;
+    }
+
     const [updated] = await db
       .update(labModulesTable)
       .set({
@@ -495,6 +534,8 @@ router.patch(
         ...(d.hint !== undefined ? { hint: d.hint } : {}),
         ...(d.flag !== undefined ? { flag: d.flag } : {}),
         ...(d.flagFormat !== undefined ? { flagFormat: d.flagFormat } : {}),
+        ...(d.validationType !== undefined ? { validationType: d.validationType } : {}),
+        ...(specToPersist !== undefined ? { commandSpec: specToPersist } : {}),
         ...(d.solutionExplanation !== undefined
           ? { solutionExplanation: d.solutionExplanation }
           : {}),

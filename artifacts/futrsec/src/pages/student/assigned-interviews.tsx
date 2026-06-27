@@ -20,8 +20,8 @@ import {
 
 const STATUS_BADGE: Record<string, string> = {
   assigned: "bg-muted text-muted-foreground border-border",
-  in_progress: "bg-blue-500/15 text-blue-700 dark:text-blue-400 border-blue-500/30",
-  completed: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30",
+  in_progress: "bg-info/10 text-info border-info/30",
+  completed: "bg-success/10 text-success border-success/30",
   expired: "bg-destructive/15 text-destructive border-destructive/30",
 };
 
@@ -135,7 +135,7 @@ export default function StudentAssignedInterviewsPage() {
                 <div className="mt-auto pt-2">
                   {a.status === "completed" ? (
                     <div className="flex items-center justify-between">
-                      <span className="text-sm text-muted-foreground flex items-center gap-1.5"><CheckCircle2 className="h-4 w-4 text-emerald-600" />Completed</span>
+                      <span className="text-sm text-muted-foreground flex items-center gap-1.5"><CheckCircle2 className="h-4 w-4 text-success" />Completed</span>
                       {a.score != null && <Badge variant="outline">{a.score}/100</Badge>}
                     </div>
                   ) : a.status === "in_progress" ? (
@@ -252,14 +252,14 @@ function ResultBanner({ result, onDismiss }: { result: FinishRes; onDismiss: () 
         <div className="grid sm:grid-cols-2 gap-4">
           {e.strengths.length > 0 && (
             <div>
-              <p className="text-sm font-semibold mb-1.5 flex items-center gap-1.5 text-emerald-600"><CheckCircle2 className="h-4 w-4" />Strengths</p>
-              <ul className="text-sm space-y-1 text-foreground/90">{e.strengths.map((s, i) => <li key={i} className="flex gap-2"><span className="text-emerald-600">•</span>{s}</li>)}</ul>
+              <p className="text-sm font-semibold mb-1.5 flex items-center gap-1.5 text-success"><CheckCircle2 className="h-4 w-4" />Strengths</p>
+              <ul className="text-sm space-y-1 text-foreground/90">{e.strengths.map((s, i) => <li key={i} className="flex gap-2"><span className="text-success">•</span>{s}</li>)}</ul>
             </div>
           )}
           {e.weaknesses.length > 0 && (
             <div>
-              <p className="text-sm font-semibold mb-1.5 flex items-center gap-1.5 text-amber-600"><AlertTriangle className="h-4 w-4" />Improve</p>
-              <ul className="text-sm space-y-1 text-foreground/90">{e.weaknesses.map((s, i) => <li key={i} className="flex gap-2"><span className="text-amber-600">•</span>{s}</li>)}</ul>
+              <p className="text-sm font-semibold mb-1.5 flex items-center gap-1.5 text-warning"><AlertTriangle className="h-4 w-4" />Improve</p>
+              <ul className="text-sm space-y-1 text-foreground/90">{e.weaknesses.map((s, i) => <li key={i} className="flex gap-2"><span className="text-warning">•</span>{s}</li>)}</ul>
             </div>
           )}
         </div>

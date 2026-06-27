@@ -33,7 +33,7 @@ export function RegexLab({ drill, onSolve }: { drill: RegexDrill; onSolve: () =>
           placeholder="type your regular expression…"
           spellCheck={false}
           autoCapitalize="off"
-          className={`font-mono text-sm ${!evalResult.ok ? "border-red-400 focus-visible:ring-red-400" : ""}`}
+          className={`font-mono text-sm ${!evalResult.ok ? "border-danger focus-visible:ring-danger" : ""}`}
         />
         <span className="font-mono text-muted-foreground text-sm">/{flags}</span>
         <div className="flex gap-1">
@@ -53,12 +53,12 @@ export function RegexLab({ drill, onSolve }: { drill: RegexDrill; onSolve: () =>
         </div>
       </div>
 
-      {!evalResult.ok && <p className="text-xs text-red-500 font-mono">{evalResult.error}</p>}
+      {!evalResult.ok && <p className="text-xs text-danger font-mono">{evalResult.error}</p>}
 
       <div className="rounded-lg border border-border/60 bg-muted/20 p-3 font-mono text-[13px] leading-relaxed whitespace-pre-wrap break-words">
         {segments.map((s, i) =>
           s.match ? (
-            <mark key={i} className="bg-amber-300/70 text-foreground rounded px-0.5">
+            <mark key={i} className="bg-warning/30 text-foreground rounded px-0.5">
               {s.text}
             </mark>
           ) : (
@@ -75,7 +75,7 @@ export function RegexLab({ drill, onSolve }: { drill: RegexDrill; onSolve: () =>
         </span>
         {pattern &&
           (correct ? (
-            <span className="flex items-center gap-1 text-emerald-600 font-medium">
+            <span className="flex items-center gap-1 text-success font-medium">
               <CheckCircle2 className="h-3.5 w-3.5" /> {drill.success}
             </span>
           ) : (

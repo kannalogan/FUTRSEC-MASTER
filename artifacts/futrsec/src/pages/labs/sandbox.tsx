@@ -90,7 +90,7 @@ export default function SandboxPage() {
         subtitle="Hands-on, in-browser drills — no setup, nothing to install. Solve them to level up."
         actions={
           <div className="flex items-center gap-2">
-            <Trophy className="h-4 w-4 text-amber-500" />
+            <Trophy className="h-4 w-4 text-warning" />
             <span className="text-sm font-medium text-foreground">
               {totalSolved}/{totalDrills} solved
             </span>
@@ -111,7 +111,7 @@ export default function SandboxPage() {
           const active = activeCat === cat.id;
           return (
             <button key={cat.id} onClick={() => selectCat(cat.id)} className="text-left">
-              <Card className={`transition-all h-full ${active ? "ring-2 ring-primary border-primary/40" : "border-border/60 hover:shadow-md"}`}>
+              <Card className={`transition-all h-full ${active ? "ring-2 ring-primary border-primary/40" : "border-border/60 hover-lift"}`}>
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between mb-2">
                     <div className="h-9 w-9 rounded-xl flex items-center justify-center" style={{ backgroundColor: `${cat.color}15` }}>
@@ -144,7 +144,7 @@ export default function SandboxPage() {
               >
                 <div className="flex items-center gap-2">
                   {isSolved ? (
-                    <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0" />
+                    <CheckCircle2 className="h-4 w-4 text-success shrink-0" />
                   ) : (
                     <div className="h-4 w-4 rounded-full border-2 border-muted-foreground/30 shrink-0" />
                   )}
@@ -170,7 +170,7 @@ export default function SandboxPage() {
                 <div className="flex items-start justify-between gap-3 mb-1">
                   <h2 className="text-lg font-semibold text-foreground">{activeDrill.title}</h2>
                   {solved.has(activeDrill.id) && (
-                    <Badge className="bg-emerald-50 text-emerald-600 border-emerald-200 shrink-0">
+                    <Badge className="bg-success/10 text-success border-success/30 shrink-0">
                       <CheckCircle2 className="h-3 w-3 mr-1" />Solved
                     </Badge>
                   )}
@@ -179,13 +179,13 @@ export default function SandboxPage() {
 
                 <button
                   onClick={() => setShowHint((v) => !v)}
-                  className="inline-flex items-center gap-1.5 text-xs text-amber-600 hover:text-amber-700 mb-4"
+                  className="inline-flex items-center gap-1.5 text-xs text-warning hover:text-warning/80 mb-4"
                 >
                   <Lightbulb className="h-3.5 w-3.5" />
                   {showHint ? "Hide hint" : "Show hint"}
                 </button>
                 {showHint && (
-                  <div className="mb-4 rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 text-xs text-amber-800 font-mono">
+                  <div className="mb-4 rounded-lg bg-warning/10 border border-warning/30 px-3 py-2 text-xs text-warning font-mono">
                     {activeDrill.hint}
                   </div>
                 )}

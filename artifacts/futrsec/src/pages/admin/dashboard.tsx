@@ -227,12 +227,12 @@ export default function AdminDashboardPage() {
                     <div className="text-2xl font-bold text-foreground">{charts.trialVsPremium.free}</div>
                     <div className="text-xs text-muted-foreground mt-1">Free</div>
                   </div>
-                  <div className="rounded-lg bg-amber-500/10 p-4 text-center">
-                    <div className="text-2xl font-bold text-amber-600">{charts.trialVsPremium.trial}</div>
+                  <div className="rounded-lg bg-warning/10 p-4 text-center">
+                    <div className="text-2xl font-bold text-warning">{charts.trialVsPremium.trial}</div>
                     <div className="text-xs text-muted-foreground mt-1">Trial</div>
                   </div>
-                  <div className="rounded-lg bg-emerald-500/10 p-4 text-center">
-                    <div className="text-2xl font-bold text-emerald-600">{charts.trialVsPremium.premium}</div>
+                  <div className="rounded-lg bg-success/10 p-4 text-center">
+                    <div className="text-2xl font-bold text-success">{charts.trialVsPremium.premium}</div>
                     <div className="text-xs text-muted-foreground mt-1">Premium</div>
                   </div>
                 </div>
@@ -245,16 +245,16 @@ export default function AdminDashboardPage() {
                   <Target className="h-4 w-4 text-primary" />Placement Funnel
                 </h3>
                 <div className="grid grid-cols-3 gap-3">
-                  <div className="rounded-lg bg-blue-500/10 p-4 text-center">
-                    <div className="text-2xl font-bold text-blue-600">{charts.placement.applied}</div>
+                  <div className="rounded-lg bg-info/10 p-4 text-center">
+                    <div className="text-2xl font-bold text-info">{charts.placement.applied}</div>
                     <div className="text-xs text-muted-foreground mt-1">Applied</div>
                   </div>
-                  <div className="rounded-lg bg-purple-500/10 p-4 text-center">
-                    <div className="text-2xl font-bold text-purple-600">{charts.placement.interviewing}</div>
+                  <div className="rounded-lg bg-violet/10 p-4 text-center">
+                    <div className="text-2xl font-bold text-violet">{charts.placement.interviewing}</div>
                     <div className="text-xs text-muted-foreground mt-1">Interviewing</div>
                   </div>
-                  <div className="rounded-lg bg-emerald-500/10 p-4 text-center">
-                    <div className="text-2xl font-bold text-emerald-600">{charts.placement.offers}</div>
+                  <div className="rounded-lg bg-success/10 p-4 text-center">
+                    <div className="text-2xl font-bold text-success">{charts.placement.offers}</div>
                     <div className="text-xs text-muted-foreground mt-1">Offers</div>
                   </div>
                 </div>

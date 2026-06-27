@@ -77,8 +77,8 @@ export default function ResumeAnalyzer() {
   return (
     <div className="p-5 lg:p-8 max-w-3xl mx-auto space-y-5">
       <div className="flex items-center gap-3">
-        <div className="h-10 w-10 rounded-xl bg-blue-100 flex items-center justify-center">
-          <FileSearch className="h-5 w-5 text-blue-600" />
+        <div className="h-10 w-10 rounded-xl bg-blue-500/10 flex items-center justify-center">
+          <FileSearch className="h-5 w-5 text-blue-600 dark:text-blue-400" />
         </div>
         <div>
           <h1 className="font-heading text-xl font-bold text-foreground">AI Resume Analyzer</h1>
@@ -155,9 +155,9 @@ export default function ResumeAnalyzer() {
         {result && (
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
             {result.note && (
-              <div className="flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3">
-                <AlertTriangle className="h-4 w-4 text-amber-600 mt-0.5 shrink-0" />
-                <p className="text-xs text-amber-800">{result.note}</p>
+              <div className="flex items-start gap-2 rounded-lg border border-warning/30 bg-warning/10 px-4 py-3">
+                <AlertTriangle className="h-4 w-4 text-warning mt-0.5 shrink-0" />
+                <p className="text-xs text-warning">{result.note}</p>
               </div>
             )}
             {/* Score card */}
@@ -205,28 +205,28 @@ export default function ResumeAnalyzer() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <Card className="bg-card border-border/60">
                 <CardHeader className="pt-4 pb-2 px-5">
-                  <CardTitle className="text-sm font-semibold flex items-center gap-2 text-green-700">
+                  <CardTitle className="text-sm font-semibold flex items-center gap-2 text-success">
                     <CheckCircle2 className="h-4 w-4" />Keywords Found ({result.keywordsFound.length})
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="px-5 pb-4">
                   <div className="flex flex-wrap gap-1.5">
                     {result.keywordsFound.map((k) => (
-                      <Badge key={k} className="text-xs bg-green-50 text-green-700 border-green-200">{k}</Badge>
+                      <Badge key={k} className="text-xs bg-success/10 text-success border border-success/30">{k}</Badge>
                     ))}
                   </div>
                 </CardContent>
               </Card>
               <Card className="bg-card border-border/60">
                 <CardHeader className="pt-4 pb-2 px-5">
-                  <CardTitle className="text-sm font-semibold flex items-center gap-2 text-red-600">
+                  <CardTitle className="text-sm font-semibold flex items-center gap-2 text-danger">
                     <XCircle className="h-4 w-4" />Missing Keywords ({result.keywordsMissing.length})
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="px-5 pb-4">
                   <div className="flex flex-wrap gap-1.5">
                     {result.keywordsMissing.map((k) => (
-                      <Badge key={k} variant="outline" className="text-xs border-red-200 text-red-600">{k}</Badge>
+                      <Badge key={k} variant="outline" className="text-xs border-danger/30 text-danger">{k}</Badge>
                     ))}
                   </div>
                 </CardContent>
@@ -237,14 +237,14 @@ export default function ResumeAnalyzer() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <Card className="bg-card border-border/60">
                 <CardHeader className="pt-4 pb-2 px-5">
-                  <CardTitle className="text-sm font-semibold flex items-center gap-2 text-green-700">
+                  <CardTitle className="text-sm font-semibold flex items-center gap-2 text-success">
                     <CheckCircle2 className="h-4 w-4" />Strengths
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="px-5 pb-4 space-y-2">
                   {result.strengths.map((s, i) => (
                     <div key={i} className="flex items-start gap-2">
-                      <CheckCircle2 className="h-3.5 w-3.5 text-green-500 mt-0.5 shrink-0" />
+                      <CheckCircle2 className="h-3.5 w-3.5 text-success mt-0.5 shrink-0" />
                       <p className="text-xs text-foreground/80">{s}</p>
                     </div>
                   ))}
@@ -252,14 +252,14 @@ export default function ResumeAnalyzer() {
               </Card>
               <Card className="bg-card border-border/60">
                 <CardHeader className="pt-4 pb-2 px-5">
-                  <CardTitle className="text-sm font-semibold flex items-center gap-2 text-orange-600">
+                  <CardTitle className="text-sm font-semibold flex items-center gap-2 text-orange-600 dark:text-orange-400">
                     <AlertTriangle className="h-4 w-4" />Improvements
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="px-5 pb-4 space-y-2">
                   {result.improvements.map((s, i) => (
                     <div key={i} className="flex items-start gap-2">
-                      <ArrowRight className="h-3.5 w-3.5 text-orange-500 mt-0.5 shrink-0" />
+                      <ArrowRight className="h-3.5 w-3.5 text-orange-500 dark:text-orange-400 mt-0.5 shrink-0" />
                       <p className="text-xs text-foreground/80">{s}</p>
                     </div>
                   ))}

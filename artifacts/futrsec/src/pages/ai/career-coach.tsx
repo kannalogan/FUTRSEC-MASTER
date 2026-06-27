@@ -48,8 +48,8 @@ export default function AICareerCoach() {
   return (
     <div className="p-5 lg:p-8 max-w-4xl mx-auto flex flex-col gap-5 h-full">
       <div className="flex items-center gap-3">
-        <div className="h-10 w-10 rounded-xl bg-purple-100 flex items-center justify-center">
-          <Brain className="h-5 w-5 text-purple-600" />
+        <div className="h-10 w-10 rounded-xl bg-purple-500/10 flex items-center justify-center">
+          <Brain className="h-5 w-5 text-purple-600 dark:text-purple-400" />
         </div>
         <div>
           <h1 className="font-heading text-xl font-bold text-foreground">AI Career Coach</h1>
@@ -104,8 +104,8 @@ function ChatPanel() {
           {messages.map((msg, i) => (
             <motion.div key={i} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
               className={`flex gap-3 ${msg.role === "user" ? "flex-row-reverse" : ""}`}>
-              <div className={`h-7 w-7 rounded-full flex items-center justify-center shrink-0 ${msg.role === "assistant" ? "bg-purple-100" : "bg-primary/10"}`}>
-                {msg.role === "assistant" ? <Bot className="h-3.5 w-3.5 text-purple-600" /> : <User className="h-3.5 w-3.5 text-primary" />}
+              <div className={`h-7 w-7 rounded-full flex items-center justify-center shrink-0 ${msg.role === "assistant" ? "bg-purple-500/10" : "bg-primary/10"}`}>
+                {msg.role === "assistant" ? <Bot className="h-3.5 w-3.5 text-purple-600 dark:text-purple-400" /> : <User className="h-3.5 w-3.5 text-primary" />}
               </div>
               <div className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm leading-relaxed whitespace-pre-wrap ${msg.role === "assistant" ? "bg-muted/40 text-foreground rounded-tl-sm" : "bg-primary text-white rounded-tr-sm"}`}>
                 {msg.content.replace(/\*\*(.*?)\*\*/g, "$1")}
@@ -114,8 +114,8 @@ function ChatPanel() {
           ))}
           {chat.isPending && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex gap-3">
-              <div className="h-7 w-7 rounded-full bg-purple-100 flex items-center justify-center shrink-0">
-                <Bot className="h-3.5 w-3.5 text-purple-600" />
+              <div className="h-7 w-7 rounded-full bg-purple-500/10 flex items-center justify-center shrink-0">
+                <Bot className="h-3.5 w-3.5 text-purple-600 dark:text-purple-400" />
               </div>
               <div className="bg-muted/40 rounded-2xl rounded-tl-sm px-4 py-3">
                 <div className="flex gap-1">
@@ -160,7 +160,7 @@ function ReportPanel() {
 
   if (isLoading) return <CenterLoader label="Building your career report…" />;
   if (isError) return (
-    <Card className="bg-red-50 border-red-200"><CardContent className="py-4 text-sm text-red-700">
+    <Card className="bg-danger/10 border-danger/30"><CardContent className="py-4 text-sm text-danger">
       Failed to load report: {(error as Error).message}
       <Button size="sm" variant="outline" className="ml-3" onClick={() => refetch()}>Retry</Button>
     </CardContent></Card>
@@ -200,8 +200,8 @@ function ReportPanel() {
     <div className="space-y-4">
       <div className="flex items-center justify-between gap-2 flex-wrap">
         <div className="flex items-center gap-2">
-          {data.context?.trackName && <Badge className="bg-purple-100 text-purple-700 border-purple-200">{data.context.trackName}</Badge>}
-          <Badge variant="outline" className={`text-[10px] ${data.provider !== "mock" ? "border-emerald-200 text-emerald-700 bg-emerald-50" : "border-amber-200 text-amber-700 bg-amber-50"}`}>
+          {data.context?.trackName && <Badge className="bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20">{data.context.trackName}</Badge>}
+          <Badge variant="outline" className={`text-[10px] ${data.provider !== "mock" ? "bg-success/10 text-success border-success/30" : "bg-warning/10 text-warning border-warning/30"}`}>
             <Sparkles className="h-3 w-3 mr-1" />{data.provider !== "mock" ? `Live AI · ${data.provider}` : "Offline model"}
           </Badge>
         </div>
@@ -214,10 +214,10 @@ function ReportPanel() {
       </div>
 
       <Card className="bg-card border-border/60">
-        <CardHeader className="pb-2"><CardTitle className="text-sm flex items-center gap-2"><Target className="h-4 w-4 text-purple-600" />Placement Readiness</CardTitle></CardHeader>
+        <CardHeader className="pb-2"><CardTitle className="text-sm flex items-center gap-2"><Target className="h-4 w-4 text-purple-600 dark:text-purple-400" />Placement Readiness</CardTitle></CardHeader>
         <CardContent className="space-y-3">
           <div className="flex items-end gap-3">
-            <span className="text-4xl font-bold text-purple-700">{data.placementReadiness.score}</span>
+            <span className="text-4xl font-bold text-purple-600 dark:text-purple-400">{data.placementReadiness.score}</span>
             <span className="text-sm text-muted-foreground mb-1">/100 · {data.placementReadiness.level}</span>
           </div>
           <Progress value={data.placementReadiness.score} className="h-2" />
@@ -235,15 +235,15 @@ function ReportPanel() {
       </Card>
 
       <Card className="bg-card border-border/60">
-        <CardHeader className="pb-2"><CardTitle className="text-sm flex items-center gap-2"><Map className="h-4 w-4 text-blue-600" />Learning Roadmap</CardTitle></CardHeader>
+        <CardHeader className="pb-2"><CardTitle className="text-sm flex items-center gap-2"><Map className="h-4 w-4 text-blue-600 dark:text-blue-400" />Learning Roadmap</CardTitle></CardHeader>
         <CardContent className="space-y-3">
           {data.roadmap.map((r) => (
             <div key={r.phase} className="flex gap-3">
-              <div className="h-7 w-7 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-xs font-bold shrink-0">{r.phase}</div>
+              <div className="h-7 w-7 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center text-xs font-bold shrink-0">{r.phase}</div>
               <div>
                 <div className="text-sm font-medium">{r.title} <span className="text-xs text-muted-foreground font-normal">· {r.durationWeeks} weeks</span></div>
                 <div className="flex flex-wrap gap-1.5 mt-1">
-                  {r.focus.map((f) => <span key={f} className="text-[11px] bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full">{f}</span>)}
+                  {r.focus.map((f) => <span key={f} className="text-[11px] bg-blue-500/10 text-blue-600 dark:text-blue-400 px-2 py-0.5 rounded-full">{f}</span>)}
                 </div>
               </div>
             </div>
@@ -253,7 +253,7 @@ function ReportPanel() {
 
       <div className="grid sm:grid-cols-2 gap-4">
         <Card className="bg-card border-border/60">
-          <CardHeader className="pb-2"><CardTitle className="text-sm flex items-center gap-2"><Award className="h-4 w-4 text-amber-600" />Certifications</CardTitle></CardHeader>
+          <CardHeader className="pb-2"><CardTitle className="text-sm flex items-center gap-2"><Award className="h-4 w-4 text-warning" />Certifications</CardTitle></CardHeader>
           <CardContent className="space-y-2.5">
             {data.certifications.map((c) => (
               <div key={c.name} className="border-b border-border/40 pb-2 last:border-0 last:pb-0">
@@ -265,7 +265,7 @@ function ReportPanel() {
         </Card>
 
         <Card className="bg-card border-border/60">
-          <CardHeader className="pb-2"><CardTitle className="text-sm flex items-center gap-2"><Building2 className="h-4 w-4 text-emerald-600" />Target Companies</CardTitle></CardHeader>
+          <CardHeader className="pb-2"><CardTitle className="text-sm flex items-center gap-2"><Building2 className="h-4 w-4 text-success" />Target Companies</CardTitle></CardHeader>
           <CardContent className="space-y-2.5">
             {data.targetCompanies.map((c) => (
               <div key={c.name} className="border-b border-border/40 pb-2 last:border-0 last:pb-0">
@@ -278,13 +278,13 @@ function ReportPanel() {
       </div>
 
       <Card className="bg-card border-border/60">
-        <CardHeader className="pb-2"><CardTitle className="text-sm flex items-center gap-2"><TrendingUp className="h-4 w-4 text-cyan-600" />Expected Salary <span className="text-xs text-muted-foreground font-normal">({sal.currency})</span></CardTitle></CardHeader>
+        <CardHeader className="pb-2"><CardTitle className="text-sm flex items-center gap-2"><TrendingUp className="h-4 w-4 text-cyan-600 dark:text-cyan-400" />Expected Salary <span className="text-xs text-muted-foreground font-normal">({sal.currency})</span></CardTitle></CardHeader>
         <CardContent>
           <div className="grid grid-cols-3 gap-3">
             {[["Fresher", sal.fresher], ["Mid", sal.mid], ["Senior", sal.senior]].map(([label, r]: any) => (
               <div key={label} className="rounded-lg border border-border/60 p-3 text-center">
                 <div className="text-[10px] uppercase tracking-wide text-muted-foreground">{label}</div>
-                <div className="text-lg font-bold text-cyan-700">{r.min}–{r.max}</div>
+                <div className="text-lg font-bold text-cyan-600 dark:text-cyan-400">{r.min}–{r.max}</div>
               </div>
             ))}
           </div>
@@ -298,7 +298,7 @@ function ReportPanel() {
 function CenterLoader({ label }: { label: string }) {
   return (
     <div className="flex flex-col items-center justify-center py-16 gap-3 text-muted-foreground">
-      <Loader2 className="h-6 w-6 animate-spin text-purple-600" />
+      <Loader2 className="h-6 w-6 animate-spin text-purple-600 dark:text-purple-400" />
       <p className="text-sm">{label}</p>
     </div>
   );

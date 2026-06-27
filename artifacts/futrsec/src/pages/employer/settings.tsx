@@ -52,7 +52,7 @@ export default function EmployerSettingsPage() {
             </div>
           </div>
           {p.approvalStatus === "rejected" && p.rejectionReason && (
-            <div className="rounded-lg bg-red-500/10 p-3 text-sm text-red-700 dark:text-red-400">
+            <div className="rounded-lg bg-danger/10 border border-danger/30 p-3 text-sm text-danger">
               <strong>Rejection reason:</strong> {p.rejectionReason}
             </div>
           )}

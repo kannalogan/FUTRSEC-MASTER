@@ -50,6 +50,15 @@ export const labModulesTable = pgTable("lab_modules", {
   hint: text("hint"),
   flagFormat: text("flag_format"),
   flag: text("flag"),
+  // Validation strategy for the module. "flag" = normalized exact-match (legacy,
+  // default). "command" = objective-based parsing of a submitted shell command
+  // against `commandSpec` (tool / args / intent), so there's no single exact
+  // string answer. Backward compatible: existing rows default to "flag".
+  validationType: text("validation_type").notNull().default("flag"),
+  // Objective specification used when validationType === "command". JSONB blob
+  // matching CommandSpec (tool, requiredFlags, forbiddenFlags, requiredArgs,
+  // intentKeywords). Server-only — never sent to students (it encodes the answer).
+  commandSpec: jsonb("command_spec"),
   solutionExplanation: text("solution_explanation"),
   walkthrough: text("walkthrough"),
   points: integer("points").notNull().default(10),

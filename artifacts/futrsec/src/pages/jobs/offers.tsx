@@ -39,7 +39,7 @@ export default function OffersPage() {
         icon={Gift}
         title="Offer Tracker"
         subtitle="Manage and compare your job offers"
-        actions={data && data.length > 0 ? <Badge className="bg-emerald-50 text-emerald-600 border-emerald-200">{data.length} offers</Badge> : undefined}
+        actions={data && data.length > 0 ? <Badge className="bg-success/10 text-success border border-success/30">{data.length} offers</Badge> : undefined}
       />
 
       {isLoading ? (
@@ -67,8 +67,8 @@ export default function OffersPage() {
                   <CardContent className="p-5">
                     <div className="flex items-start justify-between gap-3 mb-3">
                       <div className="flex items-center gap-2">
-                        <div className="h-10 w-10 rounded-xl bg-emerald-50 flex items-center justify-center shrink-0">
-                          <Building className="h-5 w-5 text-emerald-500" />
+                        <div className="h-10 w-10 rounded-xl bg-success/10 flex items-center justify-center shrink-0">
+                          <Building className="h-5 w-5 text-success" />
                         </div>
                         <div>
                           <h3 className="font-semibold text-sm text-foreground">{offer.jobTitle ?? `Job #${offer.jobId}`}</h3>

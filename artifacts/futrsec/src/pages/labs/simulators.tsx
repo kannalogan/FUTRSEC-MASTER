@@ -29,7 +29,7 @@ export function SiemSimulator({ sim }: { sim: Sim }) {
     <div className="flex flex-col h-full">
       <div className="px-4 py-3 border-b border-border/60 bg-muted/30">
         <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
-          <Search className="h-4 w-4 text-orange-500" />
+          <Search className="h-4 w-4 text-orange-500 dark:text-orange-400" />
           {sim.title ?? "SIEM"}
         </div>
         {sim.description && <p className="text-xs text-muted-foreground mt-1">{sim.description}</p>}
@@ -66,7 +66,7 @@ export function SiemSimulator({ sim }: { sim: Sim }) {
                         {row[f]}
                       </span>
                     ) : (
-                      <span className={f === "eventId" ? "text-orange-600 font-semibold" : ""}>{row[f]}</span>
+                      <span className={f === "eventId" ? "text-orange-600 dark:text-orange-400 font-semibold" : ""}>{row[f]}</span>
                     )}
                   </td>
                 ))}
@@ -174,7 +174,7 @@ export function GrcSimulator({ sim }: { sim: Sim }) {
     <div className="flex flex-col h-full">
       <div className="px-4 py-3 border-b border-border/60 bg-muted/30">
         <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
-          <FileText className="h-4 w-4 text-orange-500" />
+          <FileText className="h-4 w-4 text-orange-500 dark:text-orange-400" />
           {sim.title ?? "Workpapers"}
         </div>
         {sim.description && <p className="text-xs text-muted-foreground mt-1">{sim.description}</p>}

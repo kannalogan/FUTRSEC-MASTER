@@ -17,8 +17,8 @@ import { Megaphone, Plus, Send, Archive, Clock, Users } from "lucide-react";
 import { motion } from "framer-motion";
 
 const STATUS_STYLE: Record<string, string> = {
-  published: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30",
-  draft: "bg-amber-500/15 text-amber-700 dark:text-amber-400 border-amber-500/30",
+  published: "bg-success/10 text-success border border-success/30",
+  draft: "bg-warning/10 text-warning border border-warning/30",
   archived: "bg-muted/50 text-muted-foreground border-border/50",
 };
 

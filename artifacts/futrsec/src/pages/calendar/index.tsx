@@ -44,7 +44,7 @@ export default function CalendarPage() {
     <div className="p-6 max-w-5xl mx-auto">
       <PageHeader title="Calendar" subtitle="Track deadlines, interviews, and milestones" icon={CalendarIcon} />
 
-      <div className="bg-card border border-border/60 rounded-xl shadow-sm overflow-hidden mb-6">
+      <div className="bg-card border border-border/60 rounded-xl elevation-1 overflow-hidden mb-6">
         <div className="flex items-center justify-between px-6 py-4 border-b">
           <h2 className="font-semibold text-foreground">{monthName}</h2>
           <div className="flex items-center gap-2">

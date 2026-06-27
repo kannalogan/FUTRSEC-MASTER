@@ -110,7 +110,9 @@ export default function VerifyOTP() {
         <button onClick={() => setLocation(flow === "register" ? "/register" : "/login")} className="text-muted-foreground hover:text-foreground transition-colors">
           <ArrowLeft className="h-4 w-4" />
         </button>
-        <Shield className="h-6 w-6 text-primary" />
+        <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-primary to-violet flex items-center justify-center glow-primary">
+          <Shield className="h-5 w-5 text-white" />
+        </div>
         <span className="font-heading font-bold text-xl tracking-tight">FUTRSEC</span>
       </div>
 
@@ -125,7 +127,7 @@ export default function VerifyOTP() {
           <p className="font-semibold text-sm mb-6 truncate">{email}</p>
 
           {devOtp && (
-            <div className="mb-5 text-xs bg-yellow-50 border border-yellow-200 text-yellow-800 rounded-lg px-3 py-2">
+            <div className="mb-5 text-xs bg-warning/10 border border-warning/30 text-warning rounded-lg px-3 py-2">
               Dev mode — OTP auto-filled from response
             </div>
           )}
@@ -150,7 +152,7 @@ export default function VerifyOTP() {
             <p className="text-sm text-destructive bg-destructive/10 rounded-lg px-3 py-2 mb-4">{error}</p>
           )}
           {resendOk && (
-            <p className="text-sm text-green-700 bg-green-50 rounded-lg px-3 py-2 mb-4 flex items-center justify-center gap-2">
+            <p className="text-sm text-success bg-success/10 border border-success/30 rounded-lg px-3 py-2 mb-4 flex items-center justify-center gap-2">
               <CheckCircle2 className="h-4 w-4" /> New OTP sent to your email
             </p>
           )}

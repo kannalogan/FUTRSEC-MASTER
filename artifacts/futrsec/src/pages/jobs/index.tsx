@@ -30,7 +30,7 @@ function JobCard({ job, onSelect }: { job: any; onSelect: (job: any) => void }) 
   return (
     <motion.div whileHover={{ y: -1 }} transition={{ duration: 0.15 }}>
       <Card
-        className={`bg-card border-border/60 hover:shadow-md transition-all cursor-pointer ${job.applied ? "border-l-2 border-l-green-400" : ""}`}
+        className={`bg-card border-border/60 transition-all cursor-pointer ${job.applied ? "border-l-2 border-l-success" : ""}`}
         onClick={() => onSelect(job)}
       >
         <CardContent className="p-4">
@@ -46,7 +46,7 @@ function JobCard({ job, onSelect }: { job: any; onSelect: (job: any) => void }) 
                 </p>
               </div>
             </div>
-            {job.applied && <CheckCircle2 className="h-4 w-4 text-green-500 shrink-0 mt-0.5" />}
+            {job.applied && <CheckCircle2 className="h-4 w-4 text-success shrink-0 mt-0.5" />}
           </div>
 
           <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-3 text-xs text-muted-foreground">
@@ -90,7 +90,7 @@ function JobCard({ job, onSelect }: { job: any; onSelect: (job: any) => void }) 
                 <Send className="h-3 w-3" />Apply
               </Button>
             ) : (
-              <span className="text-xs text-green-600 font-medium flex items-center gap-1">
+              <span className="text-xs text-success font-medium flex items-center gap-1">
                 <CheckCircle2 className="h-3.5 w-3.5" />Applied
               </span>
             )}
@@ -136,7 +136,7 @@ function JobDetailDialog({ job, onClose }: { job: any | null; onClose: () => voi
             <p className="font-medium text-foreground">{job.employer?.name ?? "Company"}</p>
             <div className="flex flex-wrap gap-2 mt-2 text-sm text-muted-foreground">
               {job.location && <span className="flex items-center gap-1"><MapPin className="h-4 w-4" />{job.location}</span>}
-              {job.isRemote && <span className="flex items-center gap-1 text-green-600"><Wifi className="h-4 w-4" />Remote OK</span>}
+              {job.isRemote && <span className="flex items-center gap-1 text-success"><Wifi className="h-4 w-4" />Remote OK</span>}
               {salRange && <span className="flex items-center gap-1 font-medium text-foreground"><DollarSign className="h-4 w-4" />{salRange} p.a.</span>}
               {job.experience && <span className="flex items-center gap-1"><Clock className="h-4 w-4" />{job.experience}</span>}
             </div>
@@ -162,7 +162,7 @@ function JobDetailDialog({ job, onClose }: { job: any | null; onClose: () => voi
                 {applyMutation.isPending ? "Applying..." : "Apply Now"}
               </Button>
             ) : (
-              <Button variant="outline" className="flex-1 text-green-600 border-green-200 cursor-default">
+              <Button variant="outline" className="flex-1 text-success border-success/30 cursor-default">
                 <CheckCircle2 className="h-4 w-4 mr-1" />Applied
               </Button>
             )}

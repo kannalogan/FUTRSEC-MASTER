@@ -15,17 +15,17 @@ import {
   CreditCard, Receipt, Bell, Lock, Settings, HelpCircle, HeadphonesIcon,
   ChevronDown, ChevronRight, LogOut, X,
   Gauge, Layers, BarChart3, AlertTriangle, Megaphone, ListChecks, UserCog,
-  ShieldCheck, CalendarCheck, LifeBuoy, Ticket, HardDrive
+  ShieldCheck, CalendarCheck, LifeBuoy, Ticket, HardDrive, Footprints
 } from "lucide-react";
 
-type NavItem = {
+export type NavItem = {
   label: string;
   href: string;
   icon: React.ComponentType<{ className?: string }>;
   badge?: string;
 };
 
-type NavSection = {
+export type NavSection = {
   title: string;
   items: NavItem[];
 };
@@ -39,6 +39,7 @@ const NAV_SECTIONS: NavSection[] = [
       { label: "My Courses", href: "/learning/courses", icon: GraduationCap },
       { label: "Calendar", href: "/calendar", icon: Calendar },
       { label: "Roadmap", href: "/roadmap", icon: Map },
+      { label: "My Journey", href: "/student/journey", icon: Footprints },
       { label: "Bookmarks", href: "/bookmarks", icon: Bookmark },
       { label: "Community", href: "/community", icon: Users },
     ],
@@ -139,6 +140,7 @@ const MENTOR_NAV: NavSection[] = [
       { label: "At-Risk Students", href: "/mentor/at-risk", icon: AlertTriangle },
       { label: "Broadcast Notes", href: "/mentor/broadcasts", icon: Megaphone },
       { label: "Task Builder", href: "/mentor/tasks", icon: ListChecks },
+      { label: "Journey Builder", href: "/mentor/journeys", icon: Footprints },
       { label: "Question Bank", href: "/mentor/question-bank", icon: Library },
       { label: "Mock Interviews", href: "/mentor/mock-interviews", icon: Mic2 },
       { label: "Lab Builder", href: "/mentor/lab-builder", icon: FlaskConical },
@@ -209,6 +211,7 @@ const ADMIN_NAV: NavSection[] = [
     title: "LEARNING",
     items: [
       { label: "Tracks", href: "/admin/tracks", icon: Layers },
+      { label: "Journeys", href: "/admin/journeys", icon: Footprints },
       { label: "Courses", href: "/admin/courses", icon: BookOpen },
       { label: "Labs", href: "/admin/labs", icon: FlaskConical },
       { label: "Assessments", href: "/admin/assessments", icon: ClipboardCheck },
@@ -252,7 +255,7 @@ const ADMIN_NAV: NavSection[] = [
 
 export type Role = "admin" | "mentor" | "tpo" | "employer" | "student";
 
-function navForRole(role: string | null | undefined): NavSection[] {
+export function navForRole(role: string | null | undefined): NavSection[] {
   switch (role) {
     case "admin": return ADMIN_NAV;
     case "mentor": return MENTOR_NAV;

@@ -359,7 +359,7 @@ function IssuedTab() {
                           c.status === "revoked"
                             ? "bg-destructive/15 text-destructive border-destructive/30"
                             : c.status === "expired"
-                              ? "bg-amber-500/15 text-amber-600 border-amber-500/30 gap-1"
+                              ? "bg-warning/10 text-warning border border-warning/30 gap-1"
                               : ""
                         }
                       >
@@ -489,7 +489,7 @@ function VerifyPanel() {
 
         {result && (
           result.valid && result.certificate ? (
-            <div className="flex items-start gap-2 rounded-lg bg-emerald-500/10 p-3 text-sm text-emerald-700 dark:text-emerald-400">
+            <div className="flex items-start gap-2 rounded-lg bg-success/10 border border-success/30 p-3 text-sm text-success">
               <ShieldCheck className="h-4 w-4 mt-0.5 shrink-0" />
               <div>
                 <p className="font-medium">Valid — {result.certificate.code}</p>
@@ -616,7 +616,7 @@ function IssueDialog({
 
         {issued ? (
           <div className="space-y-4 py-2">
-            <div className="flex items-start gap-2 rounded-lg bg-emerald-500/10 p-4 text-sm text-emerald-700 dark:text-emerald-400">
+            <div className="flex items-start gap-2 rounded-lg bg-success/10 border border-success/30 p-4 text-sm text-success">
               <ShieldCheck className="h-4 w-4 mt-0.5 shrink-0" />
               <div>
                 <p className="font-medium">Certificate issued</p>
@@ -1006,9 +1006,9 @@ function AnalyticsTab() {
   ];
 
   const statusColor: Record<string, string> = {
-    issued: "bg-emerald-500/15 text-emerald-600 border-emerald-500/30",
+    issued: "bg-success/10 text-success border border-success/30",
     revoked: "bg-destructive/15 text-destructive border-destructive/30",
-    expired: "bg-amber-500/15 text-amber-600 border-amber-500/30",
+    expired: "bg-warning/10 text-warning border border-warning/30",
   };
 
   return (
@@ -1219,9 +1219,9 @@ function fmtEta(s: number | null | undefined): string {
 
 const JOB_STATUS_STYLE: Record<string, string> = {
   queued: "bg-muted text-muted-foreground",
-  running: "bg-blue-500/15 text-blue-600 border-blue-500/30",
-  paused: "bg-amber-500/15 text-amber-600 border-amber-500/30",
-  completed: "bg-emerald-500/15 text-emerald-600 border-emerald-500/30",
+  running: "bg-info/10 text-info border border-info/30",
+  paused: "bg-warning/10 text-warning border border-warning/30",
+  completed: "bg-success/10 text-success border border-success/30",
   failed: "bg-destructive/15 text-destructive border-destructive/30",
   cancelled: "bg-muted text-muted-foreground",
 };
@@ -1389,7 +1389,7 @@ function WorkerFleetPanel() {
                   !w.alive
                     ? "opacity-50 border-destructive/30"
                     : w.status === "busy"
-                      ? "border-blue-500/30 bg-blue-500/5"
+                      ? "border-info/30 bg-info/5"
                       : ""
                 }`}
                 title={w.workerId}
@@ -1399,8 +1399,8 @@ function WorkerFleetPanel() {
                     !w.alive
                       ? "bg-destructive"
                       : w.status === "busy"
-                        ? "bg-blue-500 animate-pulse"
-                        : "bg-emerald-500"
+                        ? "bg-info animate-pulse"
+                        : "bg-success"
                   }`}
                 />
                 <span className="font-mono">
@@ -1591,7 +1591,7 @@ function BulkJobsTab() {
           variant="outline"
           className={
             wsConnected
-              ? "bg-emerald-500/15 text-emerald-600 border-emerald-500/30 gap-1"
+              ? "bg-success/10 text-success border border-success/30 gap-1"
               : "bg-muted text-muted-foreground gap-1"
           }
         >
@@ -1767,6 +1767,7 @@ const SOURCE_TYPES = [
   { value: "learning_path", label: "Learning Path" },
   { value: "lab_series", label: "Lab Series" },
   { value: "career_roadmap", label: "Career Roadmap" },
+  { value: "journey", label: "Journey" },
   { value: "internship", label: "Internship" },
 ] as const;
 function sourceTypeLabel(t: string): string {

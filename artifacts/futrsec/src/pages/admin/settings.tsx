@@ -231,7 +231,7 @@ export default function AdminSettingsPage() {
                           {s.key}
                         </span>
                         {s.configured ? (
-                          <Badge className="bg-emerald-50 text-emerald-600 border-emerald-200">Configured</Badge>
+                          <Badge className="bg-success/10 text-success border border-success/30">Configured</Badge>
                         ) : (
                           <Badge variant="outline" className="text-muted-foreground">Not set</Badge>
                         )}

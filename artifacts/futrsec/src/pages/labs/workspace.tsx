@@ -23,24 +23,41 @@ function fmtTime(s: number) {
   return `${m}:${sec.toString().padStart(2, "0")}`;
 }
 
+function describeFailures(failures?: string[]): string {
+  if (!failures || failures.length === 0) return "Adjust your command and try again.";
+  return failures.join(" ");
+}
+
 function ModuleCard({
   mod, index, labId, onSolved,
 }: { mod: any; index: number; labId: number; onSolved: () => void }) {
   const { toast } = useToast();
+  const isCommand = mod.validationType === "command" || mod.hasCommandSpec;
   const [flag, setFlag] = useState("");
+  const [failures, setFailures] = useState<string[] | null>(null);
   const [hint, setHint] = useState<string | null>(mod.hint ?? null);
   const [showHint, setShowHint] = useState(false);
 
   const submit = useMutation({
-    mutationFn: (f: string) =>
-      apiFetch<any>(`/api/labs/${labId}/modules/${mod.id}/flag`, {
-        method: "POST", body: JSON.stringify({ flag: f }),
-      }),
+    mutationFn: (value: string) =>
+      apiFetch<any>(
+        isCommand
+          ? `/api/labs/${labId}/modules/${mod.id}/command`
+          : `/api/labs/${labId}/modules/${mod.id}/flag`,
+        {
+          method: "POST",
+          body: JSON.stringify(isCommand ? { command: value } : { flag: value }),
+        },
+      ),
     onSuccess: (res) => {
       if (res.correct) {
-        toast({ title: `+${res.pointsAwarded ?? 0} points`, description: "Correct flag — task solved!" });
+        setFailures(null);
+        toast({ title: `+${res.pointsAwarded ?? 0} points`, description: isCommand ? "Command accepted — task solved!" : "Correct flag — task solved!" });
         setFlag("");
         onSolved();
+      } else if (isCommand) {
+        setFailures(res.failures ?? []);
+        toast({ title: "Not quite", description: describeFailures(res.failures), variant: "destructive" });
       } else {
         toast({ title: "Incorrect", description: res.message ?? "Try again.", variant: "destructive" });
       }
@@ -57,10 +74,10 @@ function ModuleCard({
   const solved = mod.solved;
 
   return (
-    <div className={`rounded-xl border p-3.5 ${solved ? "border-green-200 bg-green-50/50" : "border-border/60 bg-card"}`}>
+    <div className={`rounded-xl border p-3.5 ${solved ? "border-success/30 bg-success/10" : "border-border/60 bg-card"}`}>
       <div className="flex items-start gap-2.5">
         <div className={`h-6 w-6 rounded-full flex items-center justify-center shrink-0 text-xs font-bold ${
-          solved ? "bg-green-500 text-white" : "bg-primary/10 text-primary"
+          solved ? "bg-success text-white" : "bg-primary/10 text-primary"
         }`}>
           {solved ? <CheckCircle2 className="h-4 w-4" /> : index + 1}
         </div>
@@ -72,17 +89,18 @@ function ModuleCard({
           <p className="text-xs text-muted-foreground mt-1">{mod.taskDescription}</p>
 
           {solved ? (
-            <div className="mt-2 text-xs text-green-700 bg-green-100/60 rounded-lg px-2.5 py-2">
+            <div className="mt-2 text-xs text-success bg-success/10 rounded-lg px-2.5 py-2">
               <span className="font-semibold">Solved.</span> {mod.solutionExplanation}
             </div>
           ) : (
             <div className="mt-2.5 space-y-2">
               <div className="flex gap-1.5">
+                {isCommand && <span className="flex items-center text-xs font-mono text-muted-foreground select-none">$</span>}
                 <Input
                   value={flag}
-                  onChange={(e) => setFlag(e.target.value)}
+                  onChange={(e) => { setFlag(e.target.value); if (failures) setFailures(null); }}
                   onKeyDown={(e) => { if (e.key === "Enter" && flag.trim()) submit.mutate(flag); }}
-                  placeholder="Enter flag / answer…"
+                  placeholder={isCommand ? "Type the command that completes this task…" : "Enter flag / answer…"}
                   className="h-8 text-xs font-mono"
                 />
                 <Button
@@ -90,14 +108,24 @@ function ModuleCard({
                   disabled={!flag.trim() || submit.isPending}
                   onClick={() => submit.mutate(flag)}
                 >
-                  {submit.isPending ? <Loader2 className="h-3 w-3 animate-spin" /> : <Flag className="h-3 w-3" />}
-                  Submit
+                  {submit.isPending ? <Loader2 className="h-3 w-3 animate-spin" /> : isCommand ? <Target className="h-3 w-3" /> : <Flag className="h-3 w-3" />}
+                  {isCommand ? "Run" : "Submit"}
                 </Button>
               </div>
+              {isCommand && failures && failures.length > 0 && (
+                <ul className="space-y-1 rounded-lg bg-destructive/10 px-2.5 py-2">
+                  {failures.map((f, i) => (
+                    <li key={i} className="flex items-start gap-1.5 text-[11px] text-destructive">
+                      <AlertCircle className="h-3 w-3 mt-px shrink-0" />
+                      <span>{f}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
               <div className="flex items-center gap-2">
                 <Button
                   size="sm" variant="ghost"
-                  className="h-7 text-[11px] gap-1 text-amber-600 hover:text-amber-700 hover:bg-amber-50 px-2"
+                  className="h-7 text-[11px] gap-1 text-warning hover:text-warning/80 hover:bg-warning/10 px-2"
                   onClick={() => (hint ? setShowHint((s) => !s) : hintMut.mutate())}
                   disabled={hintMut.isPending}
                 >
@@ -106,7 +134,7 @@ function ModuleCard({
                 </Button>
               </div>
               {showHint && hint && (
-                <p className="text-[11px] text-amber-700 bg-amber-50 rounded-lg px-2.5 py-1.5">{hint}</p>
+                <p className="text-[11px] text-warning bg-warning/10 rounded-lg px-2.5 py-1.5">{hint}</p>
               )}
               {showHint && !hint && (
                 <p className="text-[11px] text-muted-foreground">No hint available for this task.</p>
@@ -236,11 +264,11 @@ export default function LabWorkspacePage() {
             <Progress value={pct} className="h-2" />
           </div>
           <div className="rounded-xl bg-muted/40 p-3 space-y-2">
-            <div className="flex items-center gap-2 text-xs"><Target className="h-3.5 w-3.5 text-orange-500" /><span className="text-muted-foreground">Objectives</span></div>
+            <div className="flex items-center gap-2 text-xs"><Target className="h-3.5 w-3.5 text-orange-500 dark:text-orange-400" /><span className="text-muted-foreground">Objectives</span></div>
             <ul className="space-y-1.5">
               {modules.map((m, i) => (
                 <li key={m.id} className="flex items-start gap-2 text-xs">
-                  {m.solved ? <CheckCircle2 className="h-3.5 w-3.5 text-green-500 mt-0.5 shrink-0" /> : <span className="h-3.5 w-3.5 rounded-full border border-muted-foreground/40 mt-0.5 shrink-0" />}
+                  {m.solved ? <CheckCircle2 className="h-3.5 w-3.5 text-success mt-0.5 shrink-0" /> : <span className="h-3.5 w-3.5 rounded-full border border-muted-foreground/40 mt-0.5 shrink-0" />}
                   <span className={m.solved ? "text-muted-foreground line-through" : "text-foreground/80"}>{i + 1}. {m.title}</span>
                 </li>
               ))}
@@ -257,7 +285,7 @@ export default function LabWorkspacePage() {
         <aside className="lg:col-span-3 overflow-auto p-4 space-y-3">
           <h2 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Challenges</h2>
           {allSolved && (
-            <div className="rounded-xl border border-green-200 bg-green-50 p-3 flex items-center gap-2 text-sm text-green-700">
+            <div className="rounded-xl border border-success/30 bg-success/10 p-3 flex items-center gap-2 text-sm text-success">
               <PartyPopper className="h-4 w-4" /> All tasks solved!
             </div>
           )}
@@ -270,7 +298,7 @@ export default function LabWorkspacePage() {
             disabled={completed || finishMut.isPending || solvedCount === 0}
             onClick={() => finishMut.mutate()}
           >
-            {completed ? <><CheckCircle2 className="h-4 w-4 text-green-600" />Lab Completed</> : finishMut.isPending ? "Submitting…" : "Finish & Submit Lab"}
+            {completed ? <><CheckCircle2 className="h-4 w-4 text-success" />Lab Completed</> : finishMut.isPending ? "Submitting…" : "Finish & Submit Lab"}
           </Button>
           {solvedCount === 0 && !completed && (
             <p className="text-[11px] text-muted-foreground text-center">Solve at least one task before finishing.</p>

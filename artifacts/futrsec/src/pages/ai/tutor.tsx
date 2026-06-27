@@ -28,7 +28,7 @@ function ProviderTag({ provider }: { provider?: string }) {
   if (!provider) return null;
   const live = provider !== "mock";
   return (
-    <Badge variant="outline" className={`text-[10px] ${live ? "border-emerald-200 text-emerald-700 bg-emerald-50" : "border-amber-200 text-amber-700 bg-amber-50"}`}>
+    <Badge variant="outline" className={`text-[10px] ${live ? "border-success/30 text-success bg-success/10" : "border-warning/30 text-warning bg-warning/10"}`}>
       <Sparkles className="h-3 w-3 mr-1" />
       {live ? `Live AI · ${provider}` : "Offline model"}
     </Badge>
@@ -39,8 +39,8 @@ export default function AIExplainTutor() {
   return (
     <div className="p-5 lg:p-8 max-w-4xl mx-auto flex flex-col gap-5">
       <div className="flex items-center gap-3">
-        <div className="h-10 w-10 rounded-xl bg-indigo-100 flex items-center justify-center">
-          <GraduationCap className="h-5 w-5 text-indigo-600" />
+        <div className="h-10 w-10 rounded-xl bg-indigo-500/10 flex items-center justify-center">
+          <GraduationCap className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
         </div>
         <div>
           <h1 className="font-heading text-xl font-bold text-foreground">AI Explain Tutor</h1>
@@ -114,11 +114,11 @@ function ExplainPanel() {
             </CardHeader>
             <CardContent className="space-y-4 text-sm leading-relaxed">
               <p className="text-foreground">{mut.data.explanation}</p>
-              <div className="rounded-lg bg-indigo-50 border border-indigo-100 p-3">
-                <div className="flex items-center gap-1.5 text-indigo-700 font-medium text-xs mb-1">
+              <div className="rounded-lg bg-indigo-500/10 border border-indigo-500/20 p-3">
+                <div className="flex items-center gap-1.5 text-indigo-600 dark:text-indigo-400 font-medium text-xs mb-1">
                   <Lightbulb className="h-3.5 w-3.5" /> Analogy
                 </div>
-                <p className="text-indigo-900/80">{mut.data.analogy}</p>
+                <p className="text-foreground/80">{mut.data.analogy}</p>
               </div>
             </CardContent>
           </Card>
@@ -179,7 +179,7 @@ function SummarizePanel() {
               <ul className="space-y-1.5">
                 {mut.data.bullets.map((b, i) => (
                   <li key={i} className="flex gap-2">
-                    <span className="text-indigo-500 mt-0.5">•</span>
+                    <span className="text-indigo-500 dark:text-indigo-400 mt-0.5">•</span>
                     <span>{b}</span>
                   </li>
                 ))}
@@ -255,10 +255,10 @@ function QuizPanel() {
       {questions.length > 0 && (
         <div className="space-y-3">
           {submitted && (
-            <Card className="bg-indigo-50 border-indigo-100">
+            <Card className="bg-indigo-500/10 border-indigo-500/20">
               <CardContent className="py-4 flex items-center gap-3">
-                <div className="text-2xl font-bold text-indigo-700">{score}/{questions.length}</div>
-                <p className="text-sm text-indigo-900/80">
+                <div className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">{score}/{questions.length}</div>
+                <p className="text-sm text-foreground/80">
                   {score === questions.length ? "Perfect score! 🎯" : score >= questions.length / 2 ? "Good work — review the misses below." : "Keep practicing — explanations below will help."}
                 </p>
               </CardContent>
@@ -272,11 +272,11 @@ function QuizPanel() {
                   {q.options.map((opt, oi) => {
                     const chosen = answers[q.id] === oi;
                     const correct = q.answerIndex === oi;
-                    let cls = "border-border/60 hover:border-indigo-300";
+                    let cls = "border-border/60 hover:border-indigo-500/40";
                     if (submitted) {
-                      if (correct) cls = "border-emerald-300 bg-emerald-50";
-                      else if (chosen) cls = "border-red-300 bg-red-50";
-                    } else if (chosen) cls = "border-indigo-400 bg-indigo-50";
+                      if (correct) cls = "border-success/30 bg-success/10";
+                      else if (chosen) cls = "border-danger/30 bg-danger/10";
+                    } else if (chosen) cls = "border-indigo-500/40 bg-indigo-500/10";
                     return (
                       <button
                         key={oi}
@@ -284,8 +284,8 @@ function QuizPanel() {
                         onClick={() => setAnswers((p) => ({ ...p, [q.id]: oi }))}
                         className={`w-full text-left text-sm px-3 py-2 rounded-lg border flex items-center gap-2 transition-colors ${cls}`}
                       >
-                        {submitted && correct && <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />}
-                        {submitted && chosen && !correct && <XCircle className="h-4 w-4 text-red-600 shrink-0" />}
+                        {submitted && correct && <CheckCircle2 className="h-4 w-4 text-success shrink-0" />}
+                        {submitted && chosen && !correct && <XCircle className="h-4 w-4 text-danger shrink-0" />}
                         <span>{opt}</span>
                       </button>
                     );
@@ -336,8 +336,8 @@ function ListCard({ title, icon: Icon, color, items }: { title: string; icon: an
 
 function ErrorCard({ message }: { message: string }) {
   return (
-    <Card className="bg-red-50 border-red-200">
-      <CardContent className="py-3 flex items-center gap-2 text-sm text-red-700">
+    <Card className="bg-danger/10 border-danger/30">
+      <CardContent className="py-3 flex items-center gap-2 text-sm text-danger">
         <AlertTriangle className="h-4 w-4 shrink-0" /> {message}
       </CardContent>
     </Card>

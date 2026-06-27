@@ -120,10 +120,10 @@ export default function JobAgentAutoApplyPage() {
         <div className="space-y-4">
           {/* Eligibility / lock state */}
           {locked ? (
-            <Card className="border-amber-200 bg-amber-50/50">
+            <Card className="border-warning/30 bg-warning/10">
               <CardContent className="p-5 flex items-start gap-3">
-                <div className="h-10 w-10 rounded-xl bg-amber-100 flex items-center justify-center shrink-0">
-                  <Lock className="h-5 w-5 text-amber-600" />
+                <div className="h-10 w-10 rounded-xl bg-warning/10 flex items-center justify-center shrink-0">
+                  <Lock className="h-5 w-5 text-warning" />
                 </div>
                 <div className="flex-1">
                   <h3 className="text-sm font-semibold text-foreground flex items-center gap-1.5">
@@ -133,16 +133,16 @@ export default function JobAgentAutoApplyPage() {
                     {eligibility?.lockReason ?? "This is a premium feature."}
                   </p>
                   <div className="flex flex-wrap gap-2 mt-3">
-                    <span className={`text-[11px] px-2 py-1 rounded-full flex items-center gap-1 ${eligibility?.isPremium ? "bg-emerald-100 text-emerald-700" : "bg-muted text-muted-foreground"}`}>
+                    <span className={`text-[11px] px-2 py-1 rounded-full flex items-center gap-1 ${eligibility?.isPremium ? "bg-success/10 text-success border border-success/30" : "bg-muted text-muted-foreground"}`}>
                       {eligibility?.isPremium ? <CheckCircle2 className="h-3 w-3" /> : <Crown className="h-3 w-3" />}
                       Premium plan
                     </span>
-                    <span className={`text-[11px] px-2 py-1 rounded-full flex items-center gap-1 ${eligibility?.cp5Complete ? "bg-emerald-100 text-emerald-700" : "bg-muted text-muted-foreground"}`}>
+                    <span className={`text-[11px] px-2 py-1 rounded-full flex items-center gap-1 ${eligibility?.cp5Complete ? "bg-success/10 text-success border border-success/30" : "bg-muted text-muted-foreground"}`}>
                       {eligibility?.cp5Complete ? <CheckCircle2 className="h-3 w-3" /> : <ShieldCheck className="h-3 w-3" />}
                       Checkpoint CP5
                     </span>
                     {eligibility?.isTrial && (
-                      <span className="text-[11px] px-2 py-1 rounded-full flex items-center gap-1 bg-amber-100 text-amber-700">
+                      <span className="text-[11px] px-2 py-1 rounded-full flex items-center gap-1 bg-warning/10 text-warning border border-warning/30">
                         <AlertCircle className="h-3 w-3" />Trial plan
                       </span>
                     )}
@@ -158,9 +158,9 @@ export default function JobAgentAutoApplyPage() {
               </CardContent>
             </Card>
           ) : (
-            <Card className="border-emerald-200 bg-emerald-50/40">
+            <Card className="border-success/30 bg-success/10">
               <CardContent className="p-4 flex items-center gap-3">
-                <CheckCircle2 className="h-5 w-5 text-emerald-600 shrink-0" />
+                <CheckCircle2 className="h-5 w-5 text-success shrink-0" />
                 <p className="text-sm text-foreground">
                   You're eligible for Auto-Apply. Configure your filters below.
                 </p>
@@ -251,7 +251,7 @@ export default function JobAgentAutoApplyPage() {
                   {runMut.isPending ? "Running…" : "Run Auto-Apply Now"}
                 </Button>
                 {form.enabled && !locked && (
-                  <Badge className="bg-emerald-100 text-emerald-700 border-emerald-200">Active</Badge>
+                  <Badge className="bg-success/10 text-success border border-success/30">Active</Badge>
                 )}
               </div>
             </CardContent>

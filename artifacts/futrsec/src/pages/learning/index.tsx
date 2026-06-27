@@ -191,13 +191,13 @@ export default function LearningPage() {
                   const isSel = m.id === selectedModuleId;
                   return (
                     <button key={m.id} onClick={() => setSelectedModuleId(m.id)}
-                      className={`w-full text-left p-3 rounded-xl border transition-all ${isSel ? "border-primary bg-primary/5 shadow-sm" : "border-border/60 bg-card hover:border-border hover:shadow-sm"}`}>
+                      className={`w-full text-left p-3 rounded-xl border transition-all ${isSel ? "border-primary bg-primary/5 elevation-1" : "border-border/60 bg-card hover:border-border hover:elevation-1"}`}>
                       <div className="flex items-start justify-between gap-2">
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-1.5 mb-1">
                             <span className={`h-1.5 w-1.5 rounded-full ${d.dot}`} />
                             <span className="text-[10px] text-muted-foreground">{d.label}</span>
-                            {pct === 100 && <CheckCircle2 className="h-3 w-3 text-green-500" />}
+                            {pct === 100 && <CheckCircle2 className="h-3 w-3 text-success" />}
                           </div>
                           <p className="text-sm font-semibold text-foreground leading-tight truncate">{m.title}</p>
                           <div className="flex items-center gap-2 mt-1.5 text-[11px] text-muted-foreground">
@@ -238,10 +238,10 @@ export default function LearningPage() {
                       const Icon = TYPE_ICONS[lesson.type] ?? Play;
                       return (
                         <Link key={lesson.id} href={`/learning/${selectedModuleId}/${lesson.id}`}>
-                          <div className={`flex items-center gap-3 p-3 rounded-lg border transition-all cursor-pointer hover:shadow-sm hover:border-primary/40 ${lesson.completed ? "bg-green-50/40 border-green-100" : "bg-card border-border/50"}`}>
+                          <div className={`flex items-center gap-3 p-3 rounded-lg border transition-all cursor-pointer hover-lift hover:border-primary/40 ${lesson.completed ? "bg-success/10 border-success/30" : "bg-card border-border/50"}`}>
                             <span className="text-xs font-bold text-muted-foreground/50 w-5 text-center">{i + 1}</span>
                             <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                              {lesson.completed ? <CheckCircle2 className="h-4 w-4 text-green-500" /> : <Icon className="h-4 w-4 text-primary" />}
+                              {lesson.completed ? <CheckCircle2 className="h-4 w-4 text-success" /> : <Icon className="h-4 w-4 text-primary" />}
                             </div>
                             <div className="flex-1 min-w-0">
                               <p className={`text-sm font-medium truncate ${lesson.completed ? "text-muted-foreground" : "text-foreground"}`}>{lesson.title}</p>
@@ -249,7 +249,7 @@ export default function LearningPage() {
                                 <Badge variant="secondary" className="text-[10px] px-1.5 py-0 capitalize">{lesson.type}</Badge>
                                 {lesson.durationMinutes ? <span className="text-[11px] text-muted-foreground flex items-center gap-0.5"><Clock className="h-2.5 w-2.5" />{lesson.durationMinutes}m</span> : null}
                                 {lesson.bookmarked && <Bookmark className="h-3 w-3 fill-primary text-primary" />}
-                                {lesson.isFree && <Badge className="text-[10px] px-1.5 py-0 bg-green-100 text-green-700 border-green-200">Free</Badge>}
+                                {lesson.isFree && <Badge className="text-[10px] px-1.5 py-0 bg-success/10 text-success border-success/30">Free</Badge>}
                               </div>
                             </div>
                             <ChevronRight className="h-4 w-4 text-muted-foreground/40" />

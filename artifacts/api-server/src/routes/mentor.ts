@@ -13,9 +13,12 @@ import {
   mentorTaskAssignmentsTable,
   broadcastNotesTable,
   auditLogsTable,
+  assessmentsTable,
+  filesTable,
 } from "@workspace/db";
 import { requireAuth, requireRole, type AuthRequest } from "../middlewares/auth";
 import { createAuditLog } from "../lib/audit";
+import { signFileToken } from "../lib/storage/signed-url";
 import {
   getMentorStudentIds,
   computeStudentMetrics,
@@ -451,6 +454,8 @@ const createTaskSchema = z.object({
   description: z.string().max(5000).optional(),
   contentUrl: z.string().max(1000).optional(),
   refId: z.number().int().positive().optional(),
+  maxAttempts: z.number().int().positive().max(20).optional(),
+  points: z.number().int().nonnegative().max(1000).optional(),
   careerTrack: z.enum(CAREER_TRACKS),
   audience: z.enum([
     "all_students",
@@ -499,6 +504,9 @@ router.get(
         title: t.title,
         description: t.description,
         contentUrl: t.contentUrl,
+        refId: t.refId,
+        maxAttempts: t.maxAttempts,
+        points: t.points,
         careerTrack: t.careerTrack,
         status: t.status,
         audience: t.audience,
@@ -566,6 +574,27 @@ router.post(
       return;
     }
     const d = parsed.data;
+
+    // Assessment tasks must reference an existing, active assessment.
+    if (d.type === "assessment") {
+      if (!d.refId) {
+        res
+          .status(400)
+          .json({ error: "Assessment tasks require a linked assessment" });
+        return;
+      }
+      const [assessment] = await db
+        .select({ id: assessmentsTable.id, isActive: assessmentsTable.isActive })
+        .from(assessmentsTable)
+        .where(eq(assessmentsTable.id, d.refId));
+      if (!assessment || !assessment.isActive) {
+        res
+          .status(400)
+          .json({ error: "Linked assessment not found or inactive" });
+        return;
+      }
+    }
+
     let createBatchIds: number[] = [];
     if (d.audience === "specific_batches") {
       if (!d.batchIds || d.batchIds.length === 0) {
@@ -599,6 +628,8 @@ router.post(
         description: d.description,
         contentUrl: d.contentUrl,
         refId: d.refId,
+        maxAttempts: d.type === "assessment" ? (d.maxAttempts ?? null) : null,
+        points: d.points ?? null,
         careerTrack: d.careerTrack,
         audience: d.audience,
         status,
@@ -663,6 +694,21 @@ router.patch(
     }
     const d = parsed.data;
 
+    // Validate a (re)linked assessment if refId is being changed.
+    const effectiveType = d.type ?? task.type;
+    if (d.refId !== undefined && effectiveType === "assessment") {
+      const [assessment] = await db
+        .select({ id: assessmentsTable.id, isActive: assessmentsTable.isActive })
+        .from(assessmentsTable)
+        .where(eq(assessmentsTable.id, d.refId));
+      if (!assessment || !assessment.isActive) {
+        res
+          .status(400)
+          .json({ error: "Linked assessment not found or inactive" });
+        return;
+      }
+    }
+
     let updateBatchIds: number[] | null = null;
     if (d.batchIds !== undefined) {
       updateBatchIds = await ownedBatchIds(mentorId, d.batchIds);
@@ -699,6 +745,9 @@ router.patch(
         ...(d.title !== undefined ? { title: d.title } : {}),
         ...(d.description !== undefined ? { description: d.description } : {}),
         ...(d.contentUrl !== undefined ? { contentUrl: d.contentUrl } : {}),
+        ...(d.refId !== undefined ? { refId: d.refId } : {}),
+        ...(d.maxAttempts !== undefined ? { maxAttempts: d.maxAttempts } : {}),
+        ...(d.points !== undefined ? { points: d.points } : {}),
         ...(d.careerTrack !== undefined ? { careerTrack: d.careerTrack } : {}),
         ...(d.audience !== undefined ? { audience: d.audience } : {}),
         ...(d.startDate !== undefined
@@ -788,6 +837,228 @@ router.delete(
     });
 
     res.json({ ok: true });
+  }
+);
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Assessment picker (active assessments to attach to assessment tasks)
+// ─────────────────────────────────────────────────────────────────────────────
+router.get(
+  "/mentor/assessments",
+  ...mentorGuards,
+  async (_req: AuthRequest, res): Promise<void> => {
+    const rows = await db
+      .select({
+        id: assessmentsTable.id,
+        title: assessmentsTable.title,
+        type: assessmentsTable.type,
+        totalQuestions: assessmentsTable.totalQuestions,
+        passingScore: assessmentsTable.passingScore,
+        durationMinutes: assessmentsTable.durationMinutes,
+      })
+      .from(assessmentsTable)
+      .where(eq(assessmentsTable.isActive, true))
+      .orderBy(assessmentsTable.title);
+    res.json({ assessments: rows });
+  }
+);
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Assignment submissions for a task + mentor review
+// ─────────────────────────────────────────────────────────────────────────────
+router.get(
+  "/mentor/tasks/:id/submissions",
+  ...mentorGuards,
+  async (req: AuthRequest, res): Promise<void> => {
+    const mentorId = req.user!.userId;
+    const id = parseInt(String(req.params.id), 10);
+    if (isNaN(id)) {
+      res.status(400).json({ error: "Invalid id" });
+      return;
+    }
+    const task = await db.query.mentorTasksTable.findFirst({
+      where: eq(mentorTasksTable.id, id),
+    });
+    if (!task || task.mentorId !== mentorId) {
+      res.status(404).json({ error: "Task not found" });
+      return;
+    }
+    if (task.type !== "assignment") {
+      res.status(400).json({ error: "Task is not an assignment" });
+      return;
+    }
+    const rows = await db
+      .select({
+        assignment: mentorTaskAssignmentsTable,
+        studentName: usersTable.fullName,
+        studentEmail: usersTable.email,
+      })
+      .from(mentorTaskAssignmentsTable)
+      .innerJoin(
+        usersTable,
+        eq(mentorTaskAssignmentsTable.studentId, usersTable.id)
+      )
+      .where(eq(mentorTaskAssignmentsTable.taskId, id))
+      .orderBy(desc(mentorTaskAssignmentsTable.submittedAt));
+
+    res.json({
+      task: { id: task.id, title: task.title, points: task.points },
+      submissions: rows.map((r) => ({
+        assignmentId: r.assignment.id,
+        studentId: r.assignment.studentId,
+        studentName: r.studentName,
+        studentEmail: r.studentEmail,
+        status: r.assignment.status,
+        submissionText: r.assignment.submissionText,
+        fileUrl: r.assignment.fileUrl,
+        fileName: r.assignment.fileName,
+        submittedAt: r.assignment.submittedAt
+          ? r.assignment.submittedAt.toISOString()
+          : null,
+        reviewStatus: r.assignment.reviewStatus,
+        reviewNotes: r.assignment.reviewNotes,
+        score: r.assignment.score,
+        reviewedAt: r.assignment.reviewedAt
+          ? r.assignment.reviewedAt.toISOString()
+          : null,
+      })),
+    });
+  }
+);
+
+const reviewSubmissionSchema = z.object({
+  reviewStatus: z.enum(["approved", "rejected", "changes_requested"]),
+  reviewNotes: z.string().max(5000).optional(),
+  score: z.number().int().nonnegative().max(1000).optional(),
+});
+
+router.post(
+  "/mentor/task-submissions/:id/review",
+  ...mentorGuards,
+  async (req: AuthRequest, res): Promise<void> => {
+    const mentorId = req.user!.userId;
+    const id = parseInt(String(req.params.id), 10);
+    if (isNaN(id)) {
+      res.status(400).json({ error: "Invalid id" });
+      return;
+    }
+    const parsed = reviewSubmissionSchema.safeParse(req.body);
+    if (!parsed.success) {
+      res
+        .status(400)
+        .json({ error: "Invalid input", details: parsed.error.issues });
+      return;
+    }
+    // Load the assignment + its task; verify task ownership.
+    const [row] = await db
+      .select({
+        assignment: mentorTaskAssignmentsTable,
+        task: mentorTasksTable,
+      })
+      .from(mentorTaskAssignmentsTable)
+      .innerJoin(
+        mentorTasksTable,
+        eq(mentorTaskAssignmentsTable.taskId, mentorTasksTable.id)
+      )
+      .where(eq(mentorTaskAssignmentsTable.id, id));
+    if (!row || row.task.mentorId !== mentorId) {
+      res.status(404).json({ error: "Submission not found" });
+      return;
+    }
+    if (row.task.type !== "assignment") {
+      res.status(400).json({ error: "Task is not an assignment" });
+      return;
+    }
+    if (!row.assignment.submittedAt) {
+      res.status(400).json({ error: "Nothing has been submitted yet" });
+      return;
+    }
+    const d = parsed.data;
+    const now = new Date();
+    const approved = d.reviewStatus === "approved";
+    const [updated] = await db
+      .update(mentorTaskAssignmentsTable)
+      .set({
+        reviewStatus: d.reviewStatus,
+        reviewNotes: d.reviewNotes ?? null,
+        score: d.score ?? null,
+        reviewedBy: mentorId,
+        reviewedAt: now,
+        status: approved ? "completed" : "in_progress",
+        completedAt: approved ? now : null,
+      })
+      .where(eq(mentorTaskAssignmentsTable.id, id))
+      .returning();
+
+    await createAuditLog({
+      userId: mentorId,
+      action: "mentor.task_submission.reviewed",
+      entityType: "mentor_task_assignment",
+      entityId: id,
+      ipAddress: ip(req),
+      metadata: {
+        taskId: row.task.id,
+        reviewStatus: d.reviewStatus,
+        score: d.score ?? null,
+      },
+    });
+    res.json({
+      assignmentId: updated.id,
+      reviewStatus: updated.reviewStatus,
+      status: updated.status,
+    });
+  }
+);
+
+// Mint a short-lived signed URL for a submitted assignment file. The mentor is
+// not the file owner, so direct download is blocked; this authorizes access by
+// verifying the file belongs to a submission on a task the mentor owns.
+router.get(
+  "/mentor/task-submissions/:id/file-url",
+  ...mentorGuards,
+  async (req: AuthRequest, res): Promise<void> => {
+    const mentorId = req.user!.userId;
+    const id = parseInt(String(req.params.id), 10);
+    if (isNaN(id)) {
+      res.status(400).json({ error: "Invalid id" });
+      return;
+    }
+    const [row] = await db
+      .select({
+        assignment: mentorTaskAssignmentsTable,
+        task: mentorTasksTable,
+      })
+      .from(mentorTaskAssignmentsTable)
+      .innerJoin(
+        mentorTasksTable,
+        eq(mentorTaskAssignmentsTable.taskId, mentorTasksTable.id)
+      )
+      .where(eq(mentorTaskAssignmentsTable.id, id));
+    if (!row || row.task.mentorId !== mentorId) {
+      res.status(404).json({ error: "Submission not found" });
+      return;
+    }
+    const fileUrl = row.assignment.fileUrl;
+    const match = fileUrl ? /\/storage\/files\/(\d+)\//.exec(fileUrl) : null;
+    if (!match) {
+      res.status(404).json({ error: "No file attached" });
+      return;
+    }
+    const fileId = Number(match[1]);
+    const [file] = await db
+      .select()
+      .from(filesTable)
+      .where(eq(filesTable.id, fileId));
+    if (!file || file.status === "deleted") {
+      res.status(404).json({ error: "File not found" });
+      return;
+    }
+    const { token, expiresAt } = signFileToken(file.id, 3600);
+    res.json({
+      url: `/api/storage/shared/${token}`,
+      fileName: row.assignment.fileName ?? file.originalName,
+      expiresAt: new Date(expiresAt).toISOString(),
+    });
   }
 );
 

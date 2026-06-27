@@ -1,9 +1,11 @@
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
 import { Sidebar, primaryNavForRole } from "@/components/sidebar";
+import { Topbar } from "@/components/topbar";
+import { CommandPalette } from "@/components/command-palette";
 import { CookieBanner } from "@/components/cookie-banner";
 import { useAuth } from "@/hooks/use-auth";
-import { Menu, Shield } from "lucide-react";
+import { Menu, Search, Shield } from "lucide-react";
 
 function MobileBottomNav() {
   const { user } = useAuth();
@@ -35,9 +37,11 @@ function MobileBottomNav() {
 
 export function Layout({ children }: { children: React.ReactNode }) {
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
 
   return (
     <div className="flex h-screen w-full bg-background overflow-hidden">
+      <CommandPalette open={searchOpen} onOpenChange={setSearchOpen} />
       {/* Desktop sidebar — 300px */}
       <aside className="hidden lg:flex w-[300px] shrink-0 flex-col border-r border-sidebar-border overflow-hidden">
         <Sidebar />
@@ -63,6 +67,9 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
       {/* Main content */}
       <main className="flex-1 flex flex-col min-h-0 overflow-hidden">
+        {/* Desktop top navigation */}
+        <Topbar onOpenSearch={() => setSearchOpen(true)} />
+
         {/* Mobile / tablet header */}
         <header className="lg:hidden h-14 border-b border-sidebar-border bg-sidebar flex items-center px-4 gap-3 shrink-0">
           <button
@@ -78,6 +85,13 @@ export function Layout({ children }: { children: React.ReactNode }) {
             </div>
             <span className="font-heading font-bold text-base tracking-tight text-sidebar-foreground">FUTRSEC</span>
           </div>
+          <button
+            onClick={() => setSearchOpen(true)}
+            className="ml-auto p-2 rounded-lg text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent transition-colors"
+            aria-label="Search"
+          >
+            <Search className="h-5 w-5" />
+          </button>
         </header>
 
         <div className="flex-1 overflow-y-auto scrollbar-thin pb-20 lg:pb-0">

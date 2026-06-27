@@ -21,8 +21,8 @@ import {
 
 const STATUS_BADGE: Record<string, string> = {
   assigned: "bg-muted text-muted-foreground border-border",
-  in_progress: "bg-blue-500/15 text-blue-700 dark:text-blue-400 border-blue-500/30",
-  completed: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30",
+  in_progress: "bg-info/10 text-info border border-info/30",
+  completed: "bg-success/10 text-success border border-success/30",
   expired: "bg-destructive/15 text-destructive border-destructive/30",
 };
 
@@ -71,15 +71,15 @@ export default function MentorMockInterviewResultsPage() {
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-7">
         <Card className="glass-card"><CardContent className="p-5 flex items-center gap-4">
-          <div className="h-11 w-11 rounded-xl bg-blue-500/15 text-blue-600 flex items-center justify-center"><Users className="h-5 w-5" /></div>
+          <div className="h-11 w-11 rounded-xl bg-info/15 text-info flex items-center justify-center"><Users className="h-5 w-5" /></div>
           <div><p className="text-2xl font-bold leading-none">{rows.length}</p><p className="text-sm text-muted-foreground mt-1">Assigned</p></div>
         </CardContent></Card>
         <Card className="glass-card"><CardContent className="p-5 flex items-center gap-4">
-          <div className="h-11 w-11 rounded-xl bg-emerald-500/15 text-emerald-600 flex items-center justify-center"><CheckCircle2 className="h-5 w-5" /></div>
+          <div className="h-11 w-11 rounded-xl bg-success/15 text-success flex items-center justify-center"><CheckCircle2 className="h-5 w-5" /></div>
           <div><p className="text-2xl font-bold leading-none">{completed.length}</p><p className="text-sm text-muted-foreground mt-1">Completed</p></div>
         </CardContent></Card>
         <Card className="glass-card"><CardContent className="p-5 flex items-center gap-4">
-          <div className="h-11 w-11 rounded-xl bg-amber-500/15 text-amber-600 flex items-center justify-center"><Clock className="h-5 w-5" /></div>
+          <div className="h-11 w-11 rounded-xl bg-warning/15 text-warning flex items-center justify-center"><Clock className="h-5 w-5" /></div>
           <div><p className="text-2xl font-bold leading-none">{inProgress}</p><p className="text-sm text-muted-foreground mt-1">In progress</p></div>
         </CardContent></Card>
         <Card className="glass-card"><CardContent className="p-5 flex items-center gap-4">
@@ -166,20 +166,20 @@ function TranscriptDialog({ row, onClose }: { row: MIResultRow | null; onClose: 
 
           {e.strengths.length > 0 && (
             <div>
-              <p className="text-sm font-semibold mb-1.5 text-emerald-600">Strengths</p>
-              <ul className="text-sm space-y-1 text-foreground/90">{e.strengths.map((s, i) => <li key={i} className="flex gap-2"><span className="text-emerald-600">•</span>{s}</li>)}</ul>
+              <p className="text-sm font-semibold mb-1.5 text-success">Strengths</p>
+              <ul className="text-sm space-y-1 text-foreground/90">{e.strengths.map((s, i) => <li key={i} className="flex gap-2"><span className="text-success">•</span>{s}</li>)}</ul>
             </div>
           )}
           {e.weaknesses.length > 0 && (
             <div>
-              <p className="text-sm font-semibold mb-1.5 text-amber-600">Areas to improve</p>
-              <ul className="text-sm space-y-1 text-foreground/90">{e.weaknesses.map((s, i) => <li key={i} className="flex gap-2"><span className="text-amber-600">•</span>{s}</li>)}</ul>
+              <p className="text-sm font-semibold mb-1.5 text-warning">Areas to improve</p>
+              <ul className="text-sm space-y-1 text-foreground/90">{e.weaknesses.map((s, i) => <li key={i} className="flex gap-2"><span className="text-warning">•</span>{s}</li>)}</ul>
             </div>
           )}
           {e.recommendations.length > 0 && (
             <div>
-              <p className="text-sm font-semibold mb-1.5 text-blue-600">Recommendations</p>
-              <ul className="text-sm space-y-1 text-foreground/90">{e.recommendations.map((s, i) => <li key={i} className="flex gap-2"><span className="text-blue-600">•</span>{s}</li>)}</ul>
+              <p className="text-sm font-semibold mb-1.5 text-info">Recommendations</p>
+              <ul className="text-sm space-y-1 text-foreground/90">{e.recommendations.map((s, i) => <li key={i} className="flex gap-2"><span className="text-info">•</span>{s}</li>)}</ul>
             </div>
           )}
 

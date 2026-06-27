@@ -91,6 +91,14 @@ import {
   eventsTable,
   eventRegistrationsTable,
 } from "./placement";
+import {
+  journeysTable,
+  journeyDaysTable,
+  journeyDayItemsTable,
+  studentJourneysTable,
+  studentJourneyProgressTable,
+  studentJourneyDaysTable,
+} from "./journey";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Users
@@ -909,6 +917,88 @@ export const eventRegistrationsRelations = relations(
     student: one(usersTable, {
       fields: [eventRegistrationsTable.studentId],
       references: [usersTable.id],
+    }),
+  })
+);
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Day-Based Journey Engine
+// ─────────────────────────────────────────────────────────────────────────────
+export const journeysRelations = relations(journeysTable, ({ one, many }) => ({
+  creator: one(usersTable, {
+    fields: [journeysTable.createdBy],
+    references: [usersTable.id],
+  }),
+  days: many(journeyDaysTable),
+  items: many(journeyDayItemsTable),
+  enrollments: many(studentJourneysTable),
+}));
+
+export const journeyDaysRelations = relations(
+  journeyDaysTable,
+  ({ one, many }) => ({
+    journey: one(journeysTable, {
+      fields: [journeyDaysTable.journeyId],
+      references: [journeysTable.id],
+    }),
+    items: many(journeyDayItemsTable),
+  })
+);
+
+export const journeyDayItemsRelations = relations(
+  journeyDayItemsTable,
+  ({ one }) => ({
+    day: one(journeyDaysTable, {
+      fields: [journeyDayItemsTable.dayId],
+      references: [journeyDaysTable.id],
+    }),
+    journey: one(journeysTable, {
+      fields: [journeyDayItemsTable.journeyId],
+      references: [journeysTable.id],
+    }),
+  })
+);
+
+export const studentJourneysRelations = relations(
+  studentJourneysTable,
+  ({ one, many }) => ({
+    student: one(usersTable, {
+      fields: [studentJourneysTable.studentId],
+      references: [usersTable.id],
+    }),
+    journey: one(journeysTable, {
+      fields: [studentJourneysTable.journeyId],
+      references: [journeysTable.id],
+    }),
+    progress: many(studentJourneyProgressTable),
+    days: many(studentJourneyDaysTable),
+  })
+);
+
+export const studentJourneyProgressRelations = relations(
+  studentJourneyProgressTable,
+  ({ one }) => ({
+    studentJourney: one(studentJourneysTable, {
+      fields: [studentJourneyProgressTable.studentJourneyId],
+      references: [studentJourneysTable.id],
+    }),
+    item: one(journeyDayItemsTable, {
+      fields: [studentJourneyProgressTable.itemId],
+      references: [journeyDayItemsTable.id],
+    }),
+  })
+);
+
+export const studentJourneyDaysRelations = relations(
+  studentJourneyDaysTable,
+  ({ one }) => ({
+    studentJourney: one(studentJourneysTable, {
+      fields: [studentJourneyDaysTable.studentJourneyId],
+      references: [studentJourneysTable.id],
+    }),
+    day: one(journeyDaysTable, {
+      fields: [studentJourneyDaysTable.dayId],
+      references: [journeyDaysTable.id],
     }),
   })
 );

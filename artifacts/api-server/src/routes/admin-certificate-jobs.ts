@@ -565,6 +565,7 @@ const upsertConfigSchema = z.object({
     "lab_series",
     "career_roadmap",
     "internship",
+    "journey",
   ]),
   sourceId: z.number().int().positive(),
   enabled: z.boolean(),

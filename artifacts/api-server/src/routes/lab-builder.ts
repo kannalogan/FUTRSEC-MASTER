@@ -18,6 +18,7 @@ import {
 import { requireAuth, requireRole, type AuthRequest } from "../middlewares/auth";
 import { createAuditLog } from "../lib/audit";
 import { createNotification } from "../lib/notifications";
+import { CommandSpecSchema, validateSpecRegexes } from "../lib/command-validator";
 
 const router = Router();
 
@@ -68,6 +69,8 @@ const updateLabSchema = z.object({
   walkthrough: z.string().max(50000).nullable().optional(),
 });
 
+const VALIDATION_TYPES = ["flag", "command"] as const;
+
 const createModuleSchema = z.object({
   title: z.string().min(1).max(200),
   order: z.number().int().min(0),
@@ -75,6 +78,8 @@ const createModuleSchema = z.object({
   hint: z.string().max(5000).optional(),
   flag: z.string().max(500).optional(),
   flagFormat: z.string().max(200).optional(),
+  validationType: z.enum(VALIDATION_TYPES).optional(),
+  commandSpec: CommandSpecSchema.nullable().optional(),
   solutionExplanation: z.string().max(10000).optional(),
   walkthrough: z.string().max(50000).optional(),
   points: z.number().int().min(0).max(100000).optional(),
@@ -87,10 +92,34 @@ const updateModuleSchema = z.object({
   hint: z.string().max(5000).nullable().optional(),
   flag: z.string().max(500).nullable().optional(),
   flagFormat: z.string().max(200).nullable().optional(),
+  validationType: z.enum(VALIDATION_TYPES).optional(),
+  commandSpec: CommandSpecSchema.nullable().optional(),
   solutionExplanation: z.string().max(10000).nullable().optional(),
   walkthrough: z.string().max(50000).nullable().optional(),
   points: z.number().int().min(0).max(100000).optional(),
 });
+
+/**
+ * Validate that a module's validation strategy and its payload agree. Returns an
+ * error message when the combination is incoherent, or null when valid.
+ * `effectiveType` is the validationType that will apply after the write (caller
+ * resolves it from the patch + existing row for updates).
+ */
+function checkModuleValidation(opts: {
+  effectiveType: "flag" | "command";
+  flag: string | null | undefined;
+  commandSpec: import("../lib/command-validator").CommandSpec | null | undefined;
+}): string | null {
+  const { effectiveType, flag, commandSpec } = opts;
+  if (effectiveType === "command") {
+    if (!commandSpec) {
+      return "A command-validated module requires a commandSpec.";
+    }
+    const regexErr = validateSpecRegexes(commandSpec);
+    if (regexErr) return regexErr;
+  }
+  return null;
+}
 
 const createHintSchema = z.object({
   order: z.number().int().min(0).optional(),
@@ -666,6 +695,8 @@ router.post(
           hint: m.hint,
           flagFormat: m.flagFormat,
           flag: m.flag,
+          validationType: m.validationType,
+          commandSpec: m.commandSpec,
           solutionExplanation: m.solutionExplanation,
           walkthrough: m.walkthrough,
           points: m.points,
@@ -742,6 +773,17 @@ router.post(
     if (!lab) return;
     const d = parsed.data;
 
+    const effectiveType = d.validationType ?? "flag";
+    const validationErr = checkModuleValidation({
+      effectiveType,
+      flag: d.flag,
+      commandSpec: d.commandSpec,
+    });
+    if (validationErr) {
+      res.status(400).json({ error: validationErr });
+      return;
+    }
+
     const [module] = await db
       .insert(labModulesTable)
       .values({
@@ -752,6 +794,9 @@ router.post(
         hint: d.hint,
         flag: d.flag,
         flagFormat: d.flagFormat,
+        validationType: effectiveType,
+        // Persist the spec only for command modules; flag modules never carry one.
+        commandSpec: effectiveType === "command" ? (d.commandSpec ?? null) : null,
         solutionExplanation: d.solutionExplanation,
         walkthrough: d.walkthrough,
         points: d.points ?? 10,
@@ -811,6 +856,30 @@ router.put(
     const loaded = await loadOwnedModule(req, res, moduleId);
     if (!loaded) return;
     const d = parsed.data;
+    const existing = loaded.module;
+
+    // Resolve the validation strategy that will apply after this patch, then
+    // ensure the (type, spec) pair is coherent. `specToPersist === undefined`
+    // means "leave the commandSpec column untouched".
+    const effectiveType = (d.validationType ?? existing.validationType) as "flag" | "command";
+    let specToPersist: import("../lib/command-validator").CommandSpec | null | undefined = undefined;
+    if (effectiveType === "command") {
+      const rawSpec = d.commandSpec !== undefined ? d.commandSpec : existing.commandSpec;
+      const specParsed = CommandSpecSchema.safeParse(rawSpec);
+      if (!specParsed.success) {
+        res.status(400).json({ error: "A command-validated module requires a valid commandSpec." });
+        return;
+      }
+      const regexErr = validateSpecRegexes(specParsed.data);
+      if (regexErr) { res.status(400).json({ error: regexErr }); return; }
+      // Write the spec when it was supplied OR we are switching into command mode.
+      if (d.commandSpec !== undefined || d.validationType === "command") {
+        specToPersist = specParsed.data;
+      }
+    } else if (d.validationType === "flag") {
+      // Explicitly switching to flag clears any stored spec.
+      specToPersist = null;
+    }
 
     const [updated] = await db
       .update(labModulesTable)
@@ -823,6 +892,8 @@ router.put(
         ...(d.hint !== undefined ? { hint: d.hint } : {}),
         ...(d.flag !== undefined ? { flag: d.flag } : {}),
         ...(d.flagFormat !== undefined ? { flagFormat: d.flagFormat } : {}),
+        ...(d.validationType !== undefined ? { validationType: d.validationType } : {}),
+        ...(specToPersist !== undefined ? { commandSpec: specToPersist } : {}),
         ...(d.solutionExplanation !== undefined
           ? { solutionExplanation: d.solutionExplanation }
           : {}),

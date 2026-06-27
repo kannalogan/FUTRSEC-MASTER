@@ -47,6 +47,13 @@ export const mentorTaskAssignmentStatusEnum = pgEnum(
   ["assigned", "in_progress", "completed", "missed"]
 );
 
+export const mentorTaskReviewStatusEnum = pgEnum("mentor_task_review_status", [
+  "pending",
+  "approved",
+  "rejected",
+  "changes_requested",
+]);
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Batches (cohorts) — created & assigned by admins, taught by a mentor
 // ─────────────────────────────────────────────────────────────────────────────
@@ -125,6 +132,9 @@ export const mentorTasksTable = pgTable("mentor_tasks", {
   contentUrl: text("content_url"),
   // optional link to an existing assessment / assignment / declaration row
   refId: integer("ref_id"),
+  // assessment-task config: retry policy + points (type = assessment)
+  maxAttempts: integer("max_attempts"),
+  points: integer("points"),
   careerTrack: careerTrackEnum("career_track").notNull(),
   status: mentorTaskStatusEnum("status").notNull().default("draft"),
   audience: mentorTaskAudienceEnum("audience").notNull().default("all_students"),
@@ -166,6 +176,23 @@ export const mentorTaskAssignmentsTable = pgTable(
       .notNull()
       .default("assigned"),
     completedAt: timestamp("completed_at", { withTimezone: true }),
+    // ── Assignment submission (task type = assignment) ──
+    submissionText: text("submission_text"),
+    fileUrl: text("file_url"),
+    fileName: text("file_name"),
+    submittedAt: timestamp("submitted_at", { withTimezone: true }),
+    // ── Mentor review of an assignment submission ──
+    reviewStatus: mentorTaskReviewStatusEnum("review_status"),
+    reviewNotes: text("review_notes"),
+    score: integer("score"),
+    reviewedBy: integer("reviewed_by"),
+    reviewedAt: timestamp("reviewed_at", { withTimezone: true }),
+    // ── Declaration acknowledgement + e-signature (task type = declaration) ──
+    acknowledged: boolean("acknowledged").notNull().default(false),
+    signatureName: text("signature_name"),
+    signedAt: timestamp("signed_at", { withTimezone: true }),
+    // ── Assessment completion link (task type = assessment) ──
+    assessmentAttemptId: integer("assessment_attempt_id"),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),

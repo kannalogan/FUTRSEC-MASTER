@@ -65,7 +65,7 @@ export default function CheckpointsPage() {
                   <CardContent className="p-5 flex items-center gap-4">
                     <div className="shrink-0">
                       {isDone ? (
-                        <CheckCircle2 className="h-7 w-7 text-emerald-500" />
+                        <CheckCircle2 className="h-7 w-7 text-success" />
                       ) : isLocked ? (
                         <Lock className="h-7 w-7 text-muted-foreground/40" />
                       ) : (
@@ -78,7 +78,7 @@ export default function CheckpointsPage() {
                           Checkpoint {cp.order}
                         </span>
                         {isDone && cp.progress?.score != null && (
-                          <Badge className="bg-emerald-50 text-emerald-600 border-emerald-200 text-[10px]">
+                          <Badge className="bg-success/10 text-success border border-success/30 text-[10px]">
                             <Trophy className="h-3 w-3 mr-1" />
                             {cp.progress.score}%
                           </Badge>

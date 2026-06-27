@@ -100,12 +100,12 @@ export function LogsLab({ drill, onSolve }: { drill: LogsDrill; onSolve: () => v
           </Button>
         </div>
         {verdict === true && (
-          <p className="flex items-center gap-1 text-emerald-600 text-xs font-medium mt-2">
+          <p className="flex items-center gap-1 text-success text-xs font-medium mt-2">
             <CheckCircle2 className="h-3.5 w-3.5" /> {drill.success}
           </p>
         )}
         {verdict === false && (
-          <p className="flex items-center gap-1 text-red-500 text-xs mt-2">
+          <p className="flex items-center gap-1 text-danger text-xs mt-2">
             <XCircle className="h-3.5 w-3.5" /> Not quite — use the filter to investigate and try again.
           </p>
         )}

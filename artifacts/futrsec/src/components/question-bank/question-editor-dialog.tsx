@@ -214,10 +214,10 @@ export function QuestionEditorDialog({ open, onOpenChange, question, tracks }: P
           </div>
 
           {dupes && dupes.length > 0 && (
-            <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 space-y-1.5">
-              <p className="text-sm font-semibold text-amber-700 dark:text-amber-400">Possible duplicates</p>
+            <div className="rounded-xl border border-warning/30 bg-warning/10 p-3 space-y-1.5">
+              <p className="text-sm font-semibold text-warning">Possible duplicates</p>
               {dupes.map((d) => (
-                <p key={d.id} className="text-xs text-foreground/80 truncate">· {d.questionText} <span className="text-amber-600">({d.similarity}%)</span></p>
+                <p key={d.id} className="text-xs text-foreground/80 truncate">· {d.questionText} <span className="text-warning">({d.similarity}%)</span></p>
               ))}
             </div>
           )}
@@ -229,7 +229,7 @@ export function QuestionEditorDialog({ open, onOpenChange, question, tracks }: P
               <div className="space-y-2">
                 {opts.map((o, i) => (
                   <div key={i} className="flex items-center gap-2">
-                    <button type="button" onClick={() => setCorrect(i)} className={`h-9 w-9 shrink-0 rounded-lg border flex items-center justify-center transition-colors ${o.isCorrect ? "bg-emerald-500/15 border-emerald-500/40 text-emerald-600" : "border-border text-muted-foreground hover:bg-muted/50"}`} aria-label="Mark correct">
+                    <button type="button" onClick={() => setCorrect(i)} className={`h-9 w-9 shrink-0 rounded-lg border flex items-center justify-center transition-colors ${o.isCorrect ? "bg-success/10 border-success/40 text-success" : "border-border text-muted-foreground hover:bg-muted/50"}`} aria-label="Mark correct">
                       {o.isCorrect ? <Check className="h-4 w-4" /> : <span className="text-xs font-semibold">{String.fromCharCode(65 + i)}</span>}
                     </button>
                     <Input value={o.optionText} onChange={(e) => setOpt(i, { optionText: e.target.value })} placeholder={`Option ${String.fromCharCode(65 + i)}`} className="h-9" />
@@ -331,7 +331,7 @@ export function QuestionEditorDialog({ open, onOpenChange, question, tracks }: P
             <div className="rounded-xl border border-border/60 bg-muted/30 p-4 space-y-2">
               <div className="flex items-center gap-3">
                 <span className="text-sm font-semibold">AI quality score</span>
-                <Badge className={quality.score >= 75 ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30" : quality.score >= 50 ? "bg-amber-500/15 text-amber-700 dark:text-amber-400 border-amber-500/30" : "bg-destructive/15 text-destructive border-destructive/30"}>{quality.score}/100</Badge>
+                <Badge className={quality.score >= 75 ? "bg-success/10 text-success border border-success/30" : quality.score >= 50 ? "bg-warning/10 text-warning border border-warning/30" : "bg-destructive/15 text-destructive border-destructive/30"}>{quality.score}/100</Badge>
               </div>
               {quality.issues.length > 0 && <div className="text-xs text-foreground/80"><span className="font-semibold flex items-center gap-1"><FileText className="h-3 w-3" /> Issues:</span> {quality.issues.join("; ")}</div>}
               {quality.suggestions.length > 0 && <div className="text-xs text-foreground/80"><span className="font-semibold">Suggestions:</span> {quality.suggestions.join("; ")}</div>}

@@ -27,8 +27,8 @@ export default function SkillGapAnalyzer() {
   return (
     <div className="p-5 lg:p-8 max-w-3xl mx-auto flex flex-col gap-5">
       <div className="flex items-center gap-3">
-        <div className="h-10 w-10 rounded-xl bg-violet-100 flex items-center justify-center">
-          <BrainCircuit className="h-5 w-5 text-violet-600" />
+        <div className="h-10 w-10 rounded-xl bg-violet-500/10 flex items-center justify-center">
+          <BrainCircuit className="h-5 w-5 text-violet-600 dark:text-violet-400" />
         </div>
         <div>
           <h1 className="font-heading text-xl font-bold text-foreground">Skill Gap Analyzer</h1>
@@ -41,10 +41,10 @@ export default function SkillGapAnalyzer() {
         )}
       </div>
 
-      {isLoading && <div className="flex flex-col items-center py-16 gap-3 text-muted-foreground"><Loader2 className="h-6 w-6 animate-spin text-violet-600" /><p className="text-sm">Analyzing your skills…</p></div>}
+      {isLoading && <div className="flex flex-col items-center py-16 gap-3 text-muted-foreground"><Loader2 className="h-6 w-6 animate-spin text-violet-600 dark:text-violet-400" /><p className="text-sm">Analyzing your skills…</p></div>}
 
       {isError && (
-        <Card className="bg-red-50 border-red-200"><CardContent className="py-4 text-sm text-red-700">
+        <Card className="bg-danger/10 border-danger/30"><CardContent className="py-4 text-sm text-danger">
           {(error as Error).message}<Button size="sm" variant="outline" className="ml-3" onClick={() => refetch()}>Retry</Button>
         </CardContent></Card>
       )}
@@ -57,7 +57,7 @@ export default function SkillGapAnalyzer() {
                 <span className="text-sm font-medium">Skill Coverage</span>
                 <Badge variant="outline" className="text-[10px]">{data.provider !== "mock" ? `Live AI · ${data.provider}` : "Offline model"}</Badge>
               </div>
-              <div className="flex items-end gap-2"><span className="text-3xl font-bold text-violet-700">{coverage}%</span></div>
+              <div className="flex items-end gap-2"><span className="text-3xl font-bold text-violet-600 dark:text-violet-400">{coverage}%</span></div>
               <Progress value={coverage} className="h-2" />
               <p className="text-sm text-muted-foreground">{data.summary}</p>
             </CardContent>
@@ -65,31 +65,31 @@ export default function SkillGapAnalyzer() {
 
           <div className="grid sm:grid-cols-2 gap-4">
             <Card className="bg-card border-border/60">
-              <CardHeader className="pb-2"><CardTitle className="text-sm flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-emerald-600" />Skills You Have</CardTitle></CardHeader>
+              <CardHeader className="pb-2"><CardTitle className="text-sm flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-success" />Skills You Have</CardTitle></CardHeader>
               <CardContent>
                 {data.current.length ? (
-                  <div className="flex flex-wrap gap-1.5">{data.current.map((s) => <span key={s} className="text-xs bg-emerald-50 text-emerald-700 px-2.5 py-1 rounded-full">{s}</span>)}</div>
+                  <div className="flex flex-wrap gap-1.5">{data.current.map((s) => <span key={s} className="text-xs bg-success/10 text-success border border-success/30 px-2.5 py-1 rounded-full">{s}</span>)}</div>
                 ) : <p className="text-sm text-muted-foreground">Complete labs, projects and assessments to build verified skills.</p>}
               </CardContent>
             </Card>
 
             <Card className="bg-card border-border/60">
-              <CardHeader className="pb-2"><CardTitle className="text-sm flex items-center gap-2"><AlertCircle className="h-4 w-4 text-amber-600" />Skills To Develop</CardTitle></CardHeader>
+              <CardHeader className="pb-2"><CardTitle className="text-sm flex items-center gap-2"><AlertCircle className="h-4 w-4 text-warning" />Skills To Develop</CardTitle></CardHeader>
               <CardContent>
                 {data.gap.length ? (
-                  <div className="flex flex-wrap gap-1.5">{data.gap.map((s) => <span key={s} className="text-xs bg-amber-50 text-amber-700 px-2.5 py-1 rounded-full">{s}</span>)}</div>
-                ) : <p className="text-sm text-emerald-700 flex items-center gap-1.5"><Sparkles className="h-4 w-4" />You're covering all core skills — keep deepening them!</p>}
+                  <div className="flex flex-wrap gap-1.5">{data.gap.map((s) => <span key={s} className="text-xs bg-warning/10 text-warning border border-warning/30 px-2.5 py-1 rounded-full">{s}</span>)}</div>
+                ) : <p className="text-sm text-success flex items-center gap-1.5"><Sparkles className="h-4 w-4" />You're covering all core skills — keep deepening them!</p>}
               </CardContent>
             </Card>
           </div>
 
           <Card className="bg-card border-border/60">
-            <CardHeader className="pb-2"><CardTitle className="text-sm flex items-center gap-2"><Target className="h-4 w-4 text-violet-600" />Required for Your Track</CardTitle></CardHeader>
+            <CardHeader className="pb-2"><CardTitle className="text-sm flex items-center gap-2"><Target className="h-4 w-4 text-violet-600 dark:text-violet-400" />Required for Your Track</CardTitle></CardHeader>
             <CardContent>
               <div className="flex flex-wrap gap-1.5">
                 {data.required.map((s) => {
                   const have = data.current.includes(s);
-                  return <span key={s} className={`text-xs px-2.5 py-1 rounded-full flex items-center gap-1 ${have ? "bg-emerald-50 text-emerald-700" : "bg-muted text-muted-foreground"}`}>
+                  return <span key={s} className={`text-xs px-2.5 py-1 rounded-full flex items-center gap-1 ${have ? "bg-success/10 text-success border border-success/30" : "bg-muted text-muted-foreground"}`}>
                     {have && <CheckCircle2 className="h-3 w-3" />}{s}
                   </span>;
                 })}

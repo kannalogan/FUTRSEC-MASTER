@@ -12,9 +12,9 @@ import { Users, Search, Activity } from "lucide-react";
 import { motion } from "framer-motion";
 
 const RISK_STYLE: Record<string, string> = {
-  high: "bg-red-500/15 text-red-600 dark:text-red-400 border-red-500/30",
-  medium: "bg-amber-500/15 text-amber-700 dark:text-amber-400 border-amber-500/30",
-  low: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30",
+  high: "bg-danger/10 text-danger border border-danger/30",
+  medium: "bg-warning/10 text-warning border border-warning/30",
+  low: "bg-success/10 text-success border border-success/30",
 };
 
 export function RiskBadge({ level, score }: { level: string; score?: number }) {

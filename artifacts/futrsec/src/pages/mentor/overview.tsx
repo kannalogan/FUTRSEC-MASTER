@@ -22,7 +22,7 @@ function StatCard({ icon: Icon, label, value, color, delay }: {
         <div className="absolute top-0 left-0 w-1 h-full" style={{ backgroundColor: color }} />
         <CardContent className="p-6 flex flex-col justify-between h-full">
           <div className="flex justify-between items-start mb-4">
-            <div className="h-10 w-10 rounded-xl flex items-center justify-center shrink-0 bg-background/50 shadow-sm ring-1 ring-border">
+            <div className="h-10 w-10 rounded-xl flex items-center justify-center shrink-0 bg-background/50 elevation-1 ring-1 ring-border">
               <Icon className="h-5 w-5" style={{ color }} />
             </div>
           </div>

@@ -30,13 +30,13 @@ function LabCard({ lab, onOpen }: { lab: any; onOpen: (lab: any) => void }) {
   return (
     <motion.div whileHover={{ y: -2 }} transition={{ duration: 0.15 }}>
       <Card
-        className="bg-card border-border/60 hover:shadow-md transition-all cursor-pointer h-full"
+        className="bg-card border-border/60 transition-all cursor-pointer h-full"
         onClick={() => onOpen(lab)}
       >
         <CardContent className="p-5">
           <div className="flex items-start justify-between gap-2 mb-3">
-            <div className="h-10 w-10 rounded-xl bg-orange-50 flex items-center justify-center shrink-0">
-              <FlaskConical className="h-5 w-5 text-orange-500" />
+            <div className="h-10 w-10 rounded-xl bg-warning/10 flex items-center justify-center shrink-0">
+              <FlaskConical className="h-5 w-5 text-warning" />
             </div>
             <Badge
               className="text-[10px] px-2 shrink-0"
@@ -71,12 +71,12 @@ function LabCard({ lab, onOpen }: { lab: any; onOpen: (lab: any) => void }) {
               </Button>
             )}
             {lab.status === "in_progress" && (
-              <Button size="sm" variant="outline" className="h-7 text-xs gap-1 border-orange-200 text-orange-600 hover:bg-orange-50">
+              <Button size="sm" variant="outline" className="h-7 text-xs gap-1 border-warning/30 text-warning hover:bg-warning/10">
                 <Zap className="h-3 w-3" />Continue
               </Button>
             )}
             {lab.status === "completed" && (
-              <span className="flex items-center gap-1 text-xs text-green-600">
+              <span className="flex items-center gap-1 text-xs text-success">
                 <CheckCircle2 className="h-3.5 w-3.5" />Done
               </span>
             )}

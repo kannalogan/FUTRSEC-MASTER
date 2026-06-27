@@ -20,6 +20,7 @@ export type CertSourceType =
   | "lab_series"
   | "career_roadmap"
   | "internship"
+  | "journey"
   | "manual";
 
 function generateCertificateCode(): string {

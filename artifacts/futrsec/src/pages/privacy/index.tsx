@@ -127,14 +127,14 @@ export default function PrivacyCenter() {
     <div className="p-5 lg:p-8 max-w-4xl mx-auto space-y-5">
       {/* Header */}
       <div className="flex items-center gap-3">
-        <div className="h-10 w-10 rounded-xl bg-red-50 flex items-center justify-center">
-          <Shield className="h-5 w-5 text-red-600" />
+        <div className="h-10 w-10 rounded-xl bg-danger/10 flex items-center justify-center">
+          <Shield className="h-5 w-5 text-danger" />
         </div>
         <div>
           <h1 className="font-heading text-xl font-bold text-foreground">DPDP Privacy Center</h1>
           <p className="text-sm text-muted-foreground">Your rights under the Digital Personal Data Protection Act 2023</p>
         </div>
-        <Badge className="ml-auto bg-green-50 text-green-700 border-green-200 shrink-0">DPDP Compliant</Badge>
+        <Badge className="ml-auto bg-success/10 text-success border border-success/30 shrink-0">DPDP Compliant</Badge>
       </div>
 
       {/* Rights banner */}
@@ -298,8 +298,8 @@ export default function PrivacyCenter() {
             <Card className="bg-card border-border/60">
               <CardContent className="p-5">
                 <div className="flex items-start gap-3">
-                  <div className="h-9 w-9 rounded-lg bg-blue-50 flex items-center justify-center shrink-0">
-                    <FileDown className="h-4.5 w-4.5 text-blue-600" />
+                  <div className="h-9 w-9 rounded-lg bg-info/10 flex items-center justify-center shrink-0">
+                    <FileDown className="h-4.5 w-4.5 text-info" />
                   </div>
                   <div className="flex-1">
                     <p className="text-sm font-semibold text-foreground">Download My Data</p>
@@ -336,7 +336,7 @@ export default function PrivacyCenter() {
                 <div className="space-y-2">
                   {historyEntries.map((entry: any) => (
                     <div key={entry.id} className="flex items-center gap-3 p-3 bg-muted/20 rounded-lg">
-                      <div className={`h-2 w-2 rounded-full shrink-0 ${entry.action === "granted" ? "bg-green-500" : "bg-red-500"}`} />
+                      <div className={`h-2 w-2 rounded-full shrink-0 ${entry.action === "granted" ? "bg-success" : "bg-danger"}`} />
                       <div className="flex-1">
                         <p className="text-xs font-medium text-foreground capitalize">{entry.consentType?.replace("_", " ")} — {entry.action}</p>
                         <p className="text-[11px] text-muted-foreground">{new Date(entry.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}</p>
@@ -364,8 +364,8 @@ export default function PrivacyCenter() {
             <Card className="bg-card border-border/60">
               <CardContent className="p-5 space-y-3">
                 <div className="flex items-start gap-3">
-                  <div className="h-9 w-9 rounded-lg bg-orange-50 flex items-center justify-center shrink-0">
-                    <Edit3 className="h-4.5 w-4.5 text-orange-600" />
+                  <div className="h-9 w-9 rounded-lg bg-warning/10 flex items-center justify-center shrink-0">
+                    <Edit3 className="h-4.5 w-4.5 text-warning" />
                   </div>
                   <div className="flex-1">
                     <p className="text-sm font-semibold text-foreground">Correction Request</p>
@@ -378,18 +378,18 @@ export default function PrivacyCenter() {
               </CardContent>
             </Card>
 
-            <Card className="bg-card border-border/60 border-red-100">
+            <Card className="bg-card border-danger/30">
               <CardContent className="p-5">
                 <div className="flex items-start gap-3">
-                  <div className="h-9 w-9 rounded-lg bg-red-50 flex items-center justify-center shrink-0">
-                    <Trash2 className="h-4.5 w-4.5 text-red-600" />
+                  <div className="h-9 w-9 rounded-lg bg-danger/10 flex items-center justify-center shrink-0">
+                    <Trash2 className="h-4.5 w-4.5 text-danger" />
                   </div>
                   <div className="flex-1">
-                    <p className="text-sm font-semibold text-red-700">Delete My Account</p>
+                    <p className="text-sm font-semibold text-danger">Delete My Account</p>
                     <p className="text-xs text-muted-foreground mt-0.5">
                       Permanently delete your account and all associated personal data. This action cannot be undone and will be processed within 30 days as required by DPDP Act §13.
                     </p>
-                    <div className="flex items-center gap-1.5 mt-2 text-xs text-orange-600 bg-orange-50 rounded-lg px-2.5 py-1.5">
+                    <div className="flex items-center gap-1.5 mt-2 text-xs text-warning bg-warning/10 border border-warning/30 rounded-lg px-2.5 py-1.5">
                       <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
                       <span>Your learning progress, certifications, and placement history will be permanently erased.</span>
                     </div>

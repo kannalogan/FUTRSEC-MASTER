@@ -75,11 +75,11 @@ export default function VMsPage() {
                 transition={{ duration: 0.2, delay: idx * 0.04 }}
                 whileHover={{ y: -2 }}
               >
-                <Card className="bg-card border-border/60 hover:shadow-md transition-all h-full flex flex-col">
+                <Card className="bg-card border-border/60 transition-all h-full flex flex-col">
                   <CardContent className="p-5 flex flex-col flex-1">
                     <div className="flex items-start justify-between gap-2 mb-3">
-                      <div className="h-10 w-10 rounded-xl bg-cyan-50 flex items-center justify-center shrink-0">
-                        <Server className="h-5 w-5 text-cyan-500" />
+                      <div className="h-10 w-10 rounded-xl bg-cyan-500/10 flex items-center justify-center shrink-0">
+                        <Server className="h-5 w-5 text-cyan-600 dark:text-cyan-400" />
                       </div>
                       <Badge
                         className="text-[10px] px-2 shrink-0"

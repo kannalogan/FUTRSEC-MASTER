@@ -41,11 +41,11 @@ import { motion } from "framer-motion";
 
 const STATUS_META: Record<string, { label: string; className: string }> = {
   draft: { label: "Draft", className: "bg-muted text-muted-foreground border-border" },
-  published: { label: "Published", className: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30" },
+  published: { label: "Published", className: "bg-success/10 text-success border border-success/30" },
   archived: { label: "Archived", className: "bg-muted/50 text-muted-foreground/70 border-border/50" },
 };
 const DIFF_COLOR: Record<string, string> = {
-  beginner: "text-emerald-600", intermediate: "text-blue-600", advanced: "text-amber-600",
+  beginner: "text-success", intermediate: "text-info", advanced: "text-warning",
 };
 
 function slugify(s: string): string {
@@ -163,9 +163,9 @@ export default function MentorLabBuilderPage() {
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-7">
         <KpiCard icon={Layers} label="Total Labs" value={overview?.totalLabs ?? 0} tone="bg-primary/15 text-primary" />
-        <KpiCard icon={Rocket} label="Published" value={overview?.byStatus?.published ?? 0} tone="bg-emerald-500/15 text-emerald-600" />
-        <KpiCard icon={Send} label="Assignments" value={overview?.totalAssignments ?? 0} tone="bg-blue-500/15 text-blue-600" />
-        <KpiCard icon={Target} label="Completion Rate" value={`${overview?.aggregateCompletionRate ?? 0}%`} tone="bg-amber-500/15 text-amber-600" />
+        <KpiCard icon={Rocket} label="Published" value={overview?.byStatus?.published ?? 0} tone="bg-success/15 text-success" />
+        <KpiCard icon={Send} label="Assignments" value={overview?.totalAssignments ?? 0} tone="bg-info/15 text-info" />
+        <KpiCard icon={Target} label="Completion Rate" value={`${overview?.aggregateCompletionRate ?? 0}%`} tone="bg-warning/15 text-warning" />
       </div>
 
       <div className="flex flex-wrap items-center gap-2 mb-5">

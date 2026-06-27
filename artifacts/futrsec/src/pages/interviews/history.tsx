@@ -56,8 +56,8 @@ export default function InterviewHistoryPage() {
                   <CardContent className="p-5">
                     <div className="flex items-start justify-between gap-3 mb-2">
                       <div className="flex items-center gap-2">
-                        <div className="h-9 w-9 rounded-xl bg-violet-50 flex items-center justify-center shrink-0">
-                          <MessageSquare className="h-[18px] w-[18px] text-violet-500" />
+                        <div className="h-9 w-9 rounded-xl bg-violet/10 flex items-center justify-center shrink-0">
+                          <MessageSquare className="h-[18px] w-[18px] text-violet" />
                         </div>
                         <div>
                           <h3 className="font-semibold text-sm text-foreground">

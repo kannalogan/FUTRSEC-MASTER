@@ -102,7 +102,7 @@ export default function PlacementPage() {
         subtitle="Your placement status & application timelines"
         actions={
           isPlaced ? (
-            <Badge className="bg-emerald-100 text-emerald-700 border-emerald-200 gap-1">
+            <Badge className="bg-success/10 text-success border border-success/30 gap-1">
               <PartyPopper className="h-3.5 w-3.5" />Placed
             </Badge>
           ) : undefined
@@ -114,17 +114,17 @@ export default function PlacementPage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
           {placements.map((p) => (
             <motion.div key={p.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
-              <Card className="border-emerald-200 bg-emerald-50/50">
+              <Card className="border-success/30 bg-success/10">
                 <CardContent className="p-5">
                   <div className="flex items-start gap-3">
-                    <div className="h-11 w-11 rounded-xl bg-emerald-100 flex items-center justify-center shrink-0">
-                      <PartyPopper className="h-5 w-5 text-emerald-600" />
+                    <div className="h-11 w-11 rounded-xl bg-success/15 flex items-center justify-center shrink-0">
+                      <PartyPopper className="h-5 w-5 text-success" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-semibold text-foreground">{p.job?.title ?? "Role"}</p>
                       <p className="text-xs text-muted-foreground">{p.companyName ?? "Company"}</p>
                       {p.packageAmount != null && (
-                        <p className="text-sm font-bold text-emerald-700 mt-1">
+                        <p className="text-sm font-bold text-success mt-1">
                           ₹{(p.packageAmount / 100000).toFixed(1)}L p.a.
                         </p>
                       )}
@@ -144,14 +144,14 @@ export default function PlacementPage() {
       {offers.length > 0 && (
         <div className="mb-6">
           <h2 className="text-sm font-semibold text-foreground flex items-center gap-1.5 mb-3">
-            <Gift className="h-4 w-4 text-emerald-500" />Offers
+            <Gift className="h-4 w-4 text-success" />Offers
           </h2>
           <div className="space-y-2">
             {offers.map((o) => (
               <Card key={o.id} className="bg-card border-border/60">
                 <CardContent className="p-4 flex items-center gap-3">
-                  <div className="h-9 w-9 rounded-lg bg-emerald-50 flex items-center justify-center shrink-0">
-                    <Gift className="h-4.5 w-4.5 text-emerald-500" />
+                  <div className="h-9 w-9 rounded-lg bg-success/10 flex items-center justify-center shrink-0">
+                    <Gift className="h-4.5 w-4.5 text-success" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-foreground truncate">{o.job?.title ?? "Job"}</p>
@@ -183,7 +183,7 @@ export default function PlacementPage() {
           {stages.map((s) => (
             <motion.div key={s.applicationId} whileHover={{ y: -1 }} transition={{ duration: 0.15 }}>
               <Card
-                className="bg-card border-border/60 hover:shadow-md transition-all cursor-pointer"
+                className="bg-card border-border/60 hover-lift cursor-pointer"
                 onClick={() => setSelected(s)}
               >
                 <CardContent className="p-4 flex items-center gap-3">

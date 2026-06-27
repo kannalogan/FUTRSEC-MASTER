@@ -36,6 +36,7 @@ import CareerRoadmapPage from "@/pages/career-roadmap/index";
 import CheckpointsPage from "@/pages/checkpoints/index";
 import AssignmentsPage from "@/pages/assignments/index";
 import TasksPage from "@/pages/tasks/index";
+import AssessmentTake from "@/pages/assessment/take";
 import ProjectsPage from "@/pages/projects/index";
 import LabsPage from "@/pages/labs/index";
 import CTFPage from "@/pages/labs/ctf";
@@ -90,8 +91,11 @@ import MentorMockInterviewsPage from "@/pages/mentor/mock-interviews";
 import MentorMockInterviewResultsPage from "@/pages/mentor/mock-interview-results";
 import StudentAssignedInterviewsPage from "@/pages/student/assigned-interviews";
 import StudentMyInterviewsPage from "@/pages/student/my-interviews";
+import StudentJourneyPage from "@/pages/student/journey";
 import MentorLabBuilderPage from "@/pages/mentor/lab-builder";
 import MentorLabEditorPage from "@/pages/mentor/lab-editor";
+import MentorJourneysPage from "@/pages/mentor/journeys";
+import AdminJourneysPage from "@/pages/admin/journeys";
 
 import TpoOverviewPage from "@/pages/tpo/overview";
 import TpoDrivesPage from "@/pages/tpo/drives";
@@ -253,6 +257,7 @@ function Router() {
       <Route path="/learning/:moduleId/:lessonId"><StudentRoute component={LessonPlayerPage} /></Route>
       <Route path="/calendar"><StudentRoute component={CalendarPage} /></Route>
       <Route path="/roadmap"><StudentRoute component={RoadmapPage} /></Route>
+      <Route path="/student/journey"><StudentRoute component={StudentJourneyPage} /></Route>
       <Route path="/bookmarks"><StudentRoute component={BookmarksPage} /></Route>
       <Route path="/community"><StudentRoute component={CommunityPage} /></Route>
 
@@ -262,6 +267,7 @@ function Router() {
       <Route path="/checkpoints"><StudentRoute component={CheckpointsPage} /></Route>
       <Route path="/assignments"><StudentRoute component={AssignmentsPage} /></Route>
       <Route path="/tasks"><StudentRoute component={TasksPage} /></Route>
+      <Route path="/assessment/:id"><StudentRoute component={AssessmentTake} /></Route>
       <Route path="/projects"><StudentRoute component={ProjectsPage} /></Route>
 
       {/* Labs */}
@@ -348,6 +354,7 @@ function Router() {
       <Route path="/admin/retention"><AdminRoute component={AdminRetentionPage} /></Route>
       <Route path="/admin/storage"><AdminRoute component={AdminStoragePage} /></Route>
       <Route path="/admin/audit-logs"><AdminRoute component={AdminAuditLogsPage} /></Route>
+      <Route path="/admin/journeys"><AdminRoute component={AdminJourneysPage} /></Route>
       <Route path="/admin/coupons"><AdminRoute component={AdminCouponsPage} /></Route>
       <Route path="/admin/analytics"><AdminRoute component={AdminAnalyticsPage} /></Route>
       <Route path="/campus/admin"><AdminRoute component={CampusAdminPage} /></Route>
@@ -390,6 +397,7 @@ function Router() {
       <Route path="/mentor/question-bank"><MentorRoute component={MentorQuestionBankPage} /></Route>
       <Route path="/mentor/mock-interviews"><MentorRoute component={MentorMockInterviewsPage} /></Route>
       <Route path="/mentor/mock-interviews/:id"><MentorRoute component={MentorMockInterviewResultsPage} /></Route>
+      <Route path="/mentor/journeys"><MentorRoute component={MentorJourneysPage} /></Route>
       <Route path="/mentor/lab-builder"><MentorRoute component={MentorLabBuilderPage} /></Route>
       <Route path="/mentor/lab-builder/:id"><MentorRoute component={MentorLabEditorPage} /></Route>
       <Route path="/mentor/audit-logs"><MentorRoute component={MentorAuditLogsPage} /></Route>

@@ -33,7 +33,7 @@ export default function AchievementsPage() {
         icon={Trophy}
         title="Achievements"
         subtitle="Badges you've unlocked on your cybersecurity journey"
-        actions={!isLoading ? <Badge className="bg-amber-50 text-amber-600 border-amber-200">{earned}/{total} unlocked</Badge> : undefined}
+        actions={!isLoading ? <Badge className="bg-warning/10 text-warning border border-warning/30">{earned}/{total} unlocked</Badge> : undefined}
       />
 
       {isLoading ? (
@@ -64,7 +64,7 @@ export default function AchievementsPage() {
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.2, delay: idx * 0.03 }}
               >
-                <Card className={`border-border/60 transition-all ${badge.earned ? "bg-card hover:shadow-md" : "bg-muted/30"}`}>
+                <Card className={`border-border/60 transition-all ${badge.earned ? "bg-card hover-lift" : "bg-muted/30"}`}>
                   <CardContent className="p-4 text-center">
                     <div className={`text-4xl mb-2 ${badge.earned ? "" : "grayscale opacity-40"}`}>
                       {badge.icon}

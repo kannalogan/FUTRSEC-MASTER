@@ -81,7 +81,9 @@ export default function RegisterStudent() {
         <button onClick={() => setLocation("/register")} className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors">
           <ArrowLeft className="h-4 w-4" />
         </button>
-        <Shield className="h-6 w-6 text-primary" />
+        <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-primary to-violet flex items-center justify-center glow-primary">
+          <Shield className="h-5 w-5 text-white" />
+        </div>
         <span className="font-heading font-bold text-xl tracking-tight">FUTRSEC</span>
       </div>
 
@@ -185,7 +187,7 @@ export default function RegisterStudent() {
                     <label key={key} className="flex items-center gap-3 cursor-pointer p-3 rounded-lg border border-border hover:bg-muted/30 transition-colors">
                       <input type="checkbox" checked={form[key] as boolean} onChange={e => set(key, e.target.checked)} className="h-4 w-4 accent-primary" />
                       <span className="text-sm text-foreground">{label}</span>
-                      {form[key] && <CheckCircle2 className="h-4 w-4 text-green-500 ml-auto" />}
+                      {form[key] && <CheckCircle2 className="h-4 w-4 text-success ml-auto" />}
                     </label>
                   ))}
                 </div>

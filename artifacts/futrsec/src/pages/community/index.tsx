@@ -73,7 +73,7 @@ export default function CommunityPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_260px] gap-6">
         <div>
-          <div className="bg-card border border-border/60 rounded-xl p-4 shadow-sm mb-4">
+          <div className="bg-card border border-border/60 rounded-xl p-4 elevation-1 mb-4">
             <Textarea
               placeholder="Share something with the community..."
               value={content}
@@ -111,7 +111,7 @@ export default function CommunityPage() {
             <div className="space-y-4">
               {posts.map((post, i) => (
                 <motion.div key={post.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.06 }}>
-                  <div className="bg-card border border-border/60 rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow">
+                  <div className="bg-card border border-border/60 rounded-xl p-5 elevation-1">
                     <div className="flex items-start gap-3 mb-3">
                       <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center shrink-0 text-sm font-bold text-primary">{(post.author?.[0] ?? "?").toUpperCase()}</div>
                       <div>
@@ -143,7 +143,7 @@ export default function CommunityPage() {
         </div>
 
         <div className="space-y-4">
-          <div className="bg-card border border-border/60 rounded-xl p-4 shadow-sm">
+          <div className="bg-card border border-border/60 rounded-xl p-4 elevation-1">
             <div className="flex items-center gap-2 mb-3"><TrendingUp className="h-4 w-4 text-primary" /><p className="text-sm font-semibold text-foreground">Trending Topics</p></div>
             <div className="flex flex-wrap gap-2">
               {TRENDING_TAGS.map((tag) => (

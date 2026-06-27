@@ -23,4 +23,5 @@ export * from "./preferences";
 export * from "./community";
 export * from "./support";
 export * from "./files";
+export * from "./journey";
 export * from "./relations";

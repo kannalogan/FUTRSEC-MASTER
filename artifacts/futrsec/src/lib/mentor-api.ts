@@ -116,6 +116,9 @@ export interface MentorTask {
   title: string;
   description: string | null;
   contentUrl: string | null;
+  refId: number | null;
+  maxAttempts: number | null;
+  points: number | null;
   careerTrack: string;
   status: string;
   audience: MentorTaskAudience;
@@ -125,6 +128,31 @@ export interface MentorTask {
   publishedAt: string | null;
   assignedCount: number;
   createdAt: string;
+}
+
+export interface MentorAssessmentOption {
+  id: number;
+  title: string;
+  type: string;
+  totalQuestions: number;
+  passingScore: number;
+  durationMinutes: number;
+}
+
+export interface TaskSubmission {
+  assignmentId: number;
+  studentId: number;
+  studentName: string | null;
+  studentEmail: string | null;
+  status: string;
+  submissionText: string | null;
+  fileUrl: string | null;
+  fileName: string | null;
+  submittedAt: string | null;
+  reviewStatus: "pending" | "approved" | "rejected" | "changes_requested" | null;
+  reviewNotes: string | null;
+  score: number | null;
+  reviewedAt: string | null;
 }
 
 export interface MentorAuditLog {
@@ -291,6 +319,8 @@ export interface CreateTaskBody {
   description?: string;
   contentUrl?: string;
   refId?: number;
+  maxAttempts?: number;
+  points?: number;
   careerTrack: string;
   audience: MentorTaskAudience;
   batchIds?: number[];
@@ -298,6 +328,59 @@ export interface CreateTaskBody {
   endDate?: string;
   scheduledAt?: string;
   action: "draft" | "publish" | "schedule";
+}
+
+export function useMentorAssessments() {
+  return useQuery({
+    queryKey: ["mentor", "assessments"] as const,
+    queryFn: () =>
+      apiFetch<{ assessments: MentorAssessmentOption[] }>(
+        "/api/mentor/assessments"
+      ),
+  });
+}
+
+export function useTaskSubmissions(taskId: number | null) {
+  return useQuery({
+    queryKey: ["mentor", "task-submissions", taskId] as const,
+    queryFn: () =>
+      apiFetch<{
+        task: { id: number; title: string; points: number | null };
+        submissions: TaskSubmission[];
+      }>(`/api/mentor/tasks/${taskId}/submissions`),
+    enabled: taskId != null,
+  });
+}
+
+export function useReviewSubmission() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      assignmentId,
+      reviewStatus,
+      reviewNotes,
+      score,
+    }: {
+      assignmentId: number;
+      reviewStatus: "approved" | "rejected" | "changes_requested";
+      reviewNotes?: string;
+      score?: number;
+    }) =>
+      apiFetch(`/api/mentor/task-submissions/${assignmentId}/review`, {
+        method: "POST",
+        body: JSON.stringify({ reviewStatus, reviewNotes, score }),
+      }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["mentor", "task-submissions"] });
+      qc.invalidateQueries({ queryKey: mentorKeys.auditLogs });
+    },
+  });
+}
+
+export function fetchSubmissionFileUrl(assignmentId: number) {
+  return apiFetch<{ url: string; fileName: string; expiresAt: string }>(
+    `/api/mentor/task-submissions/${assignmentId}/file-url`
+  );
 }
 
 export function useCreateTask() {

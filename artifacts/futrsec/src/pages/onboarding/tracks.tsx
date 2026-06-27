@@ -7,9 +7,9 @@ import { motion } from "framer-motion";
 import { useState } from "react";
 
 const DIFFICULTY_COLORS: Record<string, string> = {
-  beginner: "bg-emerald-500/10 text-emerald-600 border-emerald-500/20",
-  intermediate: "bg-amber-500/10 text-amber-600 border-amber-500/20",
-  advanced: "bg-red-500/10 text-red-600 border-red-500/20",
+  beginner: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20",
+  intermediate: "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20",
+  advanced: "bg-red-500/10 text-red-600 dark:text-red-400 border-red-500/20",
 };
 
 export default function Tracks() {
@@ -56,9 +56,9 @@ export default function Tracks() {
                 key={track.slug}
                 whileHover={{ y: -2 }}
                 onClick={() => setSelectedSlug(track.slug)}
-                className={`relative cursor-pointer rounded-xl border-2 p-5 transition-all ${
+                className={`hover-lift relative cursor-pointer rounded-xl border-2 p-5 transition-all ${
                   selectedSlug === track.slug
-                    ? "border-primary shadow-lg shadow-primary/10"
+                    ? "border-primary elevation-2"
                     : "border-border hover:border-muted-foreground/40 bg-card"
                 }`}
                 style={selectedSlug === track.slug ? { borderColor: track.accentColor ?? undefined, backgroundColor: `${track.accentColor}08` } : {}}

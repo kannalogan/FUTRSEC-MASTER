@@ -116,6 +116,9 @@ interface CreateForm {
   trackId: string;
   passingScore: string;
   durationMinutes: string;
+  securityEnabled: boolean;
+  maxWarnings: string;
+  maxAttempts: string;
 }
 const EMPTY_CREATE: CreateForm = {
   title: "",
@@ -123,6 +126,9 @@ const EMPTY_CREATE: CreateForm = {
   trackId: NO_TRACK,
   passingScore: "70",
   durationMinutes: "30",
+  securityEnabled: false,
+  maxWarnings: "3",
+  maxAttempts: "",
 };
 
 interface OptionRow {
@@ -199,6 +205,11 @@ export default function AdminAssessmentsPage() {
     if (createForm.trackId !== NO_TRACK) body.trackId = Number(createForm.trackId);
     if (createForm.passingScore) body.passingScore = Number(createForm.passingScore);
     if (createForm.durationMinutes) body.durationMinutes = Number(createForm.durationMinutes);
+    body.securityEnabled = createForm.securityEnabled;
+    if (createForm.maxWarnings) body.maxWarnings = Number(createForm.maxWarnings);
+    body.maxAttempts = createForm.maxAttempts
+      ? Number(createForm.maxAttempts)
+      : null;
     createMut.mutate(body);
   };
 
@@ -389,6 +400,54 @@ export default function AdminAssessmentsPage() {
                   value={createForm.durationMinutes}
                   onChange={(e) => setCreateForm((f) => ({ ...f, durationMinutes: e.target.value }))}
                 />
+              </div>
+            </div>
+            <Separator />
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label htmlFor="a-sec">Proctoring (security mode)</Label>
+                  <p className="text-xs text-muted-foreground">
+                    Lock copy/paste and end the attempt after repeated tab switches.
+                  </p>
+                </div>
+                <Switch
+                  id="a-sec"
+                  checked={createForm.securityEnabled}
+                  onCheckedChange={(v) =>
+                    setCreateForm((f) => ({ ...f, securityEnabled: v }))
+                  }
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label htmlFor="a-warn">Max warnings</Label>
+                  <Input
+                    id="a-warn"
+                    type="number"
+                    min={1}
+                    max={10}
+                    disabled={!createForm.securityEnabled}
+                    value={createForm.maxWarnings}
+                    onChange={(e) =>
+                      setCreateForm((f) => ({ ...f, maxWarnings: e.target.value }))
+                    }
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="a-att">Max attempts</Label>
+                  <Input
+                    id="a-att"
+                    type="number"
+                    min={1}
+                    max={100}
+                    placeholder="Unlimited"
+                    value={createForm.maxAttempts}
+                    onChange={(e) =>
+                      setCreateForm((f) => ({ ...f, maxAttempts: e.target.value }))
+                    }
+                  />
+                </div>
               </div>
             </div>
           </div>
@@ -832,12 +891,12 @@ function ManageQuestionsDialog({
                         {q.options.map((o) => (
                           <li key={o.id} className="flex items-center gap-2 text-sm">
                             <span
-                              className={`h-2 w-2 rounded-full ${o.isCorrect ? "bg-emerald-500" : "bg-muted-foreground/30"}`}
+                              className={`h-2 w-2 rounded-full ${o.isCorrect ? "bg-success" : "bg-muted-foreground/30"}`}
                             />
                             <span className={o.isCorrect ? "font-medium" : "text-muted-foreground"}>
                               {o.optionText}
                             </span>
-                            {o.isCorrect && <Badge className="bg-emerald-50 text-emerald-600 border-emerald-200 text-[10px]">Correct</Badge>}
+                            {o.isCorrect && <Badge className="bg-success/10 text-success border border-success/30 text-[10px]">Correct</Badge>}
                           </li>
                         ))}
                       </ul>

@@ -85,7 +85,9 @@ export default function ForgotPassword() {
         <button onClick={() => setLocation("/login")} className="text-muted-foreground hover:text-foreground transition-colors">
           <ArrowLeft className="h-4 w-4" />
         </button>
-        <Shield className="h-6 w-6 text-primary" />
+        <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-primary to-violet flex items-center justify-center glow-primary">
+          <Shield className="h-5 w-5 text-white" />
+        </div>
         <span className="font-heading font-bold text-xl tracking-tight">FUTRSEC</span>
       </div>
 
@@ -123,7 +125,7 @@ export default function ForgotPassword() {
                 <h1 className="text-2xl font-heading font-bold mb-2">Enter reset code</h1>
                 <p className="text-muted-foreground text-sm mb-6">We sent a 6-digit code to <span className="font-semibold text-foreground">{email}</span></p>
                 {devOtp && (
-                  <div className="mb-4 text-xs bg-yellow-50 border border-yellow-200 text-yellow-800 rounded-lg px-3 py-2">
+                  <div className="mb-4 text-xs bg-warning/10 border border-warning/30 text-warning rounded-lg px-3 py-2">
                     Dev mode — OTP: <span className="font-mono font-bold">{devOtp}</span>
                   </div>
                 )}
@@ -178,8 +180,8 @@ export default function ForgotPassword() {
 
             {step === "done" && (
               <motion.div key="done" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="text-center">
-                <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-6">
-                  <CheckCircle2 className="h-8 w-8 text-green-600" />
+                <div className="mx-auto w-16 h-16 bg-success/10 rounded-full flex items-center justify-center mb-6">
+                  <CheckCircle2 className="h-8 w-8 text-success" />
                 </div>
                 <h1 className="text-2xl font-heading font-bold mb-3">Password reset!</h1>
                 <p className="text-muted-foreground text-sm mb-8">Your password has been updated. You can now sign in with your new password.</p>

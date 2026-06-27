@@ -129,7 +129,7 @@ export default function AdminTracksPage() {
         subtitle="Edit track definitions (metadata only). This does not change any student's career track."
       />
 
-      <div className="flex items-start gap-2 rounded-lg bg-blue-500/10 p-3 text-sm text-blue-700 dark:text-blue-400 mb-6">
+      <div className="flex items-start gap-2 rounded-lg bg-info/10 border border-info/30 p-3 text-sm text-info mb-6">
         <Info className="h-4 w-4 mt-0.5 shrink-0" />
         <span>
           These are <strong>track definitions</strong> — their name, description, difficulty, color and

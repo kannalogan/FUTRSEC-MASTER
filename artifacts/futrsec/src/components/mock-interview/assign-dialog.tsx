@@ -144,7 +144,7 @@ export function MockInterviewAssignDialog({ open, onOpenChange, template }: Prop
 
           {mode === "all" && (
             <div className="rounded-lg border border-border/60 p-4 flex items-start gap-3">
-              <AlertTriangle className="h-4 w-4 text-amber-500 mt-0.5 shrink-0" />
+              <AlertTriangle className="h-4 w-4 text-warning mt-0.5 shrink-0" />
               <p className="text-sm text-muted-foreground">
                 This assigns the interview to <span className="font-medium text-foreground">all {eligibleStudents.length} of your students</span> on the {MI_TRACK_LABELS[template.careerTrack] ?? template.careerTrack} track. Students on other tracks are skipped automatically.
               </p>

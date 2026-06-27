@@ -49,7 +49,7 @@ export const certificatesTable = pgTable("certificates", {
   title: text("title").notNull(),
   careerTrack: careerTrackEnum("career_track"),
   // Provenance of an auto-issued certificate. sourceType is one of
-  // course | learning_path | lab_series | career_roadmap | internship | manual.
+  // course | learning_path | lab_series | career_roadmap | internship | journey | manual.
   // (userId, sourceType, sourceId) is the idempotency key for auto-issuance.
   sourceType: text("source_type").notNull().default("manual"),
   sourceId: integer("source_id"),

@@ -35,13 +35,13 @@ import { motion } from "framer-motion";
 
 const STATUS_META: Record<string, { label: string; className: string; icon: React.ComponentType<{ className?: string }> }> = {
   draft: { label: "Draft", className: "bg-muted text-muted-foreground border-border", icon: FileEdit },
-  pending: { label: "Pending", className: "bg-amber-500/15 text-amber-700 dark:text-amber-400 border-amber-500/30", icon: Clock },
-  approved: { label: "Approved", className: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30", icon: CheckCircle2 },
+  pending: { label: "Pending", className: "bg-warning/10 text-warning border-warning/30", icon: Clock },
+  approved: { label: "Approved", className: "bg-success/10 text-success border-success/30", icon: CheckCircle2 },
   rejected: { label: "Rejected", className: "bg-destructive/15 text-destructive border-destructive/30", icon: XCircle },
   archived: { label: "Archived", className: "bg-muted/50 text-muted-foreground/70 border-border/50", icon: Database },
 };
 const DIFF_COLOR: Record<string, string> = {
-  beginner: "text-emerald-600", intermediate: "text-blue-600", advanced: "text-amber-600", expert: "text-destructive",
+  beginner: "text-emerald-600 dark:text-emerald-400", intermediate: "text-blue-600 dark:text-blue-400", advanced: "text-amber-600 dark:text-amber-400", expert: "text-destructive",
 };
 const KANBAN_COLS = ["draft", "pending", "approved", "rejected"] as const;
 
@@ -114,9 +114,9 @@ export default function MentorQuestionBankPage() {
       {/* KPIs */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <KpiCard icon={Library} label="Total questions" value={analytics?.total ?? "—"} tone="bg-primary/15 text-primary" />
-        <KpiCard icon={CheckCircle2} label="Approved" value={analytics?.byStatus?.approved ?? 0} tone="bg-emerald-500/15 text-emerald-600" />
-        <KpiCard icon={Clock} label="Pending review" value={analytics?.byStatus?.pending ?? 0} tone="bg-amber-500/15 text-amber-600" />
-        <KpiCard icon={TrendingUp} label="Total usage" value={analytics?.totalUsage ?? 0} tone="bg-blue-500/15 text-blue-600" />
+        <KpiCard icon={CheckCircle2} label="Approved" value={analytics?.byStatus?.approved ?? 0} tone="bg-success/10 text-success" />
+        <KpiCard icon={Clock} label="Pending review" value={analytics?.byStatus?.pending ?? 0} tone="bg-warning/10 text-warning" />
+        <KpiCard icon={TrendingUp} label="Total usage" value={analytics?.totalUsage ?? 0} tone="bg-info/10 text-info" />
       </div>
 
       {/* Filters */}
@@ -225,7 +225,7 @@ export default function MentorQuestionBankPage() {
                     const canEdit = q.status === "draft" || q.status === "rejected";
                     return (
                       <motion.div key={q.id} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}>
-                        <Card className="bg-card hover:shadow-md transition-shadow cursor-pointer" onClick={() => canEdit ? openEdit(q) : undefined}>
+                        <Card className="bg-card hover-lift cursor-pointer" onClick={() => canEdit ? openEdit(q) : undefined}>
                           <CardContent className="p-3.5">
                             <p className="text-sm font-medium text-foreground line-clamp-3">{q.questionText}</p>
                             <div className="flex flex-wrap gap-1.5 mt-2.5">

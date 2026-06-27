@@ -82,12 +82,12 @@ export default function AssignmentsPage() {
                     <div className="flex items-start justify-between gap-2 mb-2">
                       <h3 className="font-semibold text-sm text-foreground leading-tight">{a.title}</h3>
                       {submitted ? (
-                        <Badge className="bg-emerald-50 text-emerald-600 border-emerald-200 text-[10px] shrink-0">
+                        <Badge className="bg-success/10 text-success border border-success/30 text-[10px] shrink-0">
                           <CheckCircle2 className="h-3 w-3 mr-1" />
                           {a.submission?.status}
                         </Badge>
                       ) : (
-                        <Badge className="bg-orange-50 text-orange-600 border-orange-200 text-[10px] shrink-0">
+                        <Badge className="bg-warning/10 text-warning border border-warning/30 text-[10px] shrink-0">
                           Pending
                         </Badge>
                       )}
@@ -105,7 +105,7 @@ export default function AssignmentsPage() {
                         {a.maxScore} pts
                       </span>
                       {submitted && a.submission?.score != null && (
-                        <span className="font-medium text-emerald-600">Scored {a.submission.score}</span>
+                        <span className="font-medium text-success">Scored {a.submission.score}</span>
                       )}
                     </div>
                     <Button

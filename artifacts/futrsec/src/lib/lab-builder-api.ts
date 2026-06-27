@@ -76,6 +76,20 @@ export interface LabHint {
   createdAt: string;
 }
 
+/** Objective spec for command-validated modules (authoring side, server-mirrored). */
+export interface CommandSpec {
+  tool: string;
+  toolAliases?: string[];
+  /** Each inner array is one requirement satisfied by ANY of its flag forms. */
+  requiredFlags?: string[][];
+  forbiddenFlags?: string[];
+  requiredArgs?: { pattern: string; isRegex?: boolean; label?: string }[];
+  intentKeywords?: string[];
+  caseSensitive?: boolean;
+}
+
+export type ValidationType = "flag" | "command";
+
 export interface LabModule {
   id: number;
   labId: number;
@@ -85,6 +99,8 @@ export interface LabModule {
   hint: string | null;
   flag: string | null;
   flagFormat: string | null;
+  validationType: ValidationType;
+  commandSpec: CommandSpec | null;
   solutionExplanation: string | null;
   walkthrough: string | null;
   points: number;
@@ -206,6 +222,8 @@ export interface ModuleBody {
   hint?: string;
   flag?: string;
   flagFormat?: string;
+  validationType?: ValidationType;
+  commandSpec?: CommandSpec | null;
   solutionExplanation?: string;
   walkthrough?: string;
   points?: number;

@@ -66,6 +66,17 @@ interface LabsResp {
   labs: Lab[];
 }
 
+interface CommandSpec {
+  tool: string;
+  toolAliases?: string[];
+  requiredFlags?: string[][];
+  forbiddenFlags?: string[];
+  requiredArgs?: { pattern: string; isRegex?: boolean; label?: string }[];
+  intentKeywords?: string[];
+  caseSensitive?: boolean;
+}
+type ValidationType = "flag" | "command";
+
 interface LabModule {
   id: number;
   labId: number;
@@ -75,6 +86,8 @@ interface LabModule {
   hint: string | null;
   flag: string | null;
   flagFormat: string | null;
+  validationType: ValidationType;
+  commandSpec: CommandSpec | null;
   solutionExplanation: string | null;
   points: number;
 }
@@ -130,6 +143,14 @@ interface ModuleFormState {
   flagFormat: string;
   solutionExplanation: string;
   points: string;
+  validationType: ValidationType;
+  csTool: string;
+  csToolAliases: string;
+  csRequiredFlags: string;
+  csForbiddenFlags: string;
+  csRequiredArgs: string;
+  csIntentKeywords: string;
+  csCaseSensitive: boolean;
 }
 const EMPTY_MODULE_FORM: ModuleFormState = {
   title: "",
@@ -140,7 +161,55 @@ const EMPTY_MODULE_FORM: ModuleFormState = {
   flagFormat: "",
   solutionExplanation: "",
   points: "",
+  validationType: "flag",
+  csTool: "",
+  csToolAliases: "",
+  csRequiredFlags: "",
+  csForbiddenFlags: "",
+  csRequiredArgs: "",
+  csIntentKeywords: "",
+  csCaseSensitive: false,
 };
+
+const moduleLinesOf = (s: string): string[] =>
+  s.split("\n").map((l) => l.trim()).filter(Boolean);
+const moduleTokensOf = (s: string): string[] =>
+  s.split(/[,\s]+/).map((t) => t.trim()).filter(Boolean);
+
+function buildModuleCommandSpec(f: ModuleFormState): CommandSpec {
+  const spec: CommandSpec = { tool: f.csTool.trim() };
+  const aliases = moduleTokensOf(f.csToolAliases);
+  if (aliases.length) spec.toolAliases = aliases;
+  const requiredFlags = moduleLinesOf(f.csRequiredFlags).map((line) => moduleTokensOf(line));
+  if (requiredFlags.length) spec.requiredFlags = requiredFlags;
+  const forbidden = moduleTokensOf(f.csForbiddenFlags);
+  if (forbidden.length) spec.forbiddenFlags = forbidden;
+  const requiredArgs = moduleLinesOf(f.csRequiredArgs).map((line) =>
+    line.toLowerCase().startsWith("regex:")
+      ? { pattern: line.slice(6).trim(), isRegex: true }
+      : { pattern: line, isRegex: false },
+  );
+  if (requiredArgs.length) spec.requiredArgs = requiredArgs;
+  const intent = moduleLinesOf(f.csIntentKeywords);
+  if (intent.length) spec.intentKeywords = intent;
+  if (f.csCaseSensitive) spec.caseSensitive = true;
+  return spec;
+}
+
+function decodeModuleCommandSpec(spec: CommandSpec | null): Partial<ModuleFormState> {
+  if (!spec) return {};
+  return {
+    csTool: spec.tool ?? "",
+    csToolAliases: (spec.toolAliases ?? []).join(", "),
+    csRequiredFlags: (spec.requiredFlags ?? []).map((g) => g.join(" ")).join("\n"),
+    csForbiddenFlags: (spec.forbiddenFlags ?? []).join(", "),
+    csRequiredArgs: (spec.requiredArgs ?? [])
+      .map((a) => (a.isRegex ? `regex:${a.pattern}` : a.pattern))
+      .join("\n"),
+    csIntentKeywords: (spec.intentKeywords ?? []).join("\n"),
+    csCaseSensitive: spec.caseSensitive ?? false,
+  };
+}
 
 export default function AdminLabsPage() {
   const { toast } = useToast();
@@ -316,6 +385,7 @@ export default function AdminLabsPage() {
   const openEditModule = (m: LabModule) => {
     setEditingModule(m);
     setModuleForm({
+      ...EMPTY_MODULE_FORM,
       title: m.title,
       order: String(m.order),
       taskDescription: m.taskDescription,
@@ -324,6 +394,8 @@ export default function AdminLabsPage() {
       flagFormat: m.flagFormat ?? "",
       solutionExplanation: m.solutionExplanation ?? "",
       points: String(m.points),
+      validationType: m.validationType ?? "flag",
+      ...decodeModuleCommandSpec(m.commandSpec),
     });
     setModuleFormOpen(true);
   };
@@ -367,13 +439,23 @@ export default function AdminLabsPage() {
       toast({ title: "Task description is required", variant: "destructive" });
       return;
     }
+    let commandSpec: CommandSpec | null = null;
+    if (moduleForm.validationType === "command") {
+      if (!moduleForm.csTool.trim()) {
+        toast({ title: "Command modules need a base tool (e.g. nmap)", variant: "destructive" });
+        return;
+      }
+      commandSpec = buildModuleCommandSpec(moduleForm);
+    }
     const body = {
       title: moduleForm.title.trim(),
       order: moduleForm.order ? Number(moduleForm.order) : 0,
       taskDescription: moduleForm.taskDescription.trim(),
       hint: moduleForm.hint.trim() || undefined,
-      flag: moduleForm.flag.trim() || undefined,
-      flagFormat: moduleForm.flagFormat.trim() || undefined,
+      flag: moduleForm.validationType === "flag" ? (moduleForm.flag.trim() || undefined) : undefined,
+      flagFormat: moduleForm.validationType === "flag" ? (moduleForm.flagFormat.trim() || undefined) : undefined,
+      validationType: moduleForm.validationType,
+      commandSpec,
       solutionExplanation: moduleForm.solutionExplanation.trim() || undefined,
       points: moduleForm.points ? Number(moduleForm.points) : undefined,
     };
@@ -720,26 +802,139 @@ export default function AdminLabsPage() {
                       rows={2}
                     />
                   </div>
-                  <div>
-                    <Label htmlFor="mod-flag">Flag</Label>
-                    <Input
-                      id="mod-flag"
-                      value={moduleForm.flag}
-                      onChange={(e) => setMF("flag", e.target.value)}
-                      placeholder="FLAG{...}"
-                      className="font-mono"
-                    />
+                  <div className="col-span-2">
+                    <Label htmlFor="mod-valtype">Validation Type</Label>
+                    <Select
+                      value={moduleForm.validationType}
+                      onValueChange={(v) => setMF("validationType", v as ValidationType)}
+                    >
+                      <SelectTrigger id="mod-valtype"><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="flag">Flag submission (exact match)</SelectItem>
+                        <SelectItem value="command">Command objective (parser-based)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <p className="text-muted-foreground mt-1 text-xs">
+                      {moduleForm.validationType === "flag"
+                        ? "Student submits a flag string that must match exactly."
+                        : "Student submits a command; it is validated by tool, flags, args and intent — not exact text."}
+                    </p>
                   </div>
-                  <div>
-                    <Label htmlFor="mod-flagfmt">Flag Format</Label>
-                    <Input
-                      id="mod-flagfmt"
-                      value={moduleForm.flagFormat}
-                      onChange={(e) => setMF("flagFormat", e.target.value)}
-                      placeholder="FLAG{...}"
-                      className="font-mono"
-                    />
-                  </div>
+                  {moduleForm.validationType === "flag" ? (
+                    <>
+                      <div>
+                        <Label htmlFor="mod-flag">Flag</Label>
+                        <Input
+                          id="mod-flag"
+                          value={moduleForm.flag}
+                          onChange={(e) => setMF("flag", e.target.value)}
+                          placeholder="FLAG{...}"
+                          className="font-mono"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="mod-flagfmt">Flag Format</Label>
+                        <Input
+                          id="mod-flagfmt"
+                          value={moduleForm.flagFormat}
+                          onChange={(e) => setMF("flagFormat", e.target.value)}
+                          placeholder="FLAG{...}"
+                          className="font-mono"
+                        />
+                      </div>
+                    </>
+                  ) : (
+                    <div className="col-span-2 space-y-3 rounded-md border bg-muted/30 p-3">
+                      <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                        Command Spec
+                      </p>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <Label htmlFor="cs-tool">Base Tool</Label>
+                          <Input
+                            id="cs-tool"
+                            value={moduleForm.csTool}
+                            onChange={(e) => setMF("csTool", e.target.value)}
+                            placeholder="nmap"
+                            className="font-mono"
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="cs-aliases">Tool Aliases</Label>
+                          <Input
+                            id="cs-aliases"
+                            value={moduleForm.csToolAliases}
+                            onChange={(e) => setMF("csToolAliases", e.target.value)}
+                            placeholder="nmap.exe, /usr/bin/nmap"
+                            className="font-mono"
+                          />
+                          <p className="text-muted-foreground mt-1 text-xs">Comma or space separated.</p>
+                        </div>
+                      </div>
+                      <div>
+                        <Label htmlFor="cs-reqflags">Required Flags</Label>
+                        <Textarea
+                          id="cs-reqflags"
+                          value={moduleForm.csRequiredFlags}
+                          onChange={(e) => setMF("csRequiredFlags", e.target.value)}
+                          rows={2}
+                          placeholder={"-sV\n-p 80,443"}
+                          className="font-mono"
+                        />
+                        <p className="text-muted-foreground mt-1 text-xs">
+                          One requirement per line. Within a line, list alternatives (any one satisfies it), e.g. <code>-sV -A</code>.
+                        </p>
+                      </div>
+                      <div>
+                        <Label htmlFor="cs-forbidflags">Forbidden Flags</Label>
+                        <Input
+                          id="cs-forbidflags"
+                          value={moduleForm.csForbiddenFlags}
+                          onChange={(e) => setMF("csForbiddenFlags", e.target.value)}
+                          placeholder="-T5, --aggressive"
+                          className="font-mono"
+                        />
+                        <p className="text-muted-foreground mt-1 text-xs">Comma or space separated.</p>
+                      </div>
+                      <div>
+                        <Label htmlFor="cs-reqargs">Required Args / Targets</Label>
+                        <Textarea
+                          id="cs-reqargs"
+                          value={moduleForm.csRequiredArgs}
+                          onChange={(e) => setMF("csRequiredArgs", e.target.value)}
+                          rows={2}
+                          placeholder={"10.0.0.5\nregex:^10\\.0\\.0\\.\\d+$"}
+                          className="font-mono"
+                        />
+                        <p className="text-muted-foreground mt-1 text-xs">
+                          One per line. Prefix with <code>regex:</code> for a pattern; otherwise an exact token match.
+                        </p>
+                      </div>
+                      <div>
+                        <Label htmlFor="cs-intent">Intent Keywords</Label>
+                        <Textarea
+                          id="cs-intent"
+                          value={moduleForm.csIntentKeywords}
+                          onChange={(e) => setMF("csIntentKeywords", e.target.value)}
+                          rows={2}
+                          placeholder={"scan\nversion"}
+                          className="font-mono"
+                        />
+                        <p className="text-muted-foreground mt-1 text-xs">
+                          One per line. Each must appear somewhere in the submitted command.
+                        </p>
+                      </div>
+                      <label className="flex items-center gap-2 text-sm">
+                        <input
+                          type="checkbox"
+                          checked={moduleForm.csCaseSensitive}
+                          onChange={(e) => setMF("csCaseSensitive", e.target.checked)}
+                          className="h-4 w-4"
+                        />
+                        Case sensitive matching
+                      </label>
+                    </div>
+                  )}
                   <div className="col-span-2">
                     <Label htmlFor="mod-sol">Solution Explanation</Label>
                     <Textarea

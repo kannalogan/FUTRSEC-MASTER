@@ -44,7 +44,7 @@ function PlanCard({
 }) {
   const highlight = plan.id.startsWith("premium");
   return (
-    <Card className={`relative border-border/60 h-full ${highlight ? "border-primary/40 shadow-md" : "bg-card"}`}>
+    <Card className={`relative border-border/60 h-full ${highlight ? "border-primary/40" : "bg-card"}`}>
       {highlight && (
         <div className="absolute -top-2.5 left-1/2 -translate-x-1/2">
           <Badge className="bg-primary text-white border-primary gap-1 text-[10px]">
@@ -67,7 +67,7 @@ function PlanCard({
         <ul className="space-y-2 mb-5 flex-1">
           {plan.features.map((f) => (
             <li key={f} className="flex items-start gap-2 text-xs text-muted-foreground">
-              <Check className="h-3.5 w-3.5 text-emerald-500 shrink-0 mt-0.5" />{f}
+              <Check className="h-3.5 w-3.5 text-success shrink-0 mt-0.5" />{f}
             </li>
           ))}
         </ul>
@@ -305,7 +305,7 @@ export default function SubscriptionPage() {
                   </Button>
                 </div>
                 {couponResult && (
-                  <p className={`text-xs flex items-center gap-1 ${couponResult.valid ? "text-emerald-600" : "text-destructive"}`}>
+                  <p className={`text-xs flex items-center gap-1 ${couponResult.valid ? "text-success" : "text-destructive"}`}>
                     {couponResult.valid ? <CheckCircle2 className="h-3.5 w-3.5" /> : <XCircle className="h-3.5 w-3.5" />}
                     {couponResult.valid
                       ? `Discount ${couponResult.discount != null ? rupees(couponResult.discount) : ""} applied`

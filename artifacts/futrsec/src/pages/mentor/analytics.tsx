@@ -11,7 +11,7 @@ function Stat({ icon: Icon, label, value, color, delay }: {
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay }}>
       <Card className="glass-card hover-lift">
         <CardContent className="p-5 flex flex-col gap-4">
-          <div className="h-10 w-10 rounded-xl flex items-center justify-center shrink-0 bg-background/50 ring-1 ring-border shadow-sm">
+          <div className="h-10 w-10 rounded-xl flex items-center justify-center shrink-0 bg-background/50 ring-1 ring-border elevation-1">
             <Icon className="h-5 w-5" style={{ color }} />
           </div>
           <div>

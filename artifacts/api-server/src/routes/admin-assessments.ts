@@ -50,6 +50,9 @@ const createAssessmentSchema = z.object({
   passingScore: z.number().int().min(0).max(100).optional(),
   durationMinutes: z.number().int().min(1).max(600).optional(),
   totalQuestions: z.number().int().min(0).optional(),
+  securityEnabled: z.boolean().optional(),
+  maxWarnings: z.number().int().min(1).max(10).optional(),
+  maxAttempts: z.number().int().min(1).max(100).nullable().optional(),
 });
 
 const updateAssessmentSchema = z.object({
@@ -60,6 +63,9 @@ const updateAssessmentSchema = z.object({
   passingScore: z.number().int().min(0).max(100).optional(),
   durationMinutes: z.number().int().min(1).max(600).optional(),
   isActive: z.boolean().optional(),
+  securityEnabled: z.boolean().optional(),
+  maxWarnings: z.number().int().min(1).max(10).optional(),
+  maxAttempts: z.number().int().min(1).max(100).nullable().optional(),
 });
 
 const optionSchema = z.object({
@@ -243,6 +249,11 @@ router.post(
         durationMinutes: d.durationMinutes ?? 30,
         totalQuestions: d.totalQuestions ?? 0,
         isActive: true,
+        ...(d.securityEnabled !== undefined
+          ? { securityEnabled: d.securityEnabled }
+          : {}),
+        ...(d.maxWarnings !== undefined ? { maxWarnings: d.maxWarnings } : {}),
+        ...(d.maxAttempts !== undefined ? { maxAttempts: d.maxAttempts } : {}),
       })
       .returning();
 
@@ -386,6 +397,11 @@ router.patch(
           ? { durationMinutes: d.durationMinutes }
           : {}),
         ...(d.isActive !== undefined ? { isActive: d.isActive } : {}),
+        ...(d.securityEnabled !== undefined
+          ? { securityEnabled: d.securityEnabled }
+          : {}),
+        ...(d.maxWarnings !== undefined ? { maxWarnings: d.maxWarnings } : {}),
+        ...(d.maxAttempts !== undefined ? { maxAttempts: d.maxAttempts } : {}),
       })
       .where(eq(assessmentsTable.id, id))
       .returning();

@@ -29,7 +29,7 @@ export function PageHeader({
 
 export function CardSkeleton({ rows = 3 }: { rows?: number }) {
   return (
-    <div className="bg-card border border-border/60 rounded-xl p-5 shadow-sm space-y-3">
+    <div className="bg-card border border-border/60 rounded-xl p-5 elevation-1 space-y-3">
       <Skeleton className="h-5 w-2/3" />
       {Array.from({ length: rows }).map((_, i) => (
         <Skeleton key={i} className="h-4" style={{ width: `${90 - i * 10}%` }} />

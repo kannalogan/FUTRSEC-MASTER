@@ -5,11 +5,17 @@ description: Which completion events exist and how each maps to the data model
 
 # Certificate completion sources
 
-The certificate engine supports source types: course, learning_path, lab_series,
+The certificate engine supports source types: course, journey, learning_path, lab_series,
 career_roadmap, internship, manual. Not all map to a distinct entity in this
 codebase — here is the honest mapping (event handlers exist for all in events.ts):
 
 - **course** → module 100% completion (learning.ts lesson-complete route). Wired.
+- **journey** → emitted in student-journey.ts when a student completes the final required
+  item and the day-based journey transitions active→completed (`journeyId = journey.id`).
+  Wired. source_type is a plain text column so no enum migration was needed; idempotency
+  reuses the existing `(user_id, source_type, source_id)` partial unique index. The emit
+  is exactly-once under concurrency — see transition-only-emit.md (guarded UPDATE row count
+  under FOR UPDATE lock, NOT a pre-lock status read).
 - **lab_series** → emitted on finishing a lab (labs.ts finishLab), `seriesId = labId`.
   There is no multi-lab "series" entity; a lab IS the series unit. Wired.
 - **career_roadmap** → emitted in learning.ts ONLY when every published module in the

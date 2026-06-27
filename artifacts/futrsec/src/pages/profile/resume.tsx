@@ -80,27 +80,27 @@ export default function ResumePage() {
           <Card className="bg-card border-border/60">
             <CardHeader className="pb-3 pt-4 px-5">
               <CardTitle className="text-sm font-semibold flex items-center gap-2">
-                <CheckCircle2 className="h-4 w-4 text-emerald-500" />Job-Readiness Checklist
+                <CheckCircle2 className="h-4 w-4 text-success" />Job-Readiness Checklist
               </CardTitle>
             </CardHeader>
             <CardContent className="px-5 pb-5 space-y-2.5">
               {checklist.map((item) => (
                 <div key={item.label} className="flex items-center gap-2.5">
                   {item.done
-                    ? <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0" />
+                    ? <CheckCircle2 className="h-4 w-4 text-success shrink-0" />
                     : <AlertCircle className="h-4 w-4 text-muted-foreground/40 shrink-0" />}
                   <span className={`text-sm ${item.done ? "text-foreground" : "text-muted-foreground"}`}>{item.label}</span>
-                  {item.done && <Badge className="ml-auto bg-emerald-50 text-emerald-600 border-emerald-200 text-[10px]">Done</Badge>}
+                  {item.done && <Badge className="ml-auto bg-success/10 text-success border border-success/30 text-[10px]">Done</Badge>}
                 </div>
               ))}
             </CardContent>
           </Card>
 
-          <Card className="bg-gradient-to-br from-purple-50 to-white border-purple-200/60">
+          <Card className="bg-gradient-to-br from-violet-500/10 to-transparent border-violet-500/20">
             <CardContent className="p-5 flex items-center justify-between gap-4">
               <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-xl bg-purple-100 flex items-center justify-center shrink-0">
-                  <Sparkles className="h-5 w-5 text-purple-600" />
+                <div className="h-10 w-10 rounded-xl bg-violet-500/15 flex items-center justify-center shrink-0">
+                  <Sparkles className="h-5 w-5 text-violet-600 dark:text-violet-400" />
                 </div>
                 <div>
                   <h3 className="font-semibold text-sm text-foreground">AI Resume Analyzer</h3>

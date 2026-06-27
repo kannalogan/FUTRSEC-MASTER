@@ -175,7 +175,7 @@ export default function AdminOverviewPage() {
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
             {QUICK_LINKS.map((q) => (
               <Link key={q.href} href={q.href}>
-                <Card className="hover:border-primary/50 hover:shadow-md transition-all cursor-pointer">
+                <Card className="hover:border-primary/50 hover-lift transition-all cursor-pointer">
                   <CardContent className="p-4 flex items-center gap-3">
                     <q.icon className="h-4 w-4 text-primary" />
                     <span className="text-sm font-medium">{q.label}</span>

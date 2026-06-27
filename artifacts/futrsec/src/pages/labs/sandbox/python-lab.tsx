@@ -164,7 +164,7 @@ export function PythonLab({ drill, onSolve }: { drill: PythonDrill; onSolve: () 
 
       {status === "done" &&
         (correct ? (
-          <p className="flex items-center gap-1 text-emerald-600 text-xs font-medium">
+          <p className="flex items-center gap-1 text-success text-xs font-medium">
             <CheckCircle2 className="h-3.5 w-3.5" /> {drill.success}
           </p>
         ) : (

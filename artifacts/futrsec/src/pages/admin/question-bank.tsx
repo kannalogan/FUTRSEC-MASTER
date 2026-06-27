@@ -34,13 +34,13 @@ import {
 
 const STATUS_META: Record<string, string> = {
   draft: "bg-muted text-muted-foreground border-border",
-  pending: "bg-amber-500/15 text-amber-700 dark:text-amber-400 border-amber-500/30",
-  approved: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30",
+  pending: "bg-warning/10 text-warning border border-warning/30",
+  approved: "bg-success/10 text-success border border-success/30",
   rejected: "bg-destructive/15 text-destructive border-destructive/30",
   archived: "bg-muted/50 text-muted-foreground/70 border-border/50",
 };
 const DIFF_COLOR: Record<string, string> = {
-  beginner: "text-emerald-600", intermediate: "text-blue-600", advanced: "text-amber-600", expert: "text-destructive",
+  beginner: "text-success", intermediate: "text-info", advanced: "text-warning", expert: "text-destructive",
 };
 
 function QuestionPreview({ q }: { q: QBQuestion }) {
@@ -56,7 +56,7 @@ function QuestionPreview({ q }: { q: QBQuestion }) {
       {q.options.length > 0 && (
         <ul className="space-y-1.5">
           {q.options.map((o, i) => (
-            <li key={i} className={`text-sm flex items-center gap-2 rounded-lg border p-2.5 ${o.isCorrect ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 font-medium" : "border-border"}`}>
+            <li key={i} className={`text-sm flex items-center gap-2 rounded-lg border p-2.5 ${o.isCorrect ? "border-success/40 bg-success/10 text-success font-medium" : "border-border"}`}>
               {o.isCorrect ? <Check className="h-4 w-4 shrink-0" /> : <span className="w-4 shrink-0 text-xs font-semibold text-muted-foreground">{String.fromCharCode(65 + i)}</span>}
               {o.optionText}
             </li>
@@ -115,8 +115,8 @@ export default function AdminQuestionBankPage() {
       />
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <Card className="glass-card"><CardContent className="p-5 flex items-center gap-4"><div className="h-11 w-11 rounded-xl bg-amber-500/15 text-amber-600 flex items-center justify-center"><Clock className="h-5 w-5" /></div><div><p className="text-2xl font-bold leading-none">{analytics?.pending ?? 0}</p><p className="text-sm text-muted-foreground mt-1">Pending review</p></div></CardContent></Card>
-        <Card className="glass-card"><CardContent className="p-5 flex items-center gap-4"><div className="h-11 w-11 rounded-xl bg-emerald-500/15 text-emerald-600 flex items-center justify-center"><CheckCircle2 className="h-5 w-5" /></div><div><p className="text-2xl font-bold leading-none">{analytics?.byStatus?.approved ?? 0}</p><p className="text-sm text-muted-foreground mt-1">Approved</p></div></CardContent></Card>
+        <Card className="glass-card"><CardContent className="p-5 flex items-center gap-4"><div className="h-11 w-11 rounded-xl bg-warning/10 text-warning flex items-center justify-center"><Clock className="h-5 w-5" /></div><div><p className="text-2xl font-bold leading-none">{analytics?.pending ?? 0}</p><p className="text-sm text-muted-foreground mt-1">Pending review</p></div></CardContent></Card>
+        <Card className="glass-card"><CardContent className="p-5 flex items-center gap-4"><div className="h-11 w-11 rounded-xl bg-success/10 text-success flex items-center justify-center"><CheckCircle2 className="h-5 w-5" /></div><div><p className="text-2xl font-bold leading-none">{analytics?.byStatus?.approved ?? 0}</p><p className="text-sm text-muted-foreground mt-1">Approved</p></div></CardContent></Card>
         <Card className="glass-card"><CardContent className="p-5 flex items-center gap-4"><div className="h-11 w-11 rounded-xl bg-destructive/15 text-destructive flex items-center justify-center"><XCircle className="h-5 w-5" /></div><div><p className="text-2xl font-bold leading-none">{analytics?.byStatus?.rejected ?? 0}</p><p className="text-sm text-muted-foreground mt-1">Rejected</p></div></CardContent></Card>
         <Card className="glass-card"><CardContent className="p-5 flex items-center gap-4"><div className="h-11 w-11 rounded-xl bg-primary/15 text-primary flex items-center justify-center"><Library className="h-5 w-5" /></div><div><p className="text-2xl font-bold leading-none">{analytics?.total ?? 0}</p><p className="text-sm text-muted-foreground mt-1">Total library</p></div></CardContent></Card>
       </div>

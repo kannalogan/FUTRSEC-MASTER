@@ -10,6 +10,7 @@ import {
   useTrackOptions,
   LB_DIFFICULTIES, LB_TYPES, LB_ASSET_KINDS,
   type LabModule, type LabAsset, type LabVersionRef, type LabAssignment, type LabAnalytics,
+  type CommandSpec, type ValidationType,
 } from "@/lib/lab-builder-api";
 import { useMentorStudents } from "@/lib/mentor-api";
 import { exportToCSV } from "@/lib/export-utils";
@@ -46,7 +47,7 @@ import {
 
 const STATUS_META: Record<string, { label: string; className: string }> = {
   draft: { label: "Draft", className: "bg-muted text-muted-foreground border-border" },
-  published: { label: "Published", className: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30" },
+  published: { label: "Published", className: "bg-success/10 text-success border border-success/30" },
   archived: { label: "Archived", className: "bg-muted/50 text-muted-foreground/70 border-border/50" },
 };
 const PIE_COLORS = ["#2563EB", "#F97316", "#10B981", "#8B5CF6"];
@@ -269,7 +270,62 @@ function DetailsTab({ labId, data, toast }: { labId: number; data: EditorData; t
 }
 
 // ─── Modules ──────────────────────────────────────────────────────────────────
-const emptyModule = { title: "", order: 0, taskDescription: "", hint: "", flag: "", flagFormat: "", solutionExplanation: "", walkthrough: "", points: "10" };
+const emptyModule = {
+  title: "", order: 0, taskDescription: "", hint: "", flag: "", flagFormat: "",
+  solutionExplanation: "", walkthrough: "", points: "10",
+  validationType: "flag" as ValidationType,
+  // command-spec authoring fields (string-encoded; parsed on save)
+  csTool: "", csToolAliases: "", csRequiredFlags: "", csForbiddenFlags: "",
+  csRequiredArgs: "", csIntentKeywords: "", csCaseSensitive: false,
+};
+
+/** Multi-line text → trimmed non-empty lines. */
+function linesOf(s: string): string[] {
+  return s.split("\n").map((l) => l.trim()).filter(Boolean);
+}
+/** Comma/space text → trimmed non-empty tokens. */
+function tokensOf(s: string): string[] {
+  return s.split(/[,\s]+/).map((t) => t.trim()).filter(Boolean);
+}
+
+/** Build a CommandSpec from the string-encoded authoring fields. */
+function buildCommandSpec(form: typeof emptyModule): CommandSpec {
+  const requiredFlags = linesOf(form.csRequiredFlags).map((line) => tokensOf(line));
+  const requiredArgs = linesOf(form.csRequiredArgs).map((line) => {
+    // syntax: `regex:<pattern>` for a regex arg, otherwise literal
+    if (line.toLowerCase().startsWith("regex:")) {
+      return { pattern: line.slice(6).trim(), isRegex: true };
+    }
+    return { pattern: line, isRegex: false };
+  });
+  const spec: CommandSpec = { tool: form.csTool.trim() };
+  const aliases = tokensOf(form.csToolAliases);
+  if (aliases.length) spec.toolAliases = aliases;
+  if (requiredFlags.length) spec.requiredFlags = requiredFlags;
+  const forbidden = tokensOf(form.csForbiddenFlags);
+  if (forbidden.length) spec.forbiddenFlags = forbidden;
+  if (requiredArgs.length) spec.requiredArgs = requiredArgs;
+  const intent = linesOf(form.csIntentKeywords);
+  if (intent.length) spec.intentKeywords = intent;
+  if (form.csCaseSensitive) spec.caseSensitive = true;
+  return spec;
+}
+
+/** Decode a persisted CommandSpec back into the authoring string fields. */
+function decodeCommandSpec(spec: CommandSpec | null): Partial<typeof emptyModule> {
+  if (!spec) return {};
+  return {
+    csTool: spec.tool ?? "",
+    csToolAliases: (spec.toolAliases ?? []).join(", "),
+    csRequiredFlags: (spec.requiredFlags ?? []).map((g) => g.join(" ")).join("\n"),
+    csForbiddenFlags: (spec.forbiddenFlags ?? []).join(", "),
+    csRequiredArgs: (spec.requiredArgs ?? [])
+      .map((a) => (a.isRegex ? `regex:${a.pattern}` : a.pattern))
+      .join("\n"),
+    csIntentKeywords: (spec.intentKeywords ?? []).join("\n"),
+    csCaseSensitive: spec.caseSensitive ?? false,
+  };
+}
 
 function ModulesTab({ labId, modules, toast }: { labId: number; modules: LabModule[]; toast: ToastFn }) {
   const createMut = useCreateModule(labId);
@@ -292,10 +348,13 @@ function ModulesTab({ labId, modules, toast }: { labId: number; modules: LabModu
   const openEdit = (m: LabModule) => {
     setEditing(m);
     setForm({
+      ...emptyModule,
       title: m.title, order: m.order, taskDescription: m.taskDescription,
       hint: m.hint ?? "", flag: m.flag ?? "", flagFormat: m.flagFormat ?? "",
       solutionExplanation: m.solutionExplanation ?? "", walkthrough: m.walkthrough ?? "",
       points: String(m.points),
+      validationType: m.validationType ?? "flag",
+      ...decodeCommandSpec(m.commandSpec),
     });
     setEditorOpen(true);
   };
@@ -305,13 +364,23 @@ function ModulesTab({ labId, modules, toast }: { labId: number; modules: LabModu
       toast({ title: "Missing fields", description: "Title and task description are required.", variant: "destructive" });
       return;
     }
+    let commandSpec: CommandSpec | null = null;
+    if (form.validationType === "command") {
+      if (!form.csTool.trim()) {
+        toast({ title: "Tool required", description: "Command-validated modules need a base tool (e.g. nmap).", variant: "destructive" });
+        return;
+      }
+      commandSpec = buildCommandSpec(form);
+    }
     const body = {
       title: form.title.trim(),
       order: Number(form.order) || 0,
       taskDescription: form.taskDescription.trim(),
       hint: form.hint.trim() || undefined,
-      flag: form.flag.trim() || undefined,
-      flagFormat: form.flagFormat.trim() || undefined,
+      flag: form.validationType === "flag" ? (form.flag.trim() || undefined) : undefined,
+      flagFormat: form.validationType === "flag" ? (form.flagFormat.trim() || undefined) : undefined,
+      validationType: form.validationType,
+      commandSpec,
       solutionExplanation: form.solutionExplanation.trim() || undefined,
       walkthrough: form.walkthrough.trim() || undefined,
       points: Number(form.points) || 0,
@@ -380,7 +449,7 @@ function ModulesTab({ labId, modules, toast }: { labId: number; modules: LabModu
 
               <div>
                 <div className="flex items-center gap-1.5 text-sm font-medium text-foreground mb-2">
-                  <Lightbulb className="h-4 w-4 text-amber-500" />Hints
+                  <Lightbulb className="h-4 w-4 text-warning" />Hints
                 </div>
                 <div className="space-y-2">
                   {m.hints.length === 0 && <p className="text-xs text-muted-foreground">No hints yet.</p>}
@@ -435,18 +504,69 @@ function ModulesTab({ labId, modules, toast }: { labId: number; modules: LabModu
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
-                <Label htmlFor="m-flag">Flag</Label>
-                <Input id="m-flag" value={form.flag} onChange={(e) => setForm((f) => ({ ...f, flag: e.target.value }))} placeholder="FLAG{...}" />
+                <Label htmlFor="m-vtype">Validation type</Label>
+                <Select value={form.validationType} onValueChange={(v) => setForm((f) => ({ ...f, validationType: v as ValidationType }))}>
+                  <SelectTrigger id="m-vtype"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="flag">Flag / answer</SelectItem>
+                    <SelectItem value="command">Command (objective)</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="m-format">Flag format</Label>
-                <Input id="m-format" value={form.flagFormat} onChange={(e) => setForm((f) => ({ ...f, flagFormat: e.target.value }))} placeholder="FLAG{...}" />
+                <Label htmlFor="m-points">Points</Label>
+                <Input id="m-points" type="number" min={0} value={form.points} onChange={(e) => setForm((f) => ({ ...f, points: e.target.value }))} />
               </div>
             </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="m-points">Points</Label>
-              <Input id="m-points" type="number" min={0} value={form.points} onChange={(e) => setForm((f) => ({ ...f, points: e.target.value }))} />
-            </div>
+
+            {form.validationType === "flag" ? (
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label htmlFor="m-flag">Flag</Label>
+                  <Input id="m-flag" value={form.flag} onChange={(e) => setForm((f) => ({ ...f, flag: e.target.value }))} placeholder="FLAG{...}" />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="m-format">Flag format</Label>
+                  <Input id="m-format" value={form.flagFormat} onChange={(e) => setForm((f) => ({ ...f, flagFormat: e.target.value }))} placeholder="FLAG{...}" />
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-3 rounded-lg border border-border/60 bg-muted/30 p-4">
+                <p className="text-xs text-muted-foreground">
+                  Define what a correct command must look like. The student's command is parsed (tool, flags, args, intent) — exact text is never required.
+                </p>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <Label htmlFor="cs-tool">Base tool</Label>
+                    <Input id="cs-tool" value={form.csTool} onChange={(e) => setForm((f) => ({ ...f, csTool: e.target.value }))} placeholder="nmap" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="cs-aliases">Tool aliases</Label>
+                    <Input id="cs-aliases" value={form.csToolAliases} onChange={(e) => setForm((f) => ({ ...f, csToolAliases: e.target.value }))} placeholder="nmap.exe, /usr/bin/nmap" />
+                  </div>
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="cs-rflags">Required flags <span className="text-muted-foreground font-normal">(one requirement per line; space-separate equivalent forms — any satisfies it)</span></Label>
+                  <Textarea id="cs-rflags" rows={3} className="font-mono text-xs" value={form.csRequiredFlags} onChange={(e) => setForm((f) => ({ ...f, csRequiredFlags: e.target.value }))} placeholder={"-sV --version\n-p"} />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="cs-fflags">Forbidden flags <span className="text-muted-foreground font-normal">(comma/space separated)</span></Label>
+                  <Input id="cs-fflags" className="font-mono text-xs" value={form.csForbiddenFlags} onChange={(e) => setForm((f) => ({ ...f, csForbiddenFlags: e.target.value }))} placeholder="-T5" />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="cs-args">Required args <span className="text-muted-foreground font-normal">(one per line; prefix with <code>regex:</code> for a pattern)</span></Label>
+                  <Textarea id="cs-args" rows={2} className="font-mono text-xs" value={form.csRequiredArgs} onChange={(e) => setForm((f) => ({ ...f, csRequiredArgs: e.target.value }))} placeholder={"10.0.0.1\nregex:^\\d{1,3}(\\.\\d{1,3}){3}$"} />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="cs-intent">Intent keywords <span className="text-muted-foreground font-normal">(one per line; substring match anywhere in command)</span></Label>
+                  <Textarea id="cs-intent" rows={2} className="font-mono text-xs" value={form.csIntentKeywords} onChange={(e) => setForm((f) => ({ ...f, csIntentKeywords: e.target.value }))} placeholder={"service\nversion"} />
+                </div>
+                <label className="flex items-center gap-2 text-sm text-foreground">
+                  <input type="checkbox" className="h-4 w-4 rounded border-border" checked={form.csCaseSensitive} onChange={(e) => setForm((f) => ({ ...f, csCaseSensitive: e.target.checked }))} />
+                  Case-sensitive args & intent matching
+                </label>
+              </div>
+            )}
             <div className="space-y-1.5">
               <Label htmlFor="m-sol">Solution explanation</Label>
               <Textarea id="m-sol" rows={3} value={form.solutionExplanation} onChange={(e) => setForm((f) => ({ ...f, solutionExplanation: e.target.value }))} />
@@ -786,11 +906,11 @@ function AnalyticsTab({ labId, title }: { labId: number; title: string }) {
     <div className="space-y-6">
       <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
         <AnStat icon={Users} label="Assigned" value={a.assigned} tone="bg-primary/15 text-primary" />
-        <AnStat icon={Rocket} label="Started" value={a.started} tone="bg-blue-500/15 text-blue-600" />
-        <AnStat icon={CheckCircle2} label="Completed" value={a.completed} tone="bg-emerald-500/15 text-emerald-600" />
-        <AnStat icon={Target} label="Completion Rate" value={`${a.completionRate}%`} tone="bg-amber-500/15 text-amber-600" />
-        <AnStat icon={Clock} label="Avg Time (min)" value={a.avgTimeMinutes} tone="bg-violet-500/15 text-violet-600" />
-        <AnStat icon={RotateCcw} label="Retries / Failures" value={`${a.retryCount} / ${a.failureCount}`} tone="bg-rose-500/15 text-rose-600" />
+        <AnStat icon={Rocket} label="Started" value={a.started} tone="bg-info/15 text-info" />
+        <AnStat icon={CheckCircle2} label="Completed" value={a.completed} tone="bg-success/15 text-success" />
+        <AnStat icon={Target} label="Completion Rate" value={`${a.completionRate}%`} tone="bg-warning/15 text-warning" />
+        <AnStat icon={Clock} label="Avg Time (min)" value={a.avgTimeMinutes} tone="bg-violet/15 text-violet" />
+        <AnStat icon={RotateCcw} label="Retries / Failures" value={`${a.retryCount} / ${a.failureCount}`} tone="bg-danger/15 text-danger" />
       </div>
 
       <div className="grid lg:grid-cols-2 gap-6">
@@ -850,7 +970,7 @@ function AnalyticsTab({ labId, title }: { labId: number; title: string }) {
                   <div className="min-w-0 flex-1">
                     <p className="font-medium text-foreground truncate">{s.fullName ?? s.email ?? `Student #${s.studentId}`}</p>
                   </div>
-                  {s.completed && <Badge variant="outline" className="bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30 shrink-0">Completed</Badge>}
+                  {s.completed && <Badge variant="outline" className="bg-success/10 text-success border border-success/30 shrink-0">Completed</Badge>}
                   <span className="font-bold text-foreground shrink-0">{s.score} pts</span>
                 </div>
               ))}

@@ -6,8 +6,8 @@ import { Layers, Users, Calendar, MapPin } from "lucide-react";
 import { motion } from "framer-motion";
 
 const STATUS_STYLE: Record<string, string> = {
-  active: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30",
-  upcoming: "bg-blue-500/15 text-blue-700 dark:text-blue-400 border-blue-500/30",
+  active: "bg-success/10 text-success border border-success/30",
+  upcoming: "bg-info/10 text-info border border-info/30",
   completed: "bg-muted text-foreground border-border",
   archived: "bg-muted/50 text-muted-foreground border-border/50",
 };

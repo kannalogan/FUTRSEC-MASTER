@@ -60,7 +60,7 @@ export default function ProjectsPage() {
                 transition={{ duration: 0.2, delay: idx * 0.04 }}
                 whileHover={{ y: -2 }}
               >
-                <Card className="bg-card border-border/60 hover:shadow-md transition-all h-full flex flex-col">
+                <Card className="bg-card border-border/60 hover-lift h-full flex flex-col">
                   <CardContent className="p-5 flex flex-col flex-1">
                     <div className="flex items-start justify-between gap-2 mb-3">
                       <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
@@ -103,7 +103,7 @@ export default function ProjectsPage() {
                       </span>
                     </div>
                     {done ? (
-                      <Badge className="bg-emerald-50 text-emerald-600 border-emerald-200 w-full justify-center py-1">
+                      <Badge className="bg-success/10 text-success border border-success/30 w-full justify-center py-1">
                         <CheckCircle2 className="h-3.5 w-3.5 mr-1" />
                         Completed{p.attempt?.totalScore != null ? ` · ${p.attempt.totalScore} pts` : ""}
                       </Badge>

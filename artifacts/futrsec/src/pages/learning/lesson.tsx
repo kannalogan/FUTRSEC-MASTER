@@ -223,8 +223,8 @@ function QuizRunner({ lessonId, quiz, latestAttempt }: { lessonId: number; quiz:
   if (!started && !result) {
     return (
       <div className="rounded-xl border border-border/60 bg-card p-6 text-center">
-        <div className="h-12 w-12 rounded-2xl bg-orange-50 flex items-center justify-center mx-auto mb-3">
-          <ClipboardList className="h-6 w-6 text-orange-500" />
+        <div className="h-12 w-12 rounded-2xl bg-warning/10 flex items-center justify-center mx-auto mb-3">
+          <ClipboardList className="h-6 w-6 text-warning" />
         </div>
         <h3 className="font-heading font-bold text-lg text-foreground">{quiz.title ?? "Knowledge Check"}</h3>
         {quiz.description && <p className="text-sm text-muted-foreground mt-1 max-w-md mx-auto">{quiz.description}</p>}
@@ -245,9 +245,9 @@ function QuizRunner({ lessonId, quiz, latestAttempt }: { lessonId: number; quiz:
   if (result) {
     return (
       <div className="space-y-4">
-        <div className={`rounded-xl border p-6 text-center ${result.passed ? "border-green-200 bg-green-50/60" : "border-amber-200 bg-amber-50/60"}`}>
-          <div className={`h-14 w-14 rounded-2xl flex items-center justify-center mx-auto mb-3 ${result.passed ? "bg-green-100" : "bg-amber-100"}`}>
-            {result.passed ? <Trophy className="h-7 w-7 text-green-600" /> : <AlertCircle className="h-7 w-7 text-amber-600" />}
+        <div className={`rounded-xl border p-6 text-center ${result.passed ? "border-success/30 bg-success/10" : "border-warning/30 bg-warning/10"}`}>
+          <div className={`h-14 w-14 rounded-2xl flex items-center justify-center mx-auto mb-3 ${result.passed ? "bg-success/15" : "bg-warning/15"}`}>
+            {result.passed ? <Trophy className="h-7 w-7 text-success" /> : <AlertCircle className="h-7 w-7 text-warning" />}
           </div>
           <p className="text-3xl font-heading font-bold text-foreground">{result.percent}%</p>
           <p className="text-sm text-muted-foreground mt-1">
@@ -264,9 +264,9 @@ function QuizRunner({ lessonId, quiz, latestAttempt }: { lessonId: number; quiz:
           {quiz.questions.map((q: any, i: number) => {
             const r = result.results.find((x: any) => x.questionId === q.id);
             return (
-              <div key={q.id} className={`rounded-lg border p-4 ${r?.isCorrect ? "border-green-200 bg-green-50/30" : "border-red-200 bg-red-50/30"}`}>
+              <div key={q.id} className={`rounded-lg border p-4 ${r?.isCorrect ? "border-success/30 bg-success/10" : "border-danger/30 bg-danger/10"}`}>
                 <div className="flex items-start gap-2">
-                  {r?.isCorrect ? <CheckCircle2 className="h-4 w-4 text-green-500 mt-0.5 shrink-0" /> : <AlertCircle className="h-4 w-4 text-red-500 mt-0.5 shrink-0" />}
+                  {r?.isCorrect ? <CheckCircle2 className="h-4 w-4 text-success mt-0.5 shrink-0" /> : <AlertCircle className="h-4 w-4 text-danger mt-0.5 shrink-0" />}
                   <p className="text-sm font-medium text-foreground">{i + 1}. {q.question}</p>
                 </div>
                 <div className="mt-2 space-y-1 pl-6">
@@ -275,7 +275,7 @@ function QuizRunner({ lessonId, quiz, latestAttempt }: { lessonId: number; quiz:
                     const wasChosen = r?.given?.includes(oi);
                     return (
                       <div key={oi} className={`text-xs px-2 py-1 rounded flex items-center gap-2 ${
-                        isCorrect ? "bg-green-100 text-green-800" : wasChosen ? "bg-red-100 text-red-700 line-through" : "text-muted-foreground"
+                        isCorrect ? "bg-success/10 text-success" : wasChosen ? "bg-danger/10 text-danger line-through" : "text-muted-foreground"
                       }`}>
                         {isCorrect && <CheckCircle2 className="h-3 w-3" />}{opt}
                       </div>
@@ -403,7 +403,7 @@ function Discussion({ lessonId }: { lessonId: number }) {
                   <span className="text-sm font-semibold text-foreground">{p.authorName ?? "User"}</span>
                   {p.authorRole && p.authorRole !== "student" && <Badge variant="secondary" className="text-[10px] capitalize">{p.authorRole}</Badge>}
                   {p.isPinned && <Badge className="text-[10px] bg-primary/10 text-primary border-primary/20"><Pin className="h-2.5 w-2.5 mr-0.5" />Pinned</Badge>}
-                  {p.isSolved && <Badge className="text-[10px] bg-green-50 text-green-600 border-green-200"><BadgeCheck className="h-2.5 w-2.5 mr-0.5" />Solved</Badge>}
+                  {p.isSolved && <Badge className="text-[10px] bg-success/10 text-success border-success/30"><BadgeCheck className="h-2.5 w-2.5 mr-0.5" />Solved</Badge>}
                   <span className="text-[11px] text-muted-foreground">{timeAgo(p.createdAt)}</span>
                 </div>
                 <p className="text-sm text-foreground mt-1.5 whitespace-pre-wrap">{p.body}</p>
@@ -433,7 +433,7 @@ function Discussion({ lessonId }: { lessonId: number }) {
                           <div className="flex items-center gap-1.5">
                             <span className="text-xs font-semibold text-foreground">{c.authorName ?? "User"}</span>
                             {c.authorRole && c.authorRole !== "student" && <Badge variant="secondary" className="text-[9px] capitalize px-1 py-0">{c.authorRole}</Badge>}
-                            {c.isAcceptedAnswer && <Badge className="text-[9px] bg-green-50 text-green-600 border-green-200 px-1 py-0">Answer</Badge>}
+                            {c.isAcceptedAnswer && <Badge className="text-[9px] bg-success/10 text-success border-success/30 px-1 py-0">Answer</Badge>}
                             <span className="text-[10px] text-muted-foreground">{timeAgo(c.createdAt)}</span>
                           </div>
                           <p className="text-xs text-foreground mt-0.5 whitespace-pre-wrap">{c.body}</p>
@@ -553,7 +553,7 @@ function AiExplain({ lessonId, lessonTitle }: { lessonId: number; lessonTitle: s
         </div>
       )}
       {error && (
-        <div className="rounded-xl border border-amber-200 bg-amber-50/60 p-4 text-sm text-amber-700 flex items-start gap-2">
+        <div className="rounded-xl border border-warning/30 bg-warning/10 p-4 text-sm text-warning flex items-start gap-2">
           <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" /><span>{error}</span>
         </div>
       )}
@@ -665,7 +665,7 @@ export default function LessonPlayerPage() {
             </TooltipTrigger>
             <TooltipContent>Share</TooltipContent>
           </Tooltip>
-          <Button size="sm" disabled={lesson.completed || complete.isPending} onClick={() => complete.mutate()} className={lesson.completed ? "bg-green-500 hover:bg-green-500" : ""}>
+          <Button size="sm" disabled={lesson.completed || complete.isPending} onClick={() => complete.mutate()} className={lesson.completed ? "bg-success hover:bg-success" : ""}>
             {lesson.completed ? <><CheckCircle2 className="h-4 w-4 mr-1.5" />Completed</> : "Mark Complete"}
           </Button>
         </div>
@@ -717,7 +717,7 @@ export default function LessonPlayerPage() {
               </div>
               <div className="flex items-center gap-3 pt-2 border-t border-border/40">
                 {mod?.xpReward ? <Badge className="bg-primary/10 text-primary border-primary/20"><Award className="h-3 w-3 mr-1" />{mod.xpReward} XP on completion</Badge> : null}
-                {lesson.isFree && <Badge className="bg-green-50 text-green-600 border-green-200">Free preview</Badge>}
+                {lesson.isFree && <Badge className="bg-success/10 text-success border-success/30">Free preview</Badge>}
               </div>
             </div>
           </TabsContent>

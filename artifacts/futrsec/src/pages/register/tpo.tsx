@@ -64,7 +64,9 @@ export default function RegisterTPO() {
         <button onClick={() => setLocation("/register")} className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors">
           <ArrowLeft className="h-4 w-4" />
         </button>
-        <Shield className="h-6 w-6 text-primary" />
+        <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-primary to-violet flex items-center justify-center glow-primary">
+          <Shield className="h-5 w-5 text-white" />
+        </div>
         <span className="font-heading font-bold text-xl tracking-tight">FUTRSEC</span>
       </div>
 
@@ -75,7 +77,7 @@ export default function RegisterTPO() {
             <p className="text-muted-foreground text-sm">Training & Placement Officer — Institutional account</p>
           </div>
 
-          <div className="flex items-start gap-2 bg-blue-50 border border-blue-200 rounded-lg px-3 py-2.5 mb-6 text-xs text-blue-800">
+          <div className="flex items-start gap-2 bg-info/10 border border-info/30 rounded-lg px-3 py-2.5 mb-6 text-xs text-info">
             <Info className="h-3.5 w-3.5 mt-0.5 shrink-0" />
             <span>Use your institutional email (e.g., tpo@college.ac.in). Gmail, Yahoo and personal emails are not accepted. Your account requires admin approval before access.</span>
           </div>
@@ -147,7 +149,7 @@ export default function RegisterTPO() {
                 <label key={key} className="flex items-center gap-3 cursor-pointer p-2.5 rounded-lg border border-border hover:bg-muted/30 transition-colors">
                   <input type="checkbox" checked={form[key] as boolean} onChange={e => set(key, e.target.checked)} className="h-4 w-4 accent-primary" />
                   <span className="text-sm">{label}</span>
-                  {form[key] && <CheckCircle2 className="h-4 w-4 text-green-500 ml-auto" />}
+                  {form[key] && <CheckCircle2 className="h-4 w-4 text-success ml-auto" />}
                 </label>
               ))}
             </div>

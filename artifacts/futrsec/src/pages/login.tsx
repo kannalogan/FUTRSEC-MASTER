@@ -124,9 +124,11 @@ export default function Login() {
     <div className="min-h-screen flex bg-background">
       {/* ── Left Panel ─────────────────────────────────────────────────────── */}
       <div className="flex-1 flex flex-col lg:flex-none lg:w-[480px] xl:w-[540px]">
-        <div className="flex items-center justify-between px-6 py-5 border-b">
+        <div className="flex items-center justify-between px-6 py-5 border-b border-border/70">
           <div className="flex items-center gap-2.5">
-            <Shield className="h-6 w-6 text-primary" />
+            <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-primary to-violet flex items-center justify-center glow-primary">
+              <Shield className="h-5 w-5 text-white" />
+            </div>
             <span className="font-heading font-bold text-xl tracking-tight">FUTRSEC</span>
           </div>
           <a href="mailto:futrsec@bcbuzz.io" className="text-xs text-muted-foreground hover:text-foreground transition-colors">
@@ -148,7 +150,7 @@ export default function Login() {
                 </p>
 
                 {oauthError && (
-                  <div className="mb-5 text-xs bg-amber-50 border border-amber-200 text-amber-800 rounded-lg px-3 py-2.5 leading-relaxed">
+                  <div className="mb-5 text-xs bg-warning/10 border border-warning/30 text-warning rounded-lg px-3 py-2.5 leading-relaxed">
                     {oauthError}
                   </div>
                 )}
@@ -158,7 +160,7 @@ export default function Login() {
                     <button
                       key={p.id}
                       onClick={() => handleOAuth(p.id)}
-                      className="w-full flex items-center gap-3 px-4 h-11 rounded-lg border border-border bg-background hover:bg-muted/40 transition-colors text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary"
+                      className="hover-lift focus-ring w-full flex items-center gap-3 px-4 h-11 rounded-lg border border-border bg-background hover:bg-muted/40 transition-colors text-sm font-medium"
                     >
                       {p.icon}
                       {p.name}
@@ -214,7 +216,7 @@ export default function Login() {
                     <button
                       key={t}
                       onClick={() => { setTab(t); setPassError(""); }}
-                      className={`flex-1 py-1.5 text-sm font-medium rounded-md transition-all ${tab === t ? "bg-background shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+                      className={`focus-ring flex-1 py-1.5 text-sm font-medium rounded-md transition-all ${tab === t ? "bg-background elevation-1 text-foreground" : "text-muted-foreground hover:text-foreground"}`}
                     >
                       {t === "password" ? "Password" : "OTP"}
                     </button>
@@ -296,11 +298,13 @@ export default function Login() {
       </div>
 
       {/* ── Right Panel ─────────────────────────────────────────────────────── */}
-      <div className="hidden lg:flex flex-1 flex-col justify-end bg-sidebar border-l border-sidebar-border relative overflow-hidden">
+      <div className="hidden lg:flex flex-1 flex-col justify-end border-l border-white/10 relative overflow-hidden bg-gradient-to-br from-[hsl(222_47%_11%)] via-[hsl(250_40%_14%)] to-[hsl(262_60%_18%)]">
         <div
           className="absolute inset-0 opacity-50"
           style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z' fill='rgba(255,255,255,0.03)' fill-rule='evenodd'/%3E%3C/svg%3E")` }}
         />
+        <div className="pointer-events-none absolute -top-24 -left-24 h-96 w-96 rounded-full bg-primary/25 blur-[120px]" />
+        <div className="pointer-events-none absolute bottom-0 right-0 h-96 w-96 rounded-full bg-violet/20 blur-[120px]" />
         <div className="relative p-12">
           <div className="mb-10 space-y-5">
             {[
@@ -310,15 +314,15 @@ export default function Login() {
             ].map((s) => (
               <div key={s.stat} className="flex items-baseline gap-3">
                 <span className="text-3xl font-heading font-bold text-white">{s.stat}</span>
-                <span className="text-sidebar-foreground/60 text-sm">{s.label}</span>
+                <span className="text-white/60 text-sm">{s.label}</span>
               </div>
             ))}
           </div>
           <blockquote className="space-y-4 border-t border-white/10 pt-8">
-            <p className="text-lg font-medium leading-relaxed text-sidebar-foreground font-heading">
+            <p className="text-lg font-medium leading-relaxed text-white/90 font-heading">
               "The most structured approach to cybersecurity training. It's not just CTFs — it's the methodology you need for enterprise security."
             </p>
-            <footer className="text-sidebar-foreground/60">
+            <footer className="text-white/60">
               <div className="font-bold text-white text-sm">Security Director</div>
               <div className="text-xs mt-0.5">Fortune 500 Enterprise</div>
             </footer>

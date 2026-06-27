@@ -28,7 +28,7 @@ export default function CertificationsPage() {
         icon={Award}
         title="Certifications"
         subtitle="Certificates you've earned by completing labs and tracks"
-        actions={data && data.length > 0 ? <Badge className="bg-amber-50 text-amber-600 border-amber-200">{data.length} earned</Badge> : undefined}
+        actions={data && data.length > 0 ? <Badge className="bg-warning/10 text-warning border border-warning/30">{data.length} earned</Badge> : undefined}
       />
 
       {isLoading ? (
@@ -50,11 +50,11 @@ export default function CertificationsPage() {
               transition={{ duration: 0.2, delay: idx * 0.04 }}
               whileHover={{ y: -2 }}
             >
-              <Card className="bg-card border-border/60 hover:shadow-md transition-all overflow-hidden">
+              <Card className="bg-card border-border/60 hover-lift transition-all overflow-hidden">
                 <div className="h-1.5 bg-gradient-to-r from-amber-400 to-amber-600" />
                 <CardContent className="p-5">
-                  <div className="flex items-center justify-center h-14 w-14 rounded-2xl bg-amber-50 mx-auto mb-3">
-                    <Award className="h-7 w-7 text-amber-500" />
+                  <div className="flex items-center justify-center h-14 w-14 rounded-2xl bg-warning/10 mx-auto mb-3">
+                    <Award className="h-7 w-7 text-warning" />
                   </div>
                   <h3 className="font-semibold text-sm text-foreground text-center leading-tight mb-2">{cert.title}</h3>
                   <div className="flex items-center justify-center gap-3 text-xs text-muted-foreground mb-3">

@@ -32,7 +32,7 @@ function ModuleCard({ m, badge, accent }: { m: any; badge: React.ReactNode; acce
   });
 
   return (
-    <div className="bg-card border border-border/60 rounded-xl p-5 shadow-sm hover:shadow-md transition-all flex flex-col">
+    <div className="bg-card border border-border/60 rounded-xl p-5 elevation-1 transition-all flex flex-col">
       <div className="flex items-start justify-between mb-3">
         <div className={`h-10 w-10 rounded-xl ${accent} flex items-center justify-center`}><BookOpen className="h-5 w-5" /></div>
         {badge}
@@ -125,7 +125,7 @@ export default function MyCoursesPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {d.completed.map((m, i) => (
                   <motion.div key={m.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }}>
-                    <ModuleCard m={m} accent="bg-green-100 text-green-600" badge={<Badge className="text-[10px] bg-green-50 text-green-600 border-green-200"><CheckCircle2 className="h-2.5 w-2.5 mr-0.5" />Done</Badge>} />
+                    <ModuleCard m={m} accent="bg-success/10 text-success" badge={<Badge className="text-[10px] bg-success/10 text-success border-success/30"><CheckCircle2 className="h-2.5 w-2.5 mr-0.5" />Done</Badge>} />
                   </motion.div>
                 ))}
               </div>
@@ -150,7 +150,7 @@ export default function MyCoursesPage() {
                 {d.saved.map((b, i) => (
                   <motion.div key={b.id} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.03 }}>
                     <Link href={`/learning/${b.moduleId}/${b.lessonId}`}>
-                      <div className="flex items-center gap-3 p-3 rounded-lg border border-border/60 bg-card hover:border-primary/40 hover:shadow-sm transition-all cursor-pointer">
+                      <div className="flex items-center gap-3 p-3 rounded-lg border border-border/60 bg-card hover:border-primary/40 hover-lift transition-all cursor-pointer">
                         <div className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0"><Bookmark className="h-4 w-4 fill-primary text-primary" /></div>
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-medium text-foreground truncate">{b.lessonTitle}</p>

@@ -68,7 +68,7 @@ function RecommendedCard({ job }: { job: RecommendedJob }) {
 
   return (
     <motion.div whileHover={{ y: -1 }} transition={{ duration: 0.15 }}>
-      <Card className="bg-card border-border/60 hover:shadow-md transition-all h-full">
+      <Card className="bg-card border-border/60 transition-all h-full">
         <CardContent className="p-4">
           <div className="flex items-start justify-between gap-3">
             <div className="flex items-start gap-3 flex-1 min-w-0">
@@ -94,7 +94,7 @@ function RecommendedCard({ job }: { job: RecommendedJob }) {
 
           <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-3 text-xs text-muted-foreground">
             {job.location && <span className="flex items-center gap-1"><MapPin className="h-3 w-3" />{job.location}</span>}
-            {job.isRemote && <span className="flex items-center gap-1 text-green-600"><Wifi className="h-3 w-3" />Remote</span>}
+            {job.isRemote && <span className="flex items-center gap-1 text-success"><Wifi className="h-3 w-3" />Remote</span>}
             {sal && <span className="flex items-center gap-1 font-medium text-foreground/80"><DollarSign className="h-3 w-3" />{sal}</span>}
           </div>
 
@@ -102,7 +102,7 @@ function RecommendedCard({ job }: { job: RecommendedJob }) {
             <ul className="mt-3 space-y-1">
               {job.matchReasons.slice(0, 3).map((r, i) => (
                 <li key={i} className="flex items-start gap-1.5 text-[11px] text-muted-foreground">
-                  <CheckCircle2 className="h-3 w-3 text-emerald-500 shrink-0 mt-0.5" />{r}
+                  <CheckCircle2 className="h-3 w-3 text-success shrink-0 mt-0.5" />{r}
                 </li>
               ))}
             </ul>
@@ -111,7 +111,7 @@ function RecommendedCard({ job }: { job: RecommendedJob }) {
           {job.missingSkills?.length > 0 && (
             <div className="mt-3">
               <div className="flex items-center gap-1 text-[11px] font-medium text-muted-foreground mb-1">
-                <AlertCircle className="h-3 w-3 text-amber-500" />Skills to build
+                <AlertCircle className="h-3 w-3 text-warning" />Skills to build
               </div>
               <div className="flex flex-wrap gap-1">
                 {job.missingSkills.slice(0, 4).map((s) => (
@@ -157,7 +157,7 @@ function RecommendedCard({ job }: { job: RecommendedJob }) {
               {job.saved ? <><BookmarkCheck className="h-3 w-3" />Saved</> : <><Bookmark className="h-3 w-3" />Save</>}
             </Button>
             {job.applied ? (
-              <span className="text-xs text-green-600 font-medium flex items-center gap-1 flex-1 justify-center">
+              <span className="text-xs text-success font-medium flex items-center gap-1 flex-1 justify-center">
                 <CheckCircle2 className="h-3.5 w-3.5" />Applied
               </span>
             ) : (

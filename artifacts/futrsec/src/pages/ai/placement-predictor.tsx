@@ -37,8 +37,8 @@ export default function PlacementPredictor() {
   return (
     <div className="p-5 lg:p-8 max-w-3xl mx-auto flex flex-col gap-5">
       <div className="flex items-center gap-3">
-        <div className="h-10 w-10 rounded-xl bg-sky-100 flex items-center justify-center">
-          <TrendingUp className="h-5 w-5 text-sky-600" />
+        <div className="h-10 w-10 rounded-xl bg-sky-500/10 flex items-center justify-center">
+          <TrendingUp className="h-5 w-5 text-sky-600 dark:text-sky-400" />
         </div>
         <div>
           <h1 className="font-heading text-xl font-bold text-foreground">Placement Predictor</h1>
@@ -54,10 +54,10 @@ export default function PlacementPredictor() {
         )}
       </div>
 
-      {isLoading && <div className="flex flex-col items-center py-16 gap-3 text-muted-foreground"><Loader2 className="h-6 w-6 animate-spin text-sky-600" /><p className="text-sm">Computing your readiness…</p></div>}
+      {isLoading && <div className="flex flex-col items-center py-16 gap-3 text-muted-foreground"><Loader2 className="h-6 w-6 animate-spin text-sky-600 dark:text-sky-400" /><p className="text-sm">Computing your readiness…</p></div>}
 
       {isError && (
-        <Card className="bg-red-50 border-red-200"><CardContent className="py-4 text-sm text-red-700">
+        <Card className="bg-danger/10 border-danger/30"><CardContent className="py-4 text-sm text-danger">
           {(error as Error).message}<Button size="sm" variant="outline" className="ml-3" onClick={() => refetch()}>Retry</Button>
         </CardContent></Card>
       )}
@@ -78,7 +78,7 @@ export default function PlacementPredictor() {
                 </div>
               </div>
               <div>
-                <Badge className="bg-sky-100 text-sky-700 border-sky-200 flex items-center gap-1"><Gauge className="h-3 w-3" />{data.level}</Badge>
+                <Badge className="bg-sky-500/10 text-sky-600 dark:text-sky-400 border-sky-500/20 flex items-center gap-1"><Gauge className="h-3 w-3" />{data.level}</Badge>
                 {data.context?.trackName && <p className="text-xs text-muted-foreground mt-1">{data.context.trackName}</p>}
               </div>
               <p className="text-sm text-muted-foreground max-w-md">{data.summary}</p>

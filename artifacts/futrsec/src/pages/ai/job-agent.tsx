@@ -41,7 +41,7 @@ export default function AIJobAgentPage() {
         icon={Bot}
         title="AI Job Agent"
         subtitle="AI-matched jobs ranked by fit with your profile"
-        actions={<Badge className="bg-purple-50 text-purple-600 border-purple-200 gap-1"><Sparkles className="h-3 w-3" />AI Powered</Badge>}
+        actions={<Badge className="bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20 gap-1"><Sparkles className="h-3 w-3" />AI Powered</Badge>}
       />
 
       {isLoading ? (
@@ -61,8 +61,8 @@ export default function AIJobAgentPage() {
                 <CardContent className="p-5">
                   <div className="flex items-start justify-between gap-3 mb-3">
                     <div className="flex items-center gap-3 min-w-0">
-                      <div className="h-10 w-10 rounded-xl bg-purple-50 flex items-center justify-center shrink-0">
-                        <Briefcase className="h-5 w-5 text-purple-500" />
+                      <div className="h-10 w-10 rounded-xl bg-purple-500/10 flex items-center justify-center shrink-0">
+                        <Briefcase className="h-5 w-5 text-purple-600 dark:text-purple-400" />
                       </div>
                       <div className="min-w-0">
                         <h3 className="font-semibold text-sm text-foreground truncate">{job.title}</h3>
@@ -79,7 +79,7 @@ export default function AIJobAgentPage() {
                           <circle cx="18" cy="18" r="15" fill="none" stroke="#8B5CF6" strokeWidth="3"
                             strokeDasharray={`${(job.matchScore / 100) * 94.2} 94.2`} strokeLinecap="round" />
                         </svg>
-                        <span className="absolute inset-0 flex items-center justify-center text-xs font-bold text-purple-600">{job.matchScore}%</span>
+                        <span className="absolute inset-0 flex items-center justify-center text-xs font-bold text-purple-600 dark:text-purple-400">{job.matchScore}%</span>
                       </div>
                       <p className="text-[10px] text-muted-foreground mt-0.5">match</p>
                     </div>
@@ -87,14 +87,14 @@ export default function AIJobAgentPage() {
                   <div className="flex flex-wrap gap-1.5 mb-3">
                     {job.reasons.map((r) => (
                       <span key={r} className="inline-flex items-center gap-1 text-[10px] text-muted-foreground bg-muted/50 px-2 py-1 rounded-full">
-                        <CheckCircle2 className="h-2.5 w-2.5 text-emerald-500" />{r}
+                        <CheckCircle2 className="h-2.5 w-2.5 text-success" />{r}
                       </span>
                     ))}
                   </div>
                   {job.missingSkills && job.missingSkills.length > 0 && (
                     <div className="mb-3">
                       <div className="flex items-center gap-1 text-[11px] font-medium text-muted-foreground mb-1">
-                        <AlertCircle className="h-3 w-3 text-amber-500" />Skills to build
+                        <AlertCircle className="h-3 w-3 text-warning" />Skills to build
                       </div>
                       <div className="flex flex-wrap gap-1.5">
                         {job.missingSkills.slice(0, 6).map((s) => (

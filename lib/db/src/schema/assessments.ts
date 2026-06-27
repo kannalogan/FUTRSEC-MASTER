@@ -36,6 +36,17 @@ export const assessmentsTable = pgTable("assessments", {
   durationMinutes: integer("duration_minutes").notNull().default(30),
   passingScore: integer("passing_score").notNull().default(70),
   isActive: boolean("is_active").notNull().default(true),
+  // ── Assessment security (PHASE 4) ──
+  // Opt-in proctoring: when enabled, the take flow locks copy/paste and tracks
+  // tab-switch/focus-loss violations server-side. Defaults keep every existing
+  // assessment behaving exactly as before (no proctoring).
+  securityEnabled: boolean("security_enabled").notNull().default(false),
+  // Number of security violations tolerated before the attempt is auto-submitted
+  // (locked out). Only meaningful when securityEnabled is true.
+  maxWarnings: integer("max_warnings").notNull().default(3),
+  // Assessment-level retry cap. Null = unlimited (existing behaviour). Enforced
+  // alongside any mentor-task limit; the most restrictive wins.
+  maxAttempts: integer("max_attempts"),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .defaultNow(),
@@ -94,7 +105,13 @@ export const assessmentAttemptsTable = pgTable("assessment_attempts", {
     .notNull()
     .defaultNow(),
   submittedAt: timestamp("submitted_at", { withTimezone: true }),
+  // "in_progress" | "submitted" | "auto_submitted" (security lockout / timeout).
   status: text("status").notNull().default("in_progress"),
+  // Server-authoritative count of security violations (tab-switch / focus-loss).
+  // Persisted on the attempt so it can't be reset by reloading the page.
+  warningCount: integer("warning_count").notNull().default(0),
+  // Why an attempt was auto-submitted: e.g. "security_lockout" or "time_expired".
+  terminationReason: text("termination_reason"),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .defaultNow(),

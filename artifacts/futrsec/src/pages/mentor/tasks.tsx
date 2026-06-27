@@ -1,8 +1,10 @@
 import { useState } from "react";
 import {
   useMentorTasks, useCreateTask, useUpdateTask, useDeleteTask, useMentorBatches,
+  useMentorAssessments, useTaskSubmissions, useReviewSubmission, fetchSubmissionFileUrl,
   TRACK_LABELS, TRACKS,
   type MentorTaskType, type MentorTaskAudience, type CreateTaskBody,
+  type MentorTask, type TaskSubmission,
 } from "@/lib/mentor-api";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -27,7 +29,8 @@ import { PageHeader, CardSkeleton, EmptyState } from "@/components/page-shell";
 import { useToast } from "@/hooks/use-toast";
 import {
   ListChecks, Plus, Send, Archive, CalendarClock, Trash2, FileText,
-  ClipboardCheck, BookOpen, FileSignature, Target, Users
+  ClipboardCheck, BookOpen, FileSignature, Target, Users, Inbox, Download,
+  CheckCircle2, Loader2,
 } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -47,9 +50,9 @@ const AUDIENCE_OPTIONS: { value: MentorTaskAudience; label: string }[] = [
 ];
 
 const STATUS_STYLE: Record<string, string> = {
-  published: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30",
+  published: "bg-success/10 text-success border-success/30",
   draft: "bg-muted text-muted-foreground border-border",
-  scheduled: "bg-blue-500/15 text-blue-700 dark:text-blue-400 border-blue-500/30",
+  scheduled: "bg-info/10 text-info border-info/30",
   archived: "bg-muted/50 text-muted-foreground/70 border-border/50",
 };
 
@@ -68,6 +71,7 @@ export default function MentorTasksPage() {
 
   const [open, setOpen] = useState(false);
   const [deleteId, setDeleteId] = useState<number | null>(null);
+  const [submissionsTask, setSubmissionsTask] = useState<MentorTask | null>(null);
 
   const tasks = data?.tasks ?? [];
   const batches = batchData?.batches ?? [];
@@ -77,6 +81,9 @@ export default function MentorTasksPage() {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [contentUrl, setContentUrl] = useState("");
+  const [refId, setRefId] = useState<string>("");
+  const [maxAttempts, setMaxAttempts] = useState<string>("");
+  const [points, setPoints] = useState<string>("");
   const [careerTrack, setCareerTrack] = useState<string>("soc");
   const [audience, setAudience] = useState<MentorTaskAudience>("all_students");
   const [batchIds, setBatchIds] = useState<Set<number>>(new Set());
@@ -86,6 +93,7 @@ export default function MentorTasksPage() {
 
   const resetForm = () => {
     setType("resource"); setTitle(""); setDescription(""); setContentUrl("");
+    setRefId(""); setMaxAttempts(""); setPoints("");
     setCareerTrack("soc"); setAudience("all_students"); setBatchIds(new Set());
     setStartDate(""); setEndDate(""); setScheduledAt("");
   };
@@ -107,10 +115,17 @@ export default function MentorTasksPage() {
       toast({ title: "Pick a schedule date", variant: "destructive" });
       return;
     }
+    if (type === "assessment" && !refId) {
+      toast({ title: "Select an assessment to attach", variant: "destructive" });
+      return;
+    }
     const body: CreateTaskBody = {
       type, title, careerTrack, audience, action,
       ...(description ? { description } : {}),
       ...(contentUrl ? { contentUrl } : {}),
+      ...(type === "assessment" && refId ? { refId: Number(refId) } : {}),
+      ...(type === "assessment" && maxAttempts ? { maxAttempts: Number(maxAttempts) } : {}),
+      ...(points ? { points: Number(points) } : {}),
       ...(audience === "specific_batches" ? { batchIds: Array.from(batchIds) } : {}),
       ...(startDate ? { startDate: new Date(startDate).toISOString() } : {}),
       ...(endDate ? { endDate: new Date(endDate).toISOString() } : {}),
@@ -206,8 +221,13 @@ export default function MentorTasksPage() {
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-1 opacity-60 group-hover:opacity-100 transition-opacity">
+                          {t.type === "assignment" && (
+                            <Button size="icon" variant="ghost" title="Review submissions" onClick={() => setSubmissionsTask(t)} className="h-8 w-8 text-info hover:text-info hover:bg-info/10">
+                              <Inbox className="h-4 w-4" />
+                            </Button>
+                          )}
                           {t.status !== "published" && (
-                            <Button size="icon" variant="ghost" title="Publish" onClick={() => act(t.id, "publish")} disabled={updateMut.isPending} className="h-8 w-8 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-500/10">
+                            <Button size="icon" variant="ghost" title="Publish" onClick={() => act(t.id, "publish")} disabled={updateMut.isPending} className="h-8 w-8 text-success hover:text-success hover:bg-success/10">
                               <Send className="h-4 w-4" />
                             </Button>
                           )}
@@ -216,7 +236,7 @@ export default function MentorTasksPage() {
                               <Archive className="h-4 w-4" />
                             </Button>
                           )}
-                          <Button size="icon" variant="ghost" title="Delete" onClick={() => setDeleteId(t.id)} disabled={deleteMut.isPending} className="h-8 w-8 text-red-500 hover:text-red-600 hover:bg-red-500/10">
+                          <Button size="icon" variant="ghost" title="Delete" onClick={() => setDeleteId(t.id)} disabled={deleteMut.isPending} className="h-8 w-8 text-danger hover:text-danger hover:bg-danger/10">
                             <Trash2 className="h-4 w-4" />
                           </Button>
                         </div>
@@ -253,7 +273,7 @@ export default function MentorTasksPage() {
                       onClick={() => setType(t)}
                       className={`flex flex-col items-center justify-center gap-3 rounded-xl border p-4 transition-all duration-200 ${isActive ? "border-primary bg-primary/5 shadow-[0_0_15px_-3px_rgba(59,130,246,0.3)] ring-1 ring-primary/50" : "border-border hover:bg-muted/50 hover:border-border/80"}`}
                     >
-                      <div className={`p-2.5 rounded-full ${isActive ? 'bg-background shadow-sm' : 'bg-muted'}`}>
+                      <div className={`p-2.5 rounded-full ${isActive ? 'bg-background elevation-1' : 'bg-muted'}`}>
                         <meta.icon className="h-5 w-5" style={{ color: isActive ? meta.color : "var(--muted-foreground)" }} />
                       </div>
                       <span className={`text-sm font-semibold ${isActive ? "text-foreground" : "text-muted-foreground"}`}>{meta.label}</span>
@@ -275,6 +295,21 @@ export default function MentorTasksPage() {
               <div className="space-y-2">
                 <Label htmlFor="t-url" className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">External Content Link (Optional)</Label>
                 <Input id="t-url" value={contentUrl} onChange={(e) => setContentUrl(e.target.value)} placeholder="https://..." className="h-11" />
+              </div>
+
+              {type === "assessment" && <AssessmentPicker value={refId} onChange={setRefId} />}
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                {type === "assessment" && (
+                  <div className="space-y-2">
+                    <Label htmlFor="t-attempts" className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Max Attempts (Optional)</Label>
+                    <Input id="t-attempts" type="number" min={1} value={maxAttempts} onChange={(e) => setMaxAttempts(e.target.value)} placeholder="Unlimited" className="h-11" />
+                  </div>
+                )}
+                <div className="space-y-2">
+                  <Label htmlFor="t-points" className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Points / XP (Optional)</Label>
+                  <Input id="t-points" type="number" min={0} value={points} onChange={(e) => setPoints(e.target.value)} placeholder="0" className="h-11" />
+                </div>
               </div>
             </div>
 
@@ -302,7 +337,7 @@ export default function MentorTasksPage() {
                 <div className="col-span-1 md:col-span-2 space-y-2 mt-2">
                   <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Select Target Batches</Label>
                   {batches.length === 0 ? (
-                    <p className="text-sm text-amber-600 bg-amber-500/10 p-3 rounded-lg border border-amber-500/20 font-medium">You have no active batches assigned to target.</p>
+                    <p className="text-sm text-warning bg-warning/10 p-3 rounded-lg border border-warning/30 font-medium">You have no active batches assigned to target.</p>
                   ) : (
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 bg-background border rounded-xl p-3 max-h-40 overflow-y-auto">
                       {batches.map((b) => (
@@ -377,6 +412,178 @@ export default function MentorTasksPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <SubmissionsDialog task={submissionsTask} onClose={() => setSubmissionsTask(null)} />
     </div>
+  );
+}
+
+function AssessmentPicker({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const { data, isLoading } = useMentorAssessments();
+  const assessments = data?.assessments ?? [];
+  return (
+    <div className="space-y-2">
+      <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Attach Assessment *</Label>
+      {isLoading ? (
+        <div className="h-11 rounded-md bg-muted/50 animate-pulse" />
+      ) : assessments.length === 0 ? (
+        <p className="text-sm text-warning bg-warning/10 p-3 rounded-lg border border-warning/30 font-medium">No active assessments available. Create one in the Assessment Builder first.</p>
+      ) : (
+        <Select value={value} onValueChange={onChange}>
+          <SelectTrigger className="h-11"><SelectValue placeholder="Select an assessment" /></SelectTrigger>
+          <SelectContent>
+            {assessments.map((a) => (
+              <SelectItem key={a.id} value={String(a.id)} className="font-medium">
+                {a.title} · {a.totalQuestions}Q · pass {a.passingScore}%
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      )}
+    </div>
+  );
+}
+
+const REVIEW_STATUS_STYLE: Record<string, string> = {
+  pending: "bg-warning/10 text-warning border-warning/30",
+  approved: "bg-success/10 text-success border-success/30",
+  rejected: "bg-danger/10 text-danger border-danger/30",
+  changes_requested: "bg-info/10 text-info border-info/30",
+};
+
+function SubmissionsDialog({ task, onClose }: { task: MentorTask | null; onClose: () => void }) {
+  const { toast } = useToast();
+  const { data, isLoading } = useTaskSubmissions(task?.id ?? null);
+  const reviewMut = useReviewSubmission();
+  const submissions = data?.submissions ?? [];
+
+  const [openingId, setOpeningId] = useState<number | null>(null);
+  const [reviewing, setReviewing] = useState<TaskSubmission | null>(null);
+  const [reviewStatus, setReviewStatus] = useState<"approved" | "rejected" | "changes_requested">("approved");
+  const [reviewNotes, setReviewNotes] = useState("");
+  const [score, setScore] = useState("");
+
+  const openFile = async (assignmentId: number) => {
+    setOpeningId(assignmentId);
+    try {
+      const { url } = await fetchSubmissionFileUrl(assignmentId);
+      window.open(url, "_blank", "noopener,noreferrer");
+    } catch (e) {
+      toast({ title: (e as Error).message || "Could not open file", variant: "destructive" });
+    } finally {
+      setOpeningId(null);
+    }
+  };
+
+  const startReview = (s: TaskSubmission) => {
+    setReviewing(s);
+    setReviewStatus(s.reviewStatus === "rejected" || s.reviewStatus === "changes_requested" ? s.reviewStatus : "approved");
+    setReviewNotes(s.reviewNotes ?? "");
+    setScore(s.score != null ? String(s.score) : "");
+  };
+
+  const submitReview = () => {
+    if (!reviewing) return;
+    reviewMut.mutate(
+      {
+        assignmentId: reviewing.assignmentId,
+        reviewStatus,
+        ...(reviewNotes ? { reviewNotes } : {}),
+        ...(score ? { score: Number(score) } : {}),
+      },
+      {
+        onSuccess: () => {
+          toast({ title: "Review saved" });
+          setReviewing(null);
+        },
+        onError: (e: Error) => toast({ title: e.message, variant: "destructive" }),
+      }
+    );
+  };
+
+  return (
+    <Dialog open={task !== null} onOpenChange={(v) => { if (!v) { setReviewing(null); onClose(); } }}>
+      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto glass-card border-border/60">
+        <DialogHeader>
+          <DialogTitle className="text-xl font-heading flex items-center gap-2">
+            <Inbox className="h-5 w-5 text-info" /> Submissions — {task?.title}
+          </DialogTitle>
+          <DialogDescription>Review student work, attach a score, and approve or request changes.</DialogDescription>
+        </DialogHeader>
+
+        {isLoading ? (
+          <CardSkeleton rows={4} />
+        ) : submissions.length === 0 ? (
+          <EmptyState icon={Inbox} title="No submissions yet" description="Students haven't submitted work for this assignment." />
+        ) : reviewing ? (
+          <div className="space-y-5">
+            <Button variant="ghost" size="sm" onClick={() => setReviewing(null)} className="font-semibold">← Back to list</Button>
+            <Card className="border-border/60">
+              <CardContent className="p-4 space-y-3">
+                <div className="font-semibold text-foreground">{reviewing.studentName ?? reviewing.studentEmail ?? `Student #${reviewing.studentId}`}</div>
+                {reviewing.submissionText && (
+                  <div className="text-sm text-foreground/80 whitespace-pre-wrap bg-muted/40 p-3 rounded-lg border border-border/50">{reviewing.submissionText}</div>
+                )}
+                {reviewing.fileUrl && (
+                  <Button variant="outline" size="sm" onClick={() => openFile(reviewing.assignmentId)} disabled={openingId === reviewing.assignmentId} className="font-semibold">
+                    {openingId === reviewing.assignmentId ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Download className="h-4 w-4 mr-2" />}
+                    {reviewing.fileName ?? "Open submitted file"}
+                  </Button>
+                )}
+              </CardContent>
+            </Card>
+            <div className="space-y-2">
+              <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Decision</Label>
+              <Select value={reviewStatus} onValueChange={(v) => setReviewStatus(v as typeof reviewStatus)}>
+                <SelectTrigger className="h-11"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="approved">Approve</SelectItem>
+                  <SelectItem value="changes_requested">Request Changes</SelectItem>
+                  <SelectItem value="rejected">Reject</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            {task?.points != null && task.points > 0 && (
+              <div className="space-y-2">
+                <Label htmlFor="r-score" className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Score (max {task.points})</Label>
+                <Input id="r-score" type="number" min={0} max={task.points} value={score} onChange={(e) => setScore(e.target.value)} className="h-11 max-w-[160px]" />
+              </div>
+            )}
+            <div className="space-y-2">
+              <Label htmlFor="r-notes" className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Feedback (Optional)</Label>
+              <Textarea id="r-notes" rows={3} value={reviewNotes} onChange={(e) => setReviewNotes(e.target.value)} className="resize-none" placeholder="Provide constructive feedback..." />
+            </div>
+            <DialogFooter>
+              <Button variant="ghost" onClick={() => setReviewing(null)} className="font-semibold">Cancel</Button>
+              <Button onClick={submitReview} disabled={reviewMut.isPending} className="font-semibold px-6">
+                {reviewMut.isPending ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <CheckCircle2 className="h-4 w-4 mr-2" />} Save Review
+              </Button>
+            </DialogFooter>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {submissions.map((s) => (
+              <Card key={s.assignmentId} className="border-border/60 hover:bg-muted/20 transition-colors">
+                <CardContent className="p-4 flex items-center justify-between gap-4">
+                  <div className="min-w-0">
+                    <div className="font-semibold text-foreground truncate">{s.studentName ?? s.studentEmail ?? `Student #${s.studentId}`}</div>
+                    <div className="text-xs text-muted-foreground mt-0.5">
+                      {s.submittedAt ? `Submitted ${new Date(s.submittedAt).toLocaleString()}` : "Not submitted"}
+                      {s.score != null && ` · Score ${s.score}`}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <Badge variant="outline" className={`border text-xs uppercase tracking-wider py-0.5 px-2 ${REVIEW_STATUS_STYLE[s.reviewStatus ?? "pending"] ?? REVIEW_STATUS_STYLE.pending}`}>
+                      {(s.reviewStatus ?? "pending").replace("_", " ")}
+                    </Badge>
+                    <Button size="sm" variant="outline" onClick={() => startReview(s)} className="font-semibold">Review</Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
+      </DialogContent>
+    </Dialog>
   );
 }

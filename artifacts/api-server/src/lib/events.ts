@@ -26,6 +26,7 @@ export type AppEvent =
   | { type: "learning_path.completed"; userId: number; pathId: number; pathName: string; careerTrack?: string | null }
   | { type: "lab_series.completed"; userId: number; seriesId: number; seriesName: string; careerTrack?: string | null }
   | { type: "career_roadmap.completed"; userId: number; roadmapId: number; roadmapName: string; careerTrack?: string | null }
+  | { type: "journey.completed"; userId: number; journeyId: number; journeyName: string; careerTrack?: string | null }
   | { type: "internship.completed"; userId: number; internshipId: number; internshipName: string; careerTrack?: string | null; mentorId?: number | null }
   | { type: "assignment.submitted"; userId: number; assignmentId: number }
   | { type: "subscription.created"; userId: number; plan: string }
@@ -313,6 +314,24 @@ export function setupEventHandlers(): void {
           title: `${roadmapName} — Career Roadmap Certificate`,
           careerTrack: careerTrack ?? null,
           courseName: roadmapName,
+        },
+      });
+    });
+  });
+
+  eventBus.on("journey.completed", (payload) => {
+    if (payload.type !== "journey.completed") return;
+    const { userId, journeyId, journeyName, careerTrack } = payload;
+    safeAsync("journey.completed:auto_issue", async () => {
+      await autoIssueForCompletion({
+        userId,
+        sourceType: "journey",
+        sourceId: journeyId,
+        defaults: {
+          type: "course_completion",
+          title: `${journeyName} — Journey Completion Certificate`,
+          careerTrack: careerTrack ?? null,
+          courseName: journeyName,
         },
       });
     });

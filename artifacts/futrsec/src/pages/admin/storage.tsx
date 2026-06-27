@@ -80,7 +80,7 @@ function formatBytes(n: number): string {
 function scanBadge(scan: string) {
   if (scan === "clean" || scan === "passed") {
     return (
-      <Badge variant="outline" className="gap-1 bg-emerald-500/15 text-emerald-600 border-emerald-500/30">
+      <Badge variant="outline" className="gap-1 bg-success/10 text-success border border-success/30">
         <ShieldCheck className="h-3 w-3" /> Clean
       </Badge>
     );
@@ -258,7 +258,7 @@ export default function AdminStoragePage() {
             <div className="h-2.5 w-full rounded-full bg-muted overflow-hidden">
               <div
                 className={`h-full rounded-full transition-all ${
-                  usedPct > 90 ? "bg-destructive" : usedPct > 70 ? "bg-amber-500" : "bg-primary"
+                  usedPct > 90 ? "bg-destructive" : usedPct > 70 ? "bg-warning" : "bg-primary"
                 }`}
                 style={{ width: `${usedPct}%` }}
               />
@@ -410,7 +410,7 @@ export default function AdminStoragePage() {
                               disabled={restoreMut.isPending}
                               onClick={() => restoreMut.mutate(f.id)}
                             >
-                              <RotateCcw className="h-4 w-4 text-emerald-600" />
+                              <RotateCcw className="h-4 w-4 text-success" />
                             </Button>
                           ) : (
                             <Button

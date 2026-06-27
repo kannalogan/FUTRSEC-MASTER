@@ -110,8 +110,8 @@ export default function AIMockInterview() {
   return (
     <div className="p-5 lg:p-8 max-w-3xl mx-auto flex flex-col gap-5">
       <div className="flex items-center gap-3">
-        <div className="h-10 w-10 rounded-xl bg-rose-100 flex items-center justify-center">
-          <Mic2 className="h-5 w-5 text-rose-600" />
+        <div className="h-10 w-10 rounded-xl bg-rose-500/10 flex items-center justify-center">
+          <Mic2 className="h-5 w-5 text-rose-600 dark:text-rose-400" />
         </div>
         <div>
           <h1 className="font-heading text-xl font-bold text-foreground">AI Mock Interview</h1>
@@ -149,7 +149,7 @@ export default function AIMockInterview() {
               disabled={answerMut.isPending || finishMut.isPending}
             />
 
-            {recorder.error && <p className="text-xs text-red-600">{recorder.error}</p>}
+            {recorder.error && <p className="text-xs text-danger">{recorder.error}</p>}
 
             <div className="flex items-center gap-2">
               {voiceStatus.data?.input && (
@@ -165,7 +165,7 @@ export default function AIMockInterview() {
               </Button>
             </div>
             {(answerMut.isError || finishMut.isError) && (
-              <p className="text-xs text-red-600">{((answerMut.error || finishMut.error) as Error)?.message}</p>
+              <p className="text-xs text-danger">{((answerMut.error || finishMut.error) as Error)?.message}</p>
             )}
           </CardContent>
         </Card>
@@ -208,7 +208,7 @@ function SetupPanel(props: {
           </div>
           {!props.voiceAvailable && <p className="text-[11px] text-muted-foreground mt-1.5">Voice transcription needs an AI provider with audio support. You can still answer by typing.</p>}
         </Field>
-        {props.error && <p className="text-xs text-red-600">{props.error}</p>}
+        {props.error && <p className="text-xs text-danger">{props.error}</p>}
         <Button className="w-full" onClick={props.onStart} disabled={props.starting}>
           {props.starting ? <Loader2 className="h-4 w-4 animate-spin mr-1.5" /> : <Mic2 className="h-4 w-4 mr-1.5" />}
           Start Interview

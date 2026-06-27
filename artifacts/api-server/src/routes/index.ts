@@ -46,6 +46,9 @@ import supportRouter from "./support";
 import storageRouter from "./storage";
 import certificatesPdfRouter from "./certificates-pdf";
 import adminCertificateJobsRouter from "./admin-certificate-jobs";
+import studentTasksRouter from "./student-tasks";
+import journeyRouter from "./journey";
+import studentJourneyRouter from "./student-journey";
 
 const router: IRouter = Router();
 
@@ -96,5 +99,8 @@ router.use("/support", supportRouter);
 router.use(storageRouter);
 router.use(certificatesPdfRouter);
 router.use(adminCertificateJobsRouter);
+router.use(studentTasksRouter);
+router.use(journeyRouter);
+router.use(studentJourneyRouter);
 
 export default router;

@@ -9,4 +9,7 @@ Certificate PDF generation costs ~2.3s per certificate at runtime (measured), do
 
 **How to apply:** For any "generate N certificates" feature at enterprise scale, move generation to the existing BullMQ queue (background job + progress polling), not the synchronous request path. Treat bulk-generate of >~30 certs as needing async handling. Do not raise the 500 cap without first making generation async.
 
-Also: certificates are **admin-issued only** — there is no automatic issuance wired into course/lab completion flows. "Auto-issue on course completion" is a product gap, not a bug.
+Note: bulk generation is the **admin-initiated** path. Automatic per-learner issuance also
+exists via the event bus → autoIssueForCompletion (course/journey/lab_series/career_roadmap/
+internship) — see certificate-completion-sources.md. These are separate paths; both write to
+the same certificates table and share the same idempotency index.

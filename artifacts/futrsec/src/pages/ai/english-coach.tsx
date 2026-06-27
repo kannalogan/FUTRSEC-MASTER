@@ -55,8 +55,8 @@ export default function AIEnglishCoach() {
   return (
     <div className="p-5 lg:p-8 max-w-3xl mx-auto flex flex-col gap-5">
       <div className="flex items-center gap-3">
-        <div className="h-10 w-10 rounded-xl bg-teal-100 flex items-center justify-center">
-          <Languages className="h-5 w-5 text-teal-600" />
+        <div className="h-10 w-10 rounded-xl bg-teal-500/10 flex items-center justify-center">
+          <Languages className="h-5 w-5 text-teal-600 dark:text-teal-400" />
         </div>
         <div>
           <h1 className="font-heading text-xl font-bold text-foreground">AI English Coach</h1>
@@ -68,7 +68,7 @@ export default function AIEnglishCoach() {
         <CardContent className="pt-5 space-y-3">
           <div className="flex flex-wrap gap-2">
             {PROMPTS.map((p) => (
-              <button key={p} onClick={() => setText(p)} className="text-[11px] text-muted-foreground px-2.5 py-1.5 rounded-full border border-border/60 hover:border-teal-300 hover:text-teal-700 transition-colors text-left">
+              <button key={p} onClick={() => setText(p)} className="text-[11px] text-muted-foreground px-2.5 py-1.5 rounded-full border border-border/60 hover:border-teal-500/40 hover:text-teal-600 dark:hover:text-teal-400 transition-colors text-left">
                 {p}
               </button>
             ))}
@@ -79,7 +79,7 @@ export default function AIEnglishCoach() {
             placeholder="Write (or speak) a few sentences to be evaluated for grammar, vocabulary, fluency and confidence…"
             className="min-h-[160px] text-sm"
           />
-          {recorder.error && <p className="text-xs text-red-600">{recorder.error}</p>}
+          {recorder.error && <p className="text-xs text-danger">{recorder.error}</p>}
           <div className="flex items-center gap-2">
             {voiceStatus.data?.input && (
               <Button type="button" variant={recorder.recording ? "destructive" : "outline"} size="sm"
@@ -97,7 +97,7 @@ export default function AIEnglishCoach() {
       </Card>
 
       {mut.isError && (
-        <Card className="bg-red-50 border-red-200"><CardContent className="py-3 text-sm text-red-700 flex items-center gap-2"><AlertTriangle className="h-4 w-4" />{(mut.error as Error).message}</CardContent></Card>
+        <Card className="bg-danger/10 border-danger/30"><CardContent className="py-3 text-sm text-danger flex items-center gap-2"><AlertTriangle className="h-4 w-4" />{(mut.error as Error).message}</CardContent></Card>
       )}
 
       {mut.data && (
@@ -105,7 +105,7 @@ export default function AIEnglishCoach() {
           <Card className="bg-card border-border/60">
             <CardContent className="pt-5 flex items-center gap-5">
               <div className="text-center">
-                <div className="text-4xl font-bold text-teal-700">{mut.data.overall}</div>
+                <div className="text-4xl font-bold text-teal-600 dark:text-teal-400">{mut.data.overall}</div>
                 <div className="text-[10px] uppercase text-muted-foreground tracking-wide">Overall</div>
               </div>
               <div className="flex-1 space-y-2">
@@ -129,13 +129,13 @@ export default function AIEnglishCoach() {
 
           {mut.data.corrections.length > 0 && (
             <Card className="bg-card border-border/60">
-              <CardHeader className="pb-2"><CardTitle className="text-sm flex items-center gap-2"><AlertTriangle className="h-4 w-4 text-amber-600" />Corrections</CardTitle></CardHeader>
+              <CardHeader className="pb-2"><CardTitle className="text-sm flex items-center gap-2"><AlertTriangle className="h-4 w-4 text-warning" />Corrections</CardTitle></CardHeader>
               <CardContent className="space-y-2">
                 {mut.data.corrections.map((c, i) => (
                   <div key={i} className="text-sm border-b border-border/40 pb-2 last:border-0 last:pb-0">
-                    <span className="line-through text-red-500">{c.original}</span>
+                    <span className="line-through text-danger">{c.original}</span>
                     <ArrowRight className="h-3 w-3 inline mx-1.5 text-muted-foreground" />
-                    <span className="text-emerald-600 font-medium">{c.suggestion}</span>
+                    <span className="text-success font-medium">{c.suggestion}</span>
                     <p className="text-xs text-muted-foreground mt-0.5">{c.explanation}</p>
                   </div>
                 ))}
@@ -145,11 +145,11 @@ export default function AIEnglishCoach() {
 
           <div className="grid sm:grid-cols-2 gap-4">
             <Card className="bg-card border-border/60">
-              <CardHeader className="pb-2"><CardTitle className="text-sm flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-emerald-600" />Highlights</CardTitle></CardHeader>
-              <CardContent><ul className="space-y-1.5 text-sm">{mut.data.highlights.map((h, i) => <li key={i} className="flex gap-2"><span className="text-emerald-500 mt-0.5">•</span><span>{h}</span></li>)}</ul></CardContent>
+              <CardHeader className="pb-2"><CardTitle className="text-sm flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-success" />Highlights</CardTitle></CardHeader>
+              <CardContent><ul className="space-y-1.5 text-sm">{mut.data.highlights.map((h, i) => <li key={i} className="flex gap-2"><span className="text-success mt-0.5">•</span><span>{h}</span></li>)}</ul></CardContent>
             </Card>
             <Card className="bg-card border-border/60">
-              <CardHeader className="pb-2"><CardTitle className="text-sm flex items-center gap-2"><ArrowRight className="h-4 w-4 text-blue-600" />Improvement Plan</CardTitle></CardHeader>
+              <CardHeader className="pb-2"><CardTitle className="text-sm flex items-center gap-2"><ArrowRight className="h-4 w-4 text-blue-600 dark:text-blue-400" />Improvement Plan</CardTitle></CardHeader>
               <CardContent className="space-y-2">
                 {mut.data.roadmap.map((r, i) => (
                   <div key={i}>

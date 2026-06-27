@@ -84,7 +84,7 @@ export default function Profile() {
                 <Card
                   key={value}
                   onClick={() => setRole(value as typeof role)}
-                  className={`cursor-pointer transition-all border-2 ${
+                  className={`hover-lift cursor-pointer transition-all border-2 ${
                     role === value
                       ? "border-primary bg-primary/5"
                       : "border-border hover:border-muted-foreground/50"

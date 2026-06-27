@@ -35,12 +35,12 @@ const SLOT_HOURS = [9, 10, 11, 12, 13, 14, 15, 16, 17];
 
 const RESULT_BADGE: Record<string, string> = {
   pending: "bg-muted text-muted-foreground border-border",
-  pass: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30",
+  pass: "bg-success/10 text-success border-success/30",
   fail: "bg-destructive/15 text-destructive border-destructive/30",
-  selected: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30",
+  selected: "bg-success/10 text-success border-success/30",
   rejected: "bg-destructive/15 text-destructive border-destructive/30",
-  offer: "bg-blue-500/15 text-blue-700 dark:text-blue-400 border-blue-500/30",
-  joined: "bg-emerald-600/20 text-emerald-700 dark:text-emerald-400 border-emerald-600/40",
+  offer: "bg-info/10 text-info border-info/30",
+  joined: "bg-success/15 text-success border-success/40",
 };
 
 function dayString(d: Date): string {
@@ -428,7 +428,7 @@ function ScheduleCard({
     <div
       ref={setNodeRef}
       style={style}
-      className={`w-[240px] rounded-lg border border-border bg-card shadow-sm p-2.5 ${isDragging ? "opacity-60" : ""}`}
+      className={`w-[240px] rounded-lg border border-border bg-card elevation-1 p-2.5 ${isDragging ? "opacity-60" : ""}`}
     >
       <div className="flex items-start gap-1.5">
         <button {...listeners} {...attributes} className="mt-0.5 text-muted-foreground/60 hover:text-foreground cursor-grab active:cursor-grabbing touch-none">

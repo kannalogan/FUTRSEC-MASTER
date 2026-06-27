@@ -40,7 +40,7 @@ export default function MentorAtRiskPage() {
               transition={{ duration: 0.4, delay: idx * 0.1 }}
             >
               <Card className="glass-card overflow-hidden border-border/60">
-                <div className={`h-1.5 w-full ${s.riskLevel === 'high' ? 'bg-red-500' : s.riskLevel === 'medium' ? 'bg-amber-500' : 'bg-emerald-500'}`} />
+                <div className={`h-1.5 w-full ${s.riskLevel === 'high' ? 'bg-danger' : s.riskLevel === 'medium' ? 'bg-warning' : 'bg-success'}`} />
                 <CardContent className="p-6">
                   <div className="flex flex-col md:flex-row md:items-start justify-between gap-6">
                     <div className="flex-1">
@@ -81,7 +81,7 @@ export default function MentorAtRiskPage() {
                     <div className="w-full md:w-96 flex flex-col gap-6">
                       <div>
                         <h4 className="text-sm font-semibold text-foreground flex items-center gap-2 mb-3">
-                          <AlertTriangle className="h-4 w-4 text-amber-500" /> Identified Risk Signals
+                          <AlertTriangle className="h-4 w-4 text-warning" /> Identified Risk Signals
                         </h4>
                         <div className="flex flex-wrap gap-2">
                           {s.signals.map((sig, i) => (

@@ -30,9 +30,9 @@ interface MineResp {
 }
 
 const STATUS_STYLES: Record<string, string> = {
-  issued: "bg-emerald-500/15 text-emerald-600 border-emerald-500/30",
-  revoked: "bg-destructive/15 text-destructive border-destructive/30",
-  expired: "bg-amber-500/15 text-amber-600 border-amber-500/30",
+  issued: "bg-success/10 text-success border border-success/30",
+  revoked: "bg-danger/10 text-danger border border-danger/30",
+  expired: "bg-warning/10 text-warning border border-warning/30",
 };
 
 function linkedInAddUrl(c: MyCertificate): string {
@@ -97,7 +97,7 @@ export default function CertificatesPage() {
         subtitle="Your verified, shareable completion certificates"
         actions={
           verifiedCount > 0 ? (
-            <Badge className="bg-emerald-500/15 text-emerald-600 border-emerald-500/30">
+            <Badge className="bg-success/10 text-success border border-success/30">
               {verifiedCount} verified
             </Badge>
           ) : undefined
@@ -130,7 +130,7 @@ export default function CertificatesPage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.2, delay: idx * 0.04 }}
               >
-                <Card className="bg-card border-border/60 overflow-hidden hover:shadow-md transition-all">
+                <Card className="bg-card border-border/60 overflow-hidden hover-lift transition-all">
                   <div
                     className={`p-5 text-white relative ${
                       inactive

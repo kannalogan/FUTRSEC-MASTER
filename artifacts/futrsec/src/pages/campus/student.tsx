@@ -188,7 +188,7 @@ function MyRegistrationCard({ reg }: { reg: MyRegistration }) {
             <CalendarDays className="h-3.5 w-3.5" /> Registered: {fmtDate(reg.createdAt)}
           </div>
           {reg.attended && (
-            <div className="flex items-center gap-1.5 text-emerald-600">
+            <div className="flex items-center gap-1.5 text-success">
               <CheckCircle2 className="h-3.5 w-3.5" /> Attended
             </div>
           )}

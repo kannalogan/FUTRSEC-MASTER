@@ -8,12 +8,17 @@ import { setupEventHandlers } from "./lib/events";
 import { connectRedis } from "./lib/redis";
 import { startWorkers } from "./workers/index";
 import { globalLimiter } from "./lib/rate-limit";
+import { requestContextMiddleware } from "./lib/request-context";
 
 const app: Express = express();
 
 // Behind the Replit reverse proxy — trust a single hop so rate limiting and
 // req.ip resolve the real client IP from X-Forwarded-For.
 app.set("trust proxy", 1);
+
+// Bind client ip/user-agent into the async request context so audit logs
+// written anywhere during the request automatically capture who/ip/ua.
+app.use(requestContextMiddleware);
 
 app.use(
   helmet({

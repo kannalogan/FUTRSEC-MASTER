@@ -23,9 +23,9 @@ export default function Complete() {
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
           transition={{ type: "spring", delay: 0.2, stiffness: 200 }}
-          className="w-20 h-20 bg-emerald-500/10 rounded-full flex items-center justify-center mx-auto mb-6"
+          className="w-20 h-20 bg-success/10 rounded-full flex items-center justify-center mx-auto mb-6"
         >
-          <CheckCircle2 className="w-10 h-10 text-emerald-500" />
+          <CheckCircle2 className="w-10 h-10 text-success" />
         </motion.div>
 
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
