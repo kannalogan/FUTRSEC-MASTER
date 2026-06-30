@@ -4,19 +4,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { useLogout } from "@workspace/api-client-react";
 import { useUnreadNotificationCount } from "@/lib/notifications-api";
 import { ThemeToggle } from "@/components/theme-toggle";
-import {
-  LayoutDashboard, BookOpen, GraduationCap, Calendar, Map, Bookmark, Users,
-  Target, ClipboardList, CheckSquare, ListTodo, FolderKanban, Briefcase, Navigation,
-  FlaskConical, Cpu, Globe, Shield, Trophy, FileText,
-  Laptop, Award, Building, Send, MessageSquare, ClipboardCheck, History, Gift,
-  Library,
-  User, FileSearch, Star, BarChart2, TreePine, Link2,
-  Bot, Mic2, ScanSearch, BrainCircuit, Brain, TrendingUp, Languages,
-  CreditCard, Receipt, Bell, Lock, Settings, HelpCircle, HeadphonesIcon,
-  ChevronDown, ChevronRight, LogOut, X,
-  Gauge, Layers, BarChart3, AlertTriangle, Megaphone, ListChecks, UserCog,
-  ShieldCheck, CalendarCheck, LifeBuoy, Ticket, HardDrive, Footprints
-} from "lucide-react";
+import { LayoutDashboard, BookOpen, GraduationCap, Calendar, Map, Bookmark, Users, Target, ClipboardList, SquareCheck as CheckSquare, ListTodo, FolderKanban, Briefcase, Navigation, FlaskConical, Cpu, Globe, Shield, Trophy, FileText, Laptop, Award, Building, Send, MessageSquare, ClipboardCheck, History, Gift, Library, User, FileSearch, Star, ChartBar as BarChart2, TreePine, Link2, Bot, Mic as Mic2, ScanSearch, BrainCircuit, Brain, TrendingUp, Languages, CreditCard, Receipt, Bell, Lock, Settings, Circle as HelpCircle, Headphones as HeadphonesIcon, ChevronDown, ChevronRight, LogOut, X, Gauge, Layers, ChartBar as BarChart3, TriangleAlert as AlertTriangle, Megaphone, ListChecks, UserCog, ShieldCheck, CalendarCheck, LifeBuoy, Ticket, HardDrive, Footprints } from "lucide-react";
 
 export type NavItem = {
   label: string;
@@ -336,19 +324,19 @@ function NavLink({ item }: { item: NavItem }) {
   return (
     <Link
       href={item.href}
-      className={`relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sidebar-menu transition-all duration-150 group ${
+      className={`relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sidebar-menu transition-all duration-200 ease-out group ${
         isActive
-          ? "bg-primary/15 text-foreground"
-          : "text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent"
+          ? "bg-primary/10 text-foreground"
+          : "text-sidebar-foreground/55 hover:text-sidebar-foreground hover:bg-sidebar-accent/70"
       }`}
     >
       {isActive && (
-        <span className="absolute left-0 top-1/2 -translate-y-1/2 h-5 w-1 rounded-full bg-primary shadow-[0_0_12px_2px_rgba(59,130,246,0.7)]" />
+        <span className="absolute left-0 top-1/2 -translate-y-1/2 h-5 w-1 rounded-full bg-primary shadow-[0_0_16px_2px_rgba(59,130,246,0.5)]" />
       )}
-      <item.icon className={`h-[22px] w-[22px] shrink-0 ${isActive ? "text-primary" : "text-sidebar-foreground/40 group-hover:text-sidebar-foreground/80"}`} />
+      <item.icon className={`h-[22px] w-[22px] shrink-0 transition-colors duration-200 ${isActive ? "text-primary" : "text-sidebar-foreground/35 group-hover:text-sidebar-foreground/70"}`} />
       <span className="truncate">{item.label}</span>
       {item.badge && (
-        <span className="ml-auto text-xs font-semibold bg-primary text-white px-2 py-0.5 rounded-full">{item.badge}</span>
+        <span className="ml-auto text-xs font-semibold bg-primary text-white px-2 py-0.5 rounded-full shadow-sm">{item.badge}</span>
       )}
     </Link>
   );
@@ -394,13 +382,13 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
       {/* Logo */}
       <div className="relative flex items-center justify-between px-6 h-16 border-b border-sidebar-border shrink-0">
         <div className="flex items-center gap-2.5">
-          <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-primary to-violet flex items-center justify-center shadow-[0_0_18px_-2px_rgba(59,130,246,0.6)]">
+          <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-primary to-violet flex items-center justify-center shadow-[0_0_20px_-2px_rgba(59,130,246,0.5)] ring-1 ring-primary/20">
             <Shield className="h-5 w-5 text-white" />
           </div>
           <span className="font-heading font-bold text-lg tracking-tight text-sidebar-foreground">FUTRSEC</span>
         </div>
         {onClose && (
-          <button onClick={onClose} className="text-sidebar-foreground/50 hover:text-sidebar-foreground p-1">
+          <button onClick={onClose} className="text-sidebar-foreground/50 hover:text-sidebar-foreground p-1 rounded-lg hover:bg-sidebar-accent/50 transition-colors">
             <X className="h-5 w-5" />
           </button>
         )}

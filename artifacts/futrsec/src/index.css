@@ -44,6 +44,8 @@
   --color-electric: hsl(var(--electric));
   --color-violet: hsl(var(--violet));
   --color-emerald: hsl(var(--emerald));
+  --color-cyan: hsl(var(--cyan));
+  --color-teal: hsl(var(--teal));
 
   /* ──────────────────────────────────────────────────────────────
      SENTINEL color ramps (50→900) — theme-independent brand scales.
@@ -103,10 +105,42 @@
   --color-rose-700: hsl(0 74% 42%);
 
   /* Semantic aliases */
+  /* Cyan — tech surfaces */
+  --color-cyan-50: hsl(185 100% 97%);
+  --color-cyan-100: hsl(186 96% 93%);
+  --color-cyan-200: hsl(187 95% 87%);
+  --color-cyan-300: hsl(188 94% 78%);
+  --color-cyan-400: hsl(189 92% 68%);
+  --color-cyan-500: hsl(190 90% 50%);
+  --color-cyan-600: hsl(192 85% 43%);
+  --color-cyan-700: hsl(194 80% 36%);
+  --color-cyan-800: hsl(196 75% 30%);
+  --color-cyan-900: hsl(198 70% 24%);
+
+  /* Teal — balanced accent */
+  --color-teal-50: hsl(166 76% 97%);
+  --color-teal-100: hsl(166 72% 93%);
+  --color-teal-200: hsl(168 70% 85%);
+  --color-teal-300: hsl(170 68% 72%);
+  --color-teal-400: hsl(172 66% 58%);
+  --color-teal-500: hsl(170 80% 45%);
+  --color-teal-600: hsl(171 78% 38%);
+  --color-teal-700: hsl(173 76% 32%);
+  --color-teal-800: hsl(175 74% 26%);
+  --color-teal-900: hsl(177 72% 20%);
+
+  /* Semantic aliases */
   --color-info: hsl(217 91% 60%);
   --color-success: hsl(160 84% 39%);
   --color-warning: hsl(38 92% 50%);
   --color-danger: hsl(0 84% 60%);
+
+  /* Brand color shortcuts */
+  --color-electric: hsl(217 91% 60%);
+  --color-violet: hsl(258 90% 66%);
+  --color-emerald: hsl(160 84% 39%);
+  --color-cyan: hsl(190 90% 50%);
+  --color-teal: hsl(170 80% 45%);
 
   --color-sidebar: hsl(var(--sidebar));
   --color-sidebar-foreground: hsl(var(--sidebar-foreground));
@@ -171,6 +205,8 @@
   --electric: 217 91% 60%;         /* #3B82F6 */
   --violet: 258 90% 66%;           /* #8B5CF6 */
   --emerald: 160 84% 39%;          /* #10B981 */
+  --cyan: 190 90% 50%;             /* #06B6D4 */
+  --teal: 170 80% 45%;             /* #14B8A6 */
 
   --sidebar: 0 0% 100%;            /* #FFFFFF */
   --sidebar-foreground: 222 47% 11%;
@@ -480,6 +516,165 @@
   .focus-ring:focus-visible {
     outline: none;
     box-shadow: 0 0 0 2px hsl(var(--background)), 0 0 0 4px hsl(var(--ring) / 0.7);
+  }
+
+  /* Smooth scroll globally */
+  .scroll-smooth {
+    scroll-behavior: smooth;
+  }
+
+  /* Glass card with border glow */
+  .glass-glow {
+    position: relative;
+  }
+  .glass-glow::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(135deg, hsl(var(--foreground) / 0.08), hsl(var(--foreground) / 0.02));
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask-composite: exclude;
+    -webkit-mask-composite: xor;
+    pointer-events: none;
+  }
+
+  /* Glow border for interactive elements */
+  .glow-border {
+    transition: box-shadow 0.3s var(--ease-out-quart);
+  }
+  .glow-border:hover {
+    box-shadow: 0 0 0 1px hsl(var(--primary) / 0.2), 0 0 20px -2px hsl(var(--primary) / 0.15);
+  }
+
+  /* Subtle gradient text */
+  .gradient-text {
+    background: linear-gradient(135deg, hsl(var(--foreground)), hsl(var(--foreground) / 0.7));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* Animated gradient border */
+  .gradient-border {
+    position: relative;
+  }
+  .gradient-border::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(135deg, hsl(var(--primary) / 0.5), hsl(var(--accent) / 0.3), hsl(var(--primary) / 0.5));
+    background-size: 200% 200%;
+    animation: gradient-rotate 4s var(--ease-in-out) infinite;
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask-composite: exclude;
+    -webkit-mask-composite: xor;
+    pointer-events: none;
+  }
+  @keyframes gradient-rotate {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+
+  /* Pulse ring animation */
+  @keyframes pulse-ring {
+    0% { transform: scale(0.8); opacity: 1; }
+    100% { transform: scale(1.6); opacity: 0; }
+  }
+  .pulse-ring {
+    animation: pulse-ring 2s var(--ease-out-quart) infinite;
+  }
+
+  /* Staggered fade-in for list items */
+  .stagger-fade > * {
+    opacity: 0;
+    animation: fade-up 0.5s var(--ease-out-quart) forwards;
+  }
+  .stagger-fade > *:nth-child(1) { animation-delay: 0.05s; }
+  .stagger-fade > *:nth-child(2) { animation-delay: 0.1s; }
+  .stagger-fade > *:nth-child(3) { animation-delay: 0.15s; }
+  .stagger-fade > *:nth-child(4) { animation-delay: 0.2s; }
+  .stagger-fade > *:nth-child(5) { animation-delay: 0.25s; }
+  .stagger-fade > *:nth-child(6) { animation-delay: 0.3s; }
+  .stagger-fade > *:nth-child(7) { animation-delay: 0.35s; }
+  .stagger-fade > *:nth-child(8) { animation-delay: 0.4s; }
+  @keyframes fade-up {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Subtle ambient glow for premium elements */
+  .ambient-glow {
+    position: relative;
+  }
+  .ambient-glow::after {
+    content: "";
+    position: absolute;
+    inset: -1px;
+    border-radius: inherit;
+    background: linear-gradient(135deg, hsl(var(--primary) / 0.06), hsl(var(--accent) / 0.04));
+    filter: blur(20px);
+    z-index: -1;
+    pointer-events: none;
+  }
+
+  /* Image hover zoom with smooth transition */
+  .img-zoom {
+    transition: transform 0.6s var(--ease-out-quart);
+    overflow: hidden;
+  }
+  .img-zoom:hover {
+    transform: scale(1.05);
+  }
+
+  /* Magnetic button hover effect */
+  .magnetic-hover {
+    transition: transform 0.3s var(--ease-out-quart), box-shadow 0.3s var(--ease-out-quart);
+  }
+  .magnetic-hover:hover {
+    transform: scale(1.02) translateY(-1px);
+  }
+
+  /* Floating animation */
+  @keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-6px); }
+  }
+  .float {
+    animation: float 4s var(--ease-in-out) infinite;
+  }
+
+  /* Subtle slide-in from right */
+  @keyframes slide-in-right {
+    from { opacity: 0; transform: translateX(20px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+  .slide-in-right {
+    animation: slide-in-right 0.4s var(--ease-out-quart) forwards;
+  }
+
+  /* Spin slow for decorative elements */
+  @keyframes spin-slow {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+  .spin-slow {
+    animation: spin-slow 20s linear infinite;
+  }
+
+  /* Backdrop blur with subtle border */
+  .blur-subtle {
+    backdrop-filter: blur(16px) saturate(1.2);
+    -webkit-backdrop-filter: blur(16px) saturate(1.2);
+  }
+
+  /* Inner shadow for cards */
+  .inner-shadow {
+    box-shadow: inset 0 1px 0 0 hsl(var(--foreground) / 0.06), inset 0 -1px 0 0 hsl(var(--foreground) / 0.03);
   }
 }
 

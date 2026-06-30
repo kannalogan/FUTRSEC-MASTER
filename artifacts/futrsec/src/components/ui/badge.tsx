@@ -4,27 +4,20 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 
 const badgeVariants = cva(
-  // @replit
-  // Whitespace-nowrap: Badges should never wrap.
-  "whitespace-nowrap inline-flex items-center rounded-md border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2" +
-  " hover-elevate ",
+  "whitespace-nowrap inline-flex items-center rounded-md border px-2.5 py-0.5 text-xs font-semibold transition-all duration-200 ease-out focus:outline-none focus:ring-2 focus:ring-ring/50 focus:ring-offset-1",
   {
     variants: {
       variant: {
         default:
-          // @replit shadow-xs instead of shadow, no hover because we use hover-elevate
-          "border-transparent bg-primary text-primary-foreground shadow-xs",
+          "border-transparent bg-primary text-primary-foreground shadow-sm hover:shadow-md hover:brightness-110",
         secondary:
-          // @replit no hover because we use hover-elevate
-          "border-transparent bg-secondary text-secondary-foreground",
+          "border-transparent bg-secondary text-secondary-foreground hover:shadow-sm hover:brightness-105",
         destructive:
-          // @replit shadow-xs instead of shadow, no hover because we use hover-elevate
-          "border-transparent bg-destructive text-destructive-foreground shadow-xs",
-          // @replit shadow-xs" - use badge outline variable
-        outline: "text-foreground border [border-color:var(--badge-outline)]",
-        success: "border-transparent bg-success/15 text-success",
-        warning: "border-transparent bg-warning/15 text-warning",
-        info: "border-transparent bg-info/15 text-info",
+          "border-transparent bg-destructive text-destructive-foreground shadow-sm hover:shadow-md hover:brightness-110",
+        outline: "text-foreground border [border-color:var(--badge-outline)] hover:bg-accent/50 hover:text-accent-foreground",
+        success: "border-transparent bg-success/15 text-success hover:bg-success/25 hover:shadow-sm",
+        warning: "border-transparent bg-warning/15 text-warning hover:bg-warning/25 hover:shadow-sm",
+        info: "border-transparent bg-info/15 text-info hover:bg-info/25 hover:shadow-sm",
       },
     },
     defaultVariants: {
