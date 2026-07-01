@@ -1,3 +1,6 @@
 {
-  "disableAllHooks": true
+  "disableAllHooks": true,
+  "permissions": {
+    "allow": ["Bash(*)", "Read", "Write", "Edit", "Glob", "Grep"]
+  }
 }
