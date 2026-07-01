@@ -21,11 +21,11 @@ function MobileBottomNav() {
             <Link
               key={item.href + item.label}
               href={item.href}
-              className={`flex flex-col items-center justify-center gap-1 py-2.5 text-[11px] font-medium transition-colors ${
-                isActive ? "text-primary" : "text-sidebar-foreground/55 hover:text-sidebar-foreground"
+              className={`flex flex-col items-center justify-center gap-0.5 py-2 text-[10px] font-medium transition-colors ${
+                isActive ? "text-primary" : "text-sidebar-foreground/50 hover:text-sidebar-foreground"
               }`}
             >
-              <item.icon className="h-5 w-5" />
+              <item.icon className="h-[18px] w-[18px]" />
               <span className="truncate max-w-[64px]">{item.label}</span>
             </Link>
           );
@@ -71,26 +71,26 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <Topbar onOpenSearch={() => setSearchOpen(true)} />
 
         {/* Mobile / tablet header */}
-        <header className="lg:hidden h-14 border-b border-sidebar-border bg-sidebar flex items-center px-4 gap-3 shrink-0">
+        <header className="lg:hidden h-14 border-b border-sidebar-border bg-sidebar flex items-center px-3 gap-2 shrink-0">
           <button
             onClick={() => setMobileSidebarOpen(true)}
-            className="p-2 rounded-lg text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent transition-colors"
+            className="p-1.5 rounded-lg text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent transition-colors"
             aria-label="Open menu"
           >
             <Menu className="h-5 w-5" />
           </button>
-          <div className="flex items-center gap-2">
-            <div className="h-7 w-7 rounded-lg bg-gradient-to-br from-primary to-violet flex items-center justify-center">
+          <div className="flex items-center gap-1.5">
+            <div className="h-7 w-7 rounded-lg bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center">
               <Shield className="h-4 w-4 text-white" />
             </div>
-            <span className="font-heading font-bold text-base tracking-tight text-sidebar-foreground">FUTRSEC</span>
+            <span className="font-heading font-bold text-sm tracking-tight text-sidebar-foreground">FUTRSEC</span>
           </div>
           <button
             onClick={() => setSearchOpen(true)}
-            className="ml-auto p-2 rounded-lg text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent transition-colors"
+            className="ml-auto p-1.5 rounded-lg text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent transition-colors"
             aria-label="Search"
           >
-            <Search className="h-5 w-5" />
+            <Search className="h-4 w-4" />
           </button>
         </header>
 

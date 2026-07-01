@@ -53,19 +53,19 @@ export function Topbar({ onOpenSearch }: { onOpenSearch: () => void }) {
     user?.fullName?.[0]?.toUpperCase() ?? user?.email?.[0]?.toUpperCase() ?? "U";
 
   return (
-    <header className="hidden lg:flex h-16 shrink-0 items-center gap-4 border-b border-border bg-background/80 backdrop-blur-xl px-6 sticky top-0 z-30">
+    <header className="hidden lg:flex h-14 shrink-0 items-center gap-4 border-b border-border bg-background/90 backdrop-blur-lg px-5 sticky top-0 z-30">
       {/* Breadcrumb */}
-      <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 min-w-0">
+      <nav aria-label="Breadcrumb" className="flex items-center gap-1 min-w-0">
         {crumbs.length === 0 ? (
           <span className="text-body font-medium text-foreground">Home</span>
         ) : (
           crumbs.map((crumb, i) => {
             const isLast = i === crumbs.length - 1;
             return (
-              <div key={crumb.href} className="flex items-center gap-1.5 min-w-0">
-                {i > 0 && <ChevronRight className="h-3.5 w-3.5 text-muted-foreground/50 shrink-0" />}
+              <div key={crumb.href} className="flex items-center gap-1 min-w-0">
+                {i > 0 && <ChevronRight className="h-3 w-3 text-muted-foreground/40 shrink-0" />}
                 {isLast ? (
-                  <span className="text-body font-semibold text-foreground truncate">{crumb.label}</span>
+                  <span className="text-body font-medium text-foreground truncate">{crumb.label}</span>
                 ) : (
                   <Link
                     href={crumb.href}
@@ -85,12 +85,12 @@ export function Topbar({ onOpenSearch }: { onOpenSearch: () => void }) {
       {/* Global search trigger (⌘K) */}
       <button
         onClick={onOpenSearch}
-        className="focus-ring group flex items-center gap-2 rounded-xl border border-border bg-card/60 px-3 py-2 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+        className="focus-ring group flex items-center gap-2 rounded-lg border border-input bg-card/50 px-3 py-1.5 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
         aria-label="Search"
       >
         <Search className="h-4 w-4" />
         <span className="text-caption hidden xl:inline">Search…</span>
-        <kbd className="hidden xl:inline-flex items-center gap-0.5 rounded-md border border-border bg-muted px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground/80">
+        <kbd className="hidden xl:inline-flex items-center gap-0.5 rounded border border-input bg-muted px-1 py-0.5 text-badge text-muted-foreground">
           ⌘K
         </kbd>
       </button>
@@ -98,12 +98,12 @@ export function Topbar({ onOpenSearch }: { onOpenSearch: () => void }) {
       {/* Notifications */}
       <Link
         href="/notifications"
-        className="focus-ring relative flex h-10 w-10 items-center justify-center rounded-xl text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+        className="focus-ring relative flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
         aria-label="Notifications"
       >
-        <Bell className="h-5 w-5" />
+        <Bell className="h-4 w-4" />
         {unreadCount && unreadCount > 0 ? (
-          <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-danger px-1 text-[10px] font-bold text-white num-tabular">
+          <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-danger px-1 text-badge font-semibold text-white num-tabular">
             {unreadCount > 99 ? "99+" : unreadCount}
           </span>
         ) : null}
@@ -115,37 +115,37 @@ export function Topbar({ onOpenSearch }: { onOpenSearch: () => void }) {
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <button
-            className="focus-ring flex items-center gap-2.5 rounded-xl py-1 pl-1 pr-2 transition-colors hover:bg-accent"
+            className="focus-ring flex items-center gap-2 rounded-lg py-1 pl-1 pr-2 transition-colors hover:bg-accent"
             aria-label="Account menu"
           >
-            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-primary/30 to-violet/30 ring-1 ring-border">
-              <span className="text-sm font-bold text-foreground">{initial}</span>
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-primary/20 to-violet/20 border border-border">
+              <span className="text-caption font-semibold text-foreground">{initial}</span>
             </div>
             <div className="hidden min-w-0 text-left xl:block">
-              <p className="text-caption font-semibold text-foreground leading-tight truncate max-w-[140px]">
+              <p className="text-caption font-medium text-foreground leading-tight truncate max-w-[120px]">
                 {user?.fullName ?? user?.email ?? "Account"}
               </p>
-              <p className="text-[11px] capitalize text-muted-foreground leading-tight">{role}</p>
+              <p className="text-badge capitalize text-muted-foreground leading-tight">{role}</p>
             </div>
           </button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-56 elevation-3">
-          <DropdownMenuLabel className="truncate">
+        <DropdownMenuContent align="end" className="w-52 elevation-3">
+          <DropdownMenuLabel className="truncate text-card-title">
             {user?.fullName ?? user?.email ?? "Account"}
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
           <DropdownMenuItem asChild>
-            <Link href="/profile" className="cursor-pointer">
+            <Link href="/profile" className="cursor-pointer text-body">
               <User className="mr-2 h-4 w-4" /> Profile
             </Link>
           </DropdownMenuItem>
           <DropdownMenuItem asChild>
-            <Link href="/settings" className="cursor-pointer">
+            <Link href="/settings" className="cursor-pointer text-body">
               <Settings className="mr-2 h-4 w-4" /> Settings
             </Link>
           </DropdownMenuItem>
           <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={handleLogout} className="cursor-pointer text-danger focus:text-danger">
+          <DropdownMenuItem onClick={handleLogout} className="cursor-pointer text-body text-danger focus:text-danger">
             <LogOut className="mr-2 h-4 w-4" /> Log out
           </DropdownMenuItem>
         </DropdownMenuContent>
